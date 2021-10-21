@@ -1,0 +1,100 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<ClassDiagram MajorVersion="1" MinorVersion="1">
+  <Class Name="MachineClassLibrary.Laser.CircleParamsAdapter" Collapsed="true" BaseTypeListCollapsed="true">
+    <Position X="5.25" Y="1.25" Width="1.5" />
+    <TypeIdentifier>
+      <HashCode>AAAAAAAAAAAAAAAAAAAAAAAAAAAAABAAAAAAIAAAAAA=</HashCode>
+      <FileName>Laser\CircleParamsAdapter.cs</FileName>
+    </TypeIdentifier>
+    <Lollipop Position="0.2" Collapsed="true" />
+  </Class>
+  <Class Name="MachineClassLibrary.Laser.CirclePerforator" Collapsed="true" BaseTypeListCollapsed="true">
+    <Position X="7" Y="1.25" Width="1.5" />
+    <TypeIdentifier>
+      <HashCode>AAAAgAAABAAAAAAAAAAAEAABAAAAAAAAAAAAAAAAAAA=</HashCode>
+      <FileName>Laser\CirclePerforator.cs</FileName>
+    </TypeIdentifier>
+    <Lollipop Position="0.2" Collapsed="true" />
+  </Class>
+  <Class Name="MachineClassLibrary.Laser.CirclePreparator" Collapsed="true" BaseTypeListCollapsed="true">
+    <Position X="8.75" Y="1.25" Width="1.5" />
+    <TypeIdentifier>
+      <HashCode>AAAAIAAgAAAAAIAAAAAAAAAEBABAAAAAAAIAAAAAAAA=</HashCode>
+      <FileName>Laser\CirclePreparator.cs</FileName>
+    </TypeIdentifier>
+    <Lollipop Position="0.2" Collapsed="true" />
+  </Class>
+  <Class Name="MachineClassLibrary.Laser.PerforatorBuilder&lt;T&gt;" Collapsed="true" BaseTypeListCollapsed="true">
+    <Position X="5.25" Y="2.25" Width="1.5" />
+    <TypeIdentifier>
+      <HashCode>AAAAgAAAAAAAAAAAAAAAEAAAQAAAgAAAAAAAAAAAAAA=</HashCode>
+      <FileName>Laser\PerforatorBuilder.cs</FileName>
+    </TypeIdentifier>
+    <Lollipop Position="0.2" Collapsed="true" />
+  </Class>
+  <Class Name="MachineClassLibrary.Laser.MarkLaserParams" Collapsed="true">
+    <Position X="7" Y="2.25" Width="1.5" />
+    <TypeIdentifier>
+      <HashCode>AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAgAAAAAAEAAAA=</HashCode>
+      <FileName>Laser\MarkLaserParams.cs</FileName>
+    </TypeIdentifier>
+  </Class>
+  <Class Name="MachineClassLibrary.Laser.Markers.JCZLaser" Collapsed="true">
+    <Position X="9" Y="2.25" Width="1.5" />
+    <TypeIdentifier>
+      <HashCode>AIAAAAAAAAAAAAAAAAAAAAABAACAAAAAAAAAQAAACAA=</HashCode>
+      <FileName>Laser\Markers\JCZLaser.cs</FileName>
+    </TypeIdentifier>
+    <Lollipop Position="0.2" />
+  </Class>
+  <Interface Name="MachineClassLibrary.Laser.IMarkEntityPreparing&lt;TObject&gt;" Collapsed="true">
+    <Position X="5.25" Y="3.5" Width="1.5" />
+    <TypeIdentifier>
+      <HashCode>AAAAAAAAAAAAAAAAAAAAAAAEAAAAAAAAAAAAAAAAAAA=</HashCode>
+      <FileName>Laser\IMarkEntityPreparing.cs</FileName>
+    </TypeIdentifier>
+  </Interface>
+  <Interface Name="MachineClassLibrary.Laser.IMarkLaser" Collapsed="true">
+    <Position X="7" Y="3.5" Width="1.5" />
+    <TypeIdentifier>
+      <HashCode>AIAAAAAAAAAAAAAAAAAAAAABAACAAAAAAAAAQAAACAA=</HashCode>
+      <FileName>Laser\IMarkLaser.cs</FileName>
+    </TypeIdentifier>
+  </Interface>
+  <Interface Name="MachineClassLibrary.Laser.IParamsAdapting" Collapsed="true">
+    <Position X="8.75" Y="3.5" Width="1.5" />
+    <TypeIdentifier>
+      <HashCode>AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAIAAAAAA=</HashCode>
+      <FileName>Laser\IParamsAdapting.cs</FileName>
+    </TypeIdentifier>
+  </Interface>
+  <Interface Name="MachineClassLibrary.Laser.IPerforating" Collapsed="true">
+    <Position X="5.25" Y="4.25" Width="1.5" />
+    <TypeIdentifier>
+      <HashCode>AAAAAAAAAAAAAAAAAAAAAAABAAAAAAAAAAAAAAAAAAA=</HashCode>
+      <FileName>Laser\IPerforating.cs</FileName>
+    </TypeIdentifier>
+  </Interface>
+  <Interface Name="MachineClassLibrary.Laser.IPerforatorBuilder" Collapsed="true">
+    <Position X="7" Y="4.25" Width="1.5" />
+    <TypeIdentifier>
+      <HashCode>AAAAAAAAAAAAAAAAAAAAAAAAAAAAgAAAAAAAAAAAAAA=</HashCode>
+      <FileName>Laser\IPerforatorBuilder.cs</FileName>
+    </TypeIdentifier>
+  </Interface>
+  <Interface Name="MachineClassLibrary.Laser.ITechnologySequence" Collapsed="true">
+    <Position X="8.75" Y="4.25" Width="1.5" />
+    <TypeIdentifier>
+      <HashCode>AAAAAAAAAAAAAAAAAAAAAAAACAAAAAAAAAAAAAAAAAA=</HashCode>
+      <FileName>Laser\ITechnologySequence.cs</FileName>
+    </TypeIdentifier>
+  </Interface>
+  <Enum Name="MachineClassLibrary.Laser.Material" Collapsed="true">
+    <Position X="5.25" Y="5.25" Width="1.5" />
+    <TypeIdentifier>
+      <HashCode>AAAAAAAAAAAAAAAAAAAAAAAIAAAAAAAQAIAAAAAAAAA=</HashCode>
+      <FileName>Laser\Material.cs</FileName>
+    </TypeIdentifier>
+  </Enum>
+  <Font Name="Segoe UI" Size="9" />
+</ClassDiagram>
