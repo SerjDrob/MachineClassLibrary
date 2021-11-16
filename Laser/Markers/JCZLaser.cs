@@ -36,10 +36,10 @@ namespace MachineClassLibrary.Laser.Markers
             else IsMarkDeviceInit = true;
         }
 
-        public async Task<bool> PierceObjectAsync<T>(IEnumerable<IProcObject<T>> procObjects, ITechnologySequence technologySequence, IPerforatorBuilder perforatorBuilder)
+        public async Task<bool> PierceObjectAsync(IPerforatorBuilder perforatorBuilder)
         {
             var perforator = perforatorBuilder.Build();
-            await technologySequence.PerformSequence(procObjects, perforator);
+            await perforator.PierceObjectAsync();
             return true;
         }
 

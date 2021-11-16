@@ -50,9 +50,9 @@ namespace MachineClassLibrary.Machine.Machines
             _markLaser.InitMarkDevice();
         }
 
-        public async Task<bool> PierceObjectAsync<T>(IEnumerable<IProcObject<T>> procObjects, ITechnologySequence technologySequence, IPerforatorBuilder perforatorBuilder)
+        public async Task<bool> PierceObjectAsync(IPerforatorBuilder perforatorBuilder)
         {
-            return await _markLaser.PierceObjectAsync(procObjects, technologySequence, perforatorBuilder);
+            return await _markLaser.PierceObjectAsync(perforatorBuilder);
         }
 
         public void SetMarkDeviceParams()

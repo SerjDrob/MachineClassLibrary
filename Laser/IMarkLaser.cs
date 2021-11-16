@@ -10,7 +10,7 @@ namespace MachineClassLibrary.Laser
         public void InitMarkDevice();
         public void CloseMarkDevice();
         public void SetMarkDeviceParams();        
-        public Task<bool> PierceObjectAsync<T>(IEnumerable<IProcObject<T>> procObjects, ITechnologySequence technologySequence, IPerforatorBuilder perforatorBuilder);
+        public Task<bool> PierceObjectAsync(IPerforatorBuilder perforatorBuilder);
 
     }
 }

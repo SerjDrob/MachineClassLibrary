@@ -40,7 +40,7 @@
     </TypeIdentifier>
   </Class>
   <Class Name="MachineClassLibrary.Laser.Markers.JCZLaser" Collapsed="true">
-    <Position X="9" Y="2.25" Width="1.5" />
+    <Position X="8.75" Y="2.25" Width="1.5" />
     <TypeIdentifier>
       <HashCode>AIAAAAAAAAAAAAAAAAAAAAABAACAAAAAAAAAQAAACAA=</HashCode>
       <FileName>Laser\Markers\JCZLaser.cs</FileName>

@@ -6,6 +6,6 @@ namespace MachineClassLibrary.Laser
 {
     public interface ITechnologySequence
     {
-        public Task PerformSequence<T>(IEnumerable<IProcObject<T>> procObjects, IPerforating perforator);
+        public Task PerformSequence<T>(IProcObject<T> procObject, IPerforating perforator);
     }
 }
