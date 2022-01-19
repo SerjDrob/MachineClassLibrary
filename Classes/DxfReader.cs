@@ -1,15 +1,10 @@
 ﻿using MachineClassLibrary.Laser.Entities;
 using netDxf;
-using netDxf.Entities;
-using System;
 using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace MachineClassLibrary.Classes
 {
-   
+
     public class DxfReader
     {
         private readonly string _fileName;

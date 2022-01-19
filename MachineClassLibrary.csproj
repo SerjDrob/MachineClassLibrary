@@ -2,10 +2,11 @@
 
   <PropertyGroup>
     <TargetFramework>net5.0</TargetFramework>
+    <!--<UseWPF>true</UseWPF>-->
     <GeneratePackageOnBuild>False</GeneratePackageOnBuild>
-    <Version>1.6.8</Version>
+    <Version>1.6.9</Version>
     <Description>
-      
+      with netDxt.netstandart(2.4.0)
     </Description>
   </PropertyGroup>
 
@@ -23,20 +24,25 @@
     <PackageReference Include="AForge.Video" Version="2.2.5" />
     <PackageReference Include="AForge.Video.DirectShow" Version="2.2.5" />
     <PackageReference Include="EasyModbusTCP" Version="5.6.0" />
-    <PackageReference Include="FluentModbus" Version="3.2.0" />
-    <PackageReference Include="Microsoft.Toolkit.Diagnostics" Version="7.1.0" />
+    <PackageReference Include="FluentModbus" Version="3.2.1" />
+    <PackageReference Include="Microsoft.Toolkit.Diagnostics" Version="7.1.2" />
     <PackageReference Include="Microsoft.VisualStudio.Workspace" Version="16.3.43" />
-    <PackageReference Include="netDXF" Version="2.2.0.1" />
+    <!--<PackageReference Include="netDXF" Version="2.2.0.1" />-->
+    <PackageReference Include="netDxf.netstandard" Version="2.4.0" />
     <PackageReference Include="NModbus4" Version="2.1.0" />
     <PackageReference Include="propertychanged.fody" Version="3.4.0" />
-    <PackageReference Include="System.Drawing.Common" Version="5.0.2" />
+    <PackageReference Include="System.Drawing.Common" Version="6.0.0" />
   </ItemGroup>
-
+  
+  <ItemGroup>
+    <FrameworkReference Include="Microsoft.WindowsDesktop.App" />
+  </ItemGroup>
+  
   <ItemGroup>
     <Reference Include="AdvMotAPI">
       <HintPath>AdvMotAPI.dll</HintPath>
     </Reference>
-    <Reference Include="PresentationCore">
+    <!--<Reference Include="PresentationCore">
       <HintPath>..\..\..\..\..\Program Files\dotnet\shared\Microsoft.WindowsDesktop.App\5.0.9\PresentationCore.dll</HintPath>
     </Reference>
     <Reference Include="PresentationFramework">
@@ -44,7 +50,7 @@
     </Reference>
     <Reference Include="WindowsBase">
       <HintPath>..\..\..\..\..\Program Files\dotnet\shared\Microsoft.WindowsDesktop.App\5.0.9\WindowsBase.dll</HintPath>
-    </Reference>
+    </Reference>-->
   </ItemGroup>
 
 </Project>
