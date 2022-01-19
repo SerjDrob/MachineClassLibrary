@@ -1,4 +1,5 @@
-﻿using MachineClassLibrary.Machine.Machines;
+﻿using MachineClassLibrary.Classes;
+using MachineClassLibrary.Machine.Machines;
 using MachineClassLibrary.Machine.MotionDevices;
 using MachineClassLibrary.SFC;
 using MachineClassLibrary.VideoCapture;
@@ -10,13 +11,15 @@ using System.Windows.Media.Imaging;
 
 namespace MachineClassLibrary.Machine.Machines
 {
-    public class DicingBladeMachine : PCI124XXMachine, IHasCamera, IHasSCF, IHasValves, IHasSensors, IDisposable
+    public class DicingBladeMachine : PCI124XXMachine, IHasCamera, IHasSCF, IHasValves, IHasSensors, IDisposable, IHasPlaces<Place>
     {
 
         private readonly ISpindle _spindle;
         private readonly IVideoCapture _videoCamera;
         private Dictionary<Valves, (Ax axis, Do dOut)> _valves;
         private Dictionary<Sensors, (Ax axis, Di dIn, bool invertion, string name)> _sensors;
+        private Dictionary<Place, (Ax axis, double pos)[]> _places;
+        private Dictionary<Place, double> _singlePlaces;
         public DicingBladeMachine(ExceptionsAgregator exceptionsAgregator, MotionDevicePCI1240U motionDevice, IVideoCapture usbVideoCamera, ISpindle spindle) : base(exceptionsAgregator, motionDevice)
         {
             _videoCamera = usbVideoCamera;
@@ -45,7 +48,194 @@ namespace MachineClassLibrary.Machine.Machines
         public event EventHandler<SensorsEventArgs> OnSensorStateChanged;
 
         public event EventHandler<SpindleEventArgs> OnSpindleStateChanging;
+        public void ConfigureGeometry(Dictionary<Place, (Ax, double)[]> places)
+        {
+            if (_places is not null)
+                places.ToList().ForEach(e =>
+                {
+                    if (_places.ContainsKey(e.Key))
+                        _places[e.Key] = e.Value;
+                    else
+                        _places.Add(e.Key, e.Value);
+                });
+            else
+                _places = new Dictionary<Place, (Ax, double)[]>(places);
+        }
+        public async Task GoThereAsync(Place place, bool precisely = false)
+        {
+            if (place != Place.Home)
+            {
+                if (precisely)
+                {
+                    var ax = new (int, double, double)[_places[place].Length];
+                    for (var i = 0; i < _places[place].Length; i++)
+                    {
+                        var axis = _places[place][i].axis;
+                        ax[i] = (_axes[axis].AxisNum, _places[place][i].pos, _axes[axis].LineCoefficient);
+                    }
 
+                    _motionDevice.MoveAxesByCoorsPrecAsync(ax);
+                }
+                else
+                {
+                    var ax = new (int, double)[_places[place].Length];
+                    for (var i = 0; i < _places[place].Length; i++)
+                    {
+                        var axis = _places[place][i].axis;
+                        ax[i] = (_axes[axis].AxisNum, _places[place][i].pos);
+                    }
+
+                    _motionDevice.MoveAxesByCoorsAsync(ax);
+                }
+            }
+            else
+            {
+                var arr = new (int, double, uint)[]
+                {
+                    (_axes[Ax.X].AxisNum, _velRegimes[Ax.X][Velocity.Service], 1),
+                    (_axes[Ax.Y].AxisNum, _velRegimes[Ax.Y][Velocity.Service], 5),
+                    (_axes[Ax.Z].AxisNum, _velRegimes[Ax.Z][Velocity.Service], 1)
+                };
+                var axArr = new[] { Ax.X, Ax.Z };
+                _motionDevice.HomeMoving(arr);
+                foreach (var axis in axArr)
+                    Task.Run(() =>
+                    {
+                        while (!_axes[axis].LmtN) Task.Delay(10).Wait();
+                        ResetErrors(axis);
+                        _motionDevice.ResetAxisCounter(_axes[axis].AxisNum);
+                        MoveAxInPosAsync(axis, 1, true);
+                    });
+
+                _motionDevice.ResetAxisCounter(_axes[Ax.U].AxisNum);
+            }
+        }
+        public async Task MoveGpInPlaceAsync(Groups group, Place place, bool precisely = false)
+        {
+            MoveGpInPosAsync(group, _places[place].Select(p => p.pos).ToArray(), precisely);
+        }
+
+        public async Task MoveAxesInPlaceAsync(Place place)
+        {
+            foreach (var axpos in _places[place]) await MoveAxInPosAsync(axpos.axis, axpos.pos);
+        }
+
+        /// <summary>
+        ///     Actual coordinates translation
+        /// </summary>
+        /// <param name="place"></param>
+        /// <returns>Axes actual coordinates - place coordinates relatively</returns>
+        public (Ax, double)[] TranslateActualCoors(Place place)
+        {
+            var count = _places[place].Length;
+            var arr = new (Ax, double)[count];
+            for (var i = 0; i < count; i++)
+            {
+                var pl = _places[place][i];
+                arr[i] = (pl.axis, _axes[pl.axis].ActualPosition - pl.pos);
+            }
+
+            return arr;
+        }
+
+        public double TranslateActualCoors(Place place, Ax axis)
+        {
+            var res = new double();
+            try
+            {
+                var ax = _axes[axis];
+                res = ax.ActualPosition - _places[place].Where(a => a.axis == axis).First().pos;
+            }
+            catch (KeyNotFoundException)
+            {
+                throw new MachineException("Запрашиваемое место отсутствует");
+            }
+            catch (IndexOutOfRangeException)
+            {
+                throw new MachineException($"Для места {place} не обозначена координата {axis}");
+            }
+
+            return res;
+        }
+
+        /// <summary>
+        ///     Coordinate translation
+        /// </summary>
+        /// <param name="place"></param>
+        /// <param name="position"></param>
+        /// <returns>place coors - position coors</returns>
+        public (Ax, double)[] TranslateActualCoors(Place place, (Ax axis, double pos)[] position)
+        {
+            var temp = new List<(Ax, double)>();
+            foreach (var p in position)
+                if (_places[place].Select(a => a.axis).Contains(p.axis))
+                    temp.Add((p.axis, _places[place].GetVal(p.axis) - p.pos));
+            var arr = temp.ToArray();
+            return arr;
+        }
+
+        public double TranslateSpecCoor(Place place, double position, Ax axis)
+        {
+            var pl = new double();
+
+            try
+            {
+                pl = _places[place].Where(a => a.axis == axis).Select(p => p.pos).First() - position;
+            }
+            catch (ArgumentNullException)
+            {
+                throw new MachineException($"Координаты {axis} места {place} не существует");
+            }
+
+            return pl;
+        }
+        public void ConfigureGeometry(Dictionary<Place, double> places)
+        {
+            _singlePlaces = new Dictionary<Place, double>(places);
+        }
+
+        public double GetGeometry(Place place, int arrNum)
+        {
+            var pl = new double();
+
+            try
+            {
+                pl = _places[place][arrNum].pos;
+            }
+            catch (KeyNotFoundException)
+            {
+                throw new MachineException("Запрашиваемое место отсутствует");
+            }
+            catch (IndexOutOfRangeException)
+            {
+                throw new MachineException($"Для места {place} не обозначена координата № {arrNum}");
+            }
+
+            return pl;
+        }
+
+        public double GetGeometry(Place place, Ax axis)
+        {
+            var pl = new double();
+            var arrNum = new int();
+
+            if (!_places.ContainsKey(place))
+                throw new MachineException("Запрашиваемое место отсутствует");
+            try
+            {
+                pl = _places[place].Where(a => a.axis == axis).First().pos;
+            }
+            catch (KeyNotFoundException)
+            {
+                throw new MachineException($"Ось {axis} не сконфигурированна");
+            }
+            catch (ArgumentOutOfRangeException ex)
+            {
+                throw new MachineException($"Координаты в позиции {arrNum} места {place} не существует");
+            }
+
+            return pl;
+        }
         public void ConfigureSensors(Dictionary<Sensors, (Ax, Di, bool, string)> sensors)
         {
             _sensors = new Dictionary<Sensors, (Ax, Di, bool, string)>(sensors);
@@ -93,11 +283,6 @@ namespace MachineClassLibrary.Machine.Machines
             return name;
         }
 
-        public void StartVideoCapture(int ind)
-        {
-            _videoCamera.StartCamera(ind);
-        }
-
         public void FreezeVideoCapture()
         {
             _videoCamera.FreezeCameraImage();
@@ -138,5 +323,18 @@ namespace MachineClassLibrary.Machine.Machines
         {
             _spindle.Dispose();
         }
+
+        public void StartVideoCapture(int ind, int capabilitiesInd = 0)
+        {
+            _videoCamera.StartCamera(ind, capabilitiesInd);
+        }
+
+        public void StopVideoCapture()
+        {
+            _videoCamera.StopCamera();
+        }
+
+        public int GetCamerasCount()=> _videoCamera.GetDevicesCount();
+        public int GetCameraCapabilitiesCount()=>_videoCamera.GetVideCapabilitiesCount();
     }
 }

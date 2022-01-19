@@ -19,6 +19,8 @@ namespace MachineClassLibrary.Laser.Entities
         public Circle PObject { get; init; }
         public string LayerName { get; set; }
 
+        public IProcObject<Circle> CloneWithPosition(double x, double y) => new PCircle(x, y, Angle, PObject, LayerName);
+
         public (double x, double y) GetSize()
         {
             throw new NotImplementedException();

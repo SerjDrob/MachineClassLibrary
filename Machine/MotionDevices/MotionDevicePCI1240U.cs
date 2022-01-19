@@ -23,6 +23,9 @@ namespace MachineClassLibrary.Machine.MotionDevices
 
         public int AxisCount { get; set; }
         protected IntPtr[] _mAxishand;
+        protected uint _result;
+        protected Dictionary<PropertyID, uint> _errors = new Dictionary<PropertyID, uint>();
+        protected bool _initErrorsDictionaryInBaseClass = true;
         private List<IntPtr> _mGpHand;
         protected double _storeSpeed;
         private Dictionary<int, int> _bridges;
@@ -49,21 +52,21 @@ namespace MachineClassLibrary.Machine.MotionDevices
             var axisEnableEvent = new uint[AxisCount];
             var gpEnableEvent = new uint[1];
 
-            uint result;
+            //uint result;
             _mAxishand = new IntPtr[AxisCount];
             for (var i = 0; i < axisEnableEvent.Length; i++)
             {
-                result = Motion.mAcm_AxOpen(DeviceHandle, (ushort)i, ref _mAxishand[i]);
-                if (!Success(result))
+                _result = Motion.mAcm_AxOpen(DeviceHandle, (ushort)i, ref _mAxishand[i]);
+                if (!Success(_result))
                 {
-                    throw new MotionException($"Open Axis Failed With Error Code: [0x{result:X}]");
+                    throw new MotionException($"Open Axis Failed With Error Code: [0x{_result:X}]");
                 }
 
                 double cmdPosition = 0;
 
-                result = Motion.mAcm_AxSetCmdPosition(_mAxishand[i], cmdPosition);
+                _result = Motion.mAcm_AxSetCmdPosition(_mAxishand[i], cmdPosition);
 
-                result = Motion.mAcm_AxSetActualPosition(_mAxishand[i], cmdPosition);
+                _result = Motion.mAcm_AxSetActualPosition(_mAxishand[i], cmdPosition);
 
                 axisEnableEvent[i] |= (uint)EventType.EVT_AX_MOTION_DONE;
                 axisEnableEvent[i] |= (uint)EventType.EVT_AX_VH_START;
@@ -71,10 +74,10 @@ namespace MachineClassLibrary.Machine.MotionDevices
                 axisEnableEvent[i] |= (uint)EventType.EVT_AX_VH_START;
             }
 
-            result = Motion.mAcm_EnableMotionEvent(DeviceHandle, axisEnableEvent, gpEnableEvent, (uint)AxisCount, 1);
-            if (!Success(result))
+            _result = Motion.mAcm_EnableMotionEvent(DeviceHandle, axisEnableEvent, gpEnableEvent, (uint)AxisCount, 1);
+            if (!Success(_result))
             {
-                throw new MotionException($"Enable motion events Failed With Error Code: [0x{result:X}]");
+                throw new MotionException($"Enable motion events Failed With Error Code: [0x{_result:X}]");
             }
 
             return true;
@@ -87,7 +90,7 @@ namespace MachineClassLibrary.Machine.MotionDevices
         {
             var axEvtStatusArray = new uint[4];
             var gpEvtStatusArray = new uint[1];
-            var result = new uint();
+            //var result = new uint();
             var eventResult = new uint();
             var ioStatus = new uint();
             var position = new double();
@@ -101,8 +104,8 @@ namespace MachineClassLibrary.Machine.MotionDevices
                 {
                     var axState = new AxisState();
                     IntPtr ax = _mAxishand[num];
-                    result = Motion.mAcm_AxGetMotionIO(ax, ref ioStatus);
-                    if (Success(result))
+                    _result = Motion.mAcm_AxGetMotionIO(ax, ref ioStatus);
+                    if (Success(_result))
                     {
                         axState.nLmt = (ioStatus & (uint)Ax_Motion_IO.AX_MOTION_IO_LMTN) > 0;
                         axState.pLmt = (ioStatus & (uint)Ax_Motion_IO.AX_MOTION_IO_LMTP) > 0;
@@ -111,8 +114,8 @@ namespace MachineClassLibrary.Machine.MotionDevices
                     var data = 0;
                     for (var channel = 0; channel < 4; channel++)
                     {
-                        result = Motion.mAcm_AxDiGetBit(ax, (ushort)channel, ref bitData);
-                        if (Success(result))
+                        _result = Motion.mAcm_AxDiGetBit(ax, (ushort)channel, ref bitData);
+                        if (Success(_result))
                         {
                             axState.sensors = bitData != 0 ? axState.sensors.SetBit(channel) : axState.sensors.ResetBit(channel);
                         }
@@ -127,11 +130,11 @@ namespace MachineClassLibrary.Machine.MotionDevices
 
                     if (Success(Motion.mAcm_AxDoGetByte(ax, 0, ref bitData))) axState.outs = bitData;
 
-                    result = Motion.mAcm_AxGetCmdPosition(ax, ref position);
-                    if (Success(result)) axState.cmdPos = position;
+                    _result = Motion.mAcm_AxGetCmdPosition(ax, ref position);
+                    if (Success(_result)) axState.cmdPos = position;
 
-                    result = Motion.mAcm_AxGetActualPosition(ax, ref position);
-                    if (Success(result)) axState.actPos = position;
+                    _result = Motion.mAcm_AxGetActualPosition(ax, ref position);
+                    if (Success(_result)) axState.actPos = position;
 
                     if (Success(eventResult))
                     {
@@ -154,10 +157,10 @@ namespace MachineClassLibrary.Machine.MotionDevices
             var hand = new IntPtr();
             for (int i = 0; i < axisNums.Length; i++)
             {
-                var result = Motion.mAcm_GpAddAxis(ref hand, _mAxishand[axisNums[i]]);
-                if (!Success(result))
+                _result = Motion.mAcm_GpAddAxis(ref hand, _mAxishand[axisNums[i]]);
+                if (!Success(_result))
                 {
-                    throw new MotionException($"Open Axis Failed With Error Code: [0x{result:X}]");
+                    throw new MotionException($"Open Axis Failed With Error Code: [0x{_result:X}]");
                 }
             }
             _mGpHand.Add(hand);
@@ -192,18 +195,18 @@ namespace MachineClassLibrary.Machine.MotionDevices
         }
         protected double CalcActualPosition(int axisNum, double lineCoefficient)
         {
-            var result = new uint();
+            //var result = new uint();
             var position = new double();
             if (lineCoefficient != 0)
             {
-                result = Motion.mAcm_AxGetActualPosition(_mAxishand[axisNum], ref position);
-                if (!Success(result)) { throw new MotionException($"Get actual position Failed With Error Code: [0x{result:X}]"); }
+                _result = Motion.mAcm_AxGetActualPosition(_mAxishand[axisNum], ref position);
+                if (!Success(_result)) { throw new MotionException($"Get actual position Failed With Error Code: [0x{_result:X}]"); }
                 position *= lineCoefficient;
             }
             else
             {
-                result = Motion.mAcm_AxGetCmdPosition(_mAxishand[axisNum], ref position);
-                if (Success(result)) { throw new MotionException($"Get command position Failed With Error Code: [0x{result:X}]"); }
+                _result = Motion.mAcm_AxGetCmdPosition(_mAxishand[axisNum], ref position);
+                if (Success(_result)) { throw new MotionException($"Get command position Failed With Error Code: [0x{_result:X}]"); }
             }
 
             return position;
@@ -213,10 +216,10 @@ namespace MachineClassLibrary.Machine.MotionDevices
             var velHigh = vel;
             var velLow = vel / 2;
 
-            var result = Motion.mAcm_SetProperty(_mAxishand[axisNum], (uint)PropertyID.PAR_AxVelHigh, ref velHigh, 8);
-            if (!Success(result))
+            _result = Motion.mAcm_SetProperty(_mAxishand[axisNum], (uint)PropertyID.PAR_AxVelHigh, ref velHigh, 8);
+            if (!Success(_result))
             {
-                throw new MotionException($"Скорость {vel} не поддерживается осью № {axisNum}. Ошибка: {(ErrorCode)result}");
+                throw new MotionException($"Скорость {vel} не поддерживается осью № {axisNum}. Ошибка: {(ErrorCode)_result}");
             }
             Motion.mAcm_SetProperty(_mAxishand[axisNum], (uint)PropertyID.PAR_AxVelLow, ref velLow, 8);
         }
@@ -225,10 +228,10 @@ namespace MachineClassLibrary.Machine.MotionDevices
             uint buf = 4;
             var axesInGroup = new uint();
             var axisNum = new int();
-            var result = Motion.mAcm_GetProperty(_mGpHand[groupNum], (uint)PropertyID.CFG_GpAxesInGroup, ref axesInGroup, ref buf);
-            if (!Success(result))
+            _result = Motion.mAcm_GetProperty(_mGpHand[groupNum], (uint)PropertyID.CFG_GpAxesInGroup, ref axesInGroup, ref buf);
+            if (!Success(_result))
             {
-                throw new MotionException($"Запрос осей в группе № {groupNum}. Ошибка: {(ErrorCode)result}");
+                throw new MotionException($"Запрос осей в группе № {groupNum}. Ошибка: {(ErrorCode)_result}");
             }
             for (int i = 1; i < 5; i++)
             {
@@ -240,36 +243,36 @@ namespace MachineClassLibrary.Machine.MotionDevices
             }
             var velHigh = new double();
             buf = 8;
-            result = Motion.mAcm_GetProperty(_mAxishand[axisNum], (uint)PropertyID.PAR_AxVelHigh, ref velHigh, ref buf);
-            if (!Success(result))
+            _result = Motion.mAcm_GetProperty(_mAxishand[axisNum], (uint)PropertyID.PAR_AxVelHigh, ref velHigh, ref buf);
+            if (!Success(_result))
             {
-                throw new MotionException($"Запрос скорости для оси № {axisNum}. Ошибка: {(ErrorCode)result}");
+                throw new MotionException($"Запрос скорости для оси № {axisNum}. Ошибка: {(ErrorCode)_result}");
             }
             var velLow = velHigh / 2;
-            result = Motion.mAcm_SetProperty(_mGpHand[groupNum], (uint)PropertyID.PAR_GpVelLow, ref velLow, 8);
-            if (!Success(result))
+            _result = Motion.mAcm_SetProperty(_mGpHand[groupNum], (uint)PropertyID.PAR_GpVelLow, ref velLow, 8);
+            if (!Success(_result))
             {
-                throw new MotionException($"Скорость {velLow} не поддерживается группой № {groupNum}. Ошибка: {(ErrorCode)result}");
+                throw new MotionException($"Скорость {velLow} не поддерживается группой № {groupNum}. Ошибка: {(ErrorCode)_result}");
             }
-            result = Motion.mAcm_SetProperty(_mGpHand[groupNum], (uint)PropertyID.PAR_GpVelHigh, ref velHigh, 8);
-            if (!Success(result))
+            _result = Motion.mAcm_SetProperty(_mGpHand[groupNum], (uint)PropertyID.PAR_GpVelHigh, ref velHigh, 8);
+            if (!Success(_result))
             {
-                throw new MotionException($"Скорость {velHigh} не поддерживается группой № {groupNum}. Ошибка: {(ErrorCode)result}");
+                throw new MotionException($"Скорость {velHigh} не поддерживается группой № {groupNum}. Ошибка: {(ErrorCode)_result}");
             }
         }
         public void SetGroupVelocity(int groupNum, double velocity)
         {
             double velHigh = velocity;
             var velLow = velHigh / 2;
-            var result = Motion.mAcm_SetProperty(_mGpHand[groupNum], (uint)PropertyID.PAR_GpVelLow, ref velLow, 8);
-            if (!Success(result))
+            _result = Motion.mAcm_SetProperty(_mGpHand[groupNum], (uint)PropertyID.PAR_GpVelLow, ref velLow, 8);
+            if (!Success(_result))
             {
-                throw new MotionException($"Скорость {velLow} не поддерживается группой № {groupNum}. Ошибка: {(ErrorCode)result}");
+                throw new MotionException($"Скорость {velLow} не поддерживается группой № {groupNum}. Ошибка: {(ErrorCode)_result}");
             }
-            result = Motion.mAcm_SetProperty(_mGpHand[groupNum], (uint)PropertyID.PAR_GpVelHigh, ref velHigh, 8);
-            if (!Success(result))
+            _result = Motion.mAcm_SetProperty(_mGpHand[groupNum], (uint)PropertyID.PAR_GpVelHigh, ref velHigh, 8);
+            if (!Success(_result))
             {
-                throw new MotionException($"Скорость {velHigh} не поддерживается группой № {groupNum}. Ошибка: {(ErrorCode)result}");
+                throw new MotionException($"Скорость {velHigh} не поддерживается группой № {groupNum}. Ошибка: {(ErrorCode)_result}");
             }
         }
         public void SetBridgeOnAxisDin(int axisNum, int bitNum, bool setReset)
@@ -311,10 +314,10 @@ namespace MachineClassLibrary.Machine.MotionDevices
         public void SetAxisDout(int axisNum, ushort dOut, bool val)
         {
             var b = val ? (byte)1 : (byte)0;
-            var result = Motion.mAcm_AxDoSetBit(_mAxishand[axisNum], dOut, b);
-            if (!Success(result))
+            _result = Motion.mAcm_AxDoSetBit(_mAxishand[axisNum], dOut, b);
+            if (!Success(_result))
             {
-                ThrowMessage($"Switch on DOUT {dOut} of axis № {axisNum} failed with error:{(ErrorCode)result}", 0);
+                ThrowMessage($"Switch on DOUT {dOut} of axis № {axisNum} failed with error:{(ErrorCode)_result}", 0);
             }
         }
         public bool GetAxisDout(int axisNum, ushort dOut)
@@ -323,9 +326,9 @@ namespace MachineClassLibrary.Machine.MotionDevices
             Motion.mAcm_AxDoGetBit(_mAxishand[axisNum], dOut, ref data);
             return data != 0;
         }
-        public void SetAxisConfig(int axisNum, MotionDeviceConfigs configs)
+        public virtual void SetAxisConfig(int axisNum, MotionDeviceConfigs configs)
         {
-            uint res;
+            //uint res;
             var acc = configs.acc;
             var dec = configs.dec;
             var jerk = configs.jerk;
@@ -333,32 +336,34 @@ namespace MachineClassLibrary.Machine.MotionDevices
             double axMaxAcc = configs.maxAcc;
             double axMaxDec = configs.maxDec;
             var axisMaxVel = 4000000;
-            double axMaxVel = axisMaxVel / ppu;//configs.maxVel*ppu;
+            double axMaxVel = axisMaxVel / ppu;
             var buf = (uint)SwLmtEnable.SLMT_DIS;
-            var errors = new Dictionary<PropertyID, uint>();
+            if(_initErrorsDictionaryInBaseClass) _errors = new();
 
-            double homeVelLow = configs.homeVelLow;
-            double homeVelHigh = configs.homeVelHigh;
+            //double homeVelLow = configs.homeVelLow;
+            //double homeVelHigh = configs.homeVelHigh;
 
 
 
-            res = Motion.mAcm_SetProperty(_mAxishand[axisNum], (uint)PropertyID.CFG_AxHomeResetEnable, ref configs.reset, 4); errors.Add(PropertyID.CFG_AxHomeResetEnable, res);
-            res = Motion.mAcm_SetProperty(_mAxishand[axisNum], (uint)PropertyID.CFG_AxPPU, ref ppu, 4); errors.Add(PropertyID.CFG_AxPPU, res);
-            res = Motion.mAcm_SetProperty(_mAxishand[axisNum], (uint)PropertyID.CFG_AxMaxAcc, ref axMaxAcc, 8); errors.Add(PropertyID.CFG_AxMaxAcc, res);
-            res = Motion.mAcm_SetProperty(_mAxishand[axisNum], (uint)PropertyID.CFG_AxMaxDec, ref axMaxDec, 8); errors.Add(PropertyID.CFG_AxMaxDec, res);
-            res = Motion.mAcm_SetProperty(_mAxishand[axisNum], (uint)PropertyID.CFG_AxMaxVel, ref axMaxVel, 8); errors.Add(PropertyID.CFG_AxMaxVel, res);
-            res = Motion.mAcm_SetProperty(_mAxishand[axisNum], (uint)PropertyID.CFG_AxPulseInLogic, ref configs.plsInLogic, 4); errors.Add(PropertyID.CFG_AxPulseInLogic, res);
-            res = Motion.mAcm_SetProperty(_mAxishand[axisNum], (uint)PropertyID.CFG_AxPulseInMode, ref configs.plsInMde, 4); errors.Add(PropertyID.CFG_AxPulseInMode, res);
-            res = Motion.mAcm_SetProperty(_mAxishand[axisNum], (uint)PropertyID.CFG_AxPulseOutMode, ref configs.plsOutMde, 4); errors.Add(PropertyID.CFG_AxPulseOutMode, res);
-            res = Motion.mAcm_SetProperty(_mAxishand[axisNum], (uint)PropertyID.PAR_AxAcc, ref acc, 8); errors.Add(PropertyID.PAR_AxAcc, res);
-            res = Motion.mAcm_SetProperty(_mAxishand[axisNum], (uint)PropertyID.PAR_AxDec, ref dec, 8); errors.Add(PropertyID.PAR_AxDec, res);
-            res = Motion.mAcm_SetProperty(_mAxishand[axisNum], (uint)PropertyID.PAR_AxJerk, ref jerk, 8); errors.Add(PropertyID.PAR_AxJerk, res);
-            res = Motion.mAcm_SetProperty(_mAxishand[axisNum], (uint)PropertyID.PAR_AxHomeVelLow, ref homeVelLow, 8); errors.Add(PropertyID.PAR_AxHomeVelLow, res);
-            res = Motion.mAcm_SetProperty(_mAxishand[axisNum], (uint)PropertyID.PAR_AxHomeVelHigh, ref homeVelHigh, 8); errors.Add(PropertyID.PAR_AxHomeVelHigh, res);
-            res = Motion.mAcm_SetProperty(_mAxishand[axisNum], (uint)PropertyID.CFG_AxSwPelEnable, ref buf, 4); errors.Add(PropertyID.CFG_AxPelEnable, res);
+            _result = Motion.mAcm_SetProperty(_mAxishand[axisNum], (uint)PropertyID.CFG_AxHomeResetEnable, ref configs.reset, 4); _errors.Add(PropertyID.CFG_AxHomeResetEnable, _result);
+            _result = Motion.mAcm_SetProperty(_mAxishand[axisNum], (uint)PropertyID.CFG_AxPPU, ref ppu, 4); _errors.Add(PropertyID.CFG_AxPPU, _result);
+            _result = Motion.mAcm_SetProperty(_mAxishand[axisNum], (uint)PropertyID.CFG_AxMaxAcc, ref axMaxAcc, 8); _errors.Add(PropertyID.CFG_AxMaxAcc, _result);
+            _result = Motion.mAcm_SetProperty(_mAxishand[axisNum], (uint)PropertyID.CFG_AxMaxDec, ref axMaxDec, 8); _errors.Add(PropertyID.CFG_AxMaxDec, _result);
+            _result = Motion.mAcm_SetProperty(_mAxishand[axisNum], (uint)PropertyID.CFG_AxMaxVel, ref axMaxVel, 8); _errors.Add(PropertyID.CFG_AxMaxVel, _result);
+           // result = Motion.mAcm_SetProperty(_mAxishand[axisNum], (uint)PropertyID.CFG_AxPulseInLogic, ref configs.plsInLogic, 4); errors.Add(PropertyID.CFG_AxPulseInLogic, result);
+            _result = Motion.mAcm_SetProperty(_mAxishand[axisNum], (uint)PropertyID.CFG_AxPulseInMode, ref configs.plsInMde, 4); _errors.Add(PropertyID.CFG_AxPulseInMode, _result);
+            _result = Motion.mAcm_SetProperty(_mAxishand[axisNum], (uint)PropertyID.CFG_AxPulseOutMode, ref configs.plsOutMde, 4); _errors.Add(PropertyID.CFG_AxPulseOutMode, _result);
+            _result = Motion.mAcm_SetProperty(_mAxishand[axisNum], (uint)PropertyID.PAR_AxAcc, ref acc, 8); _errors.Add(PropertyID.PAR_AxAcc, _result);
+            _result = Motion.mAcm_SetProperty(_mAxishand[axisNum], (uint)PropertyID.PAR_AxDec, ref dec, 8); _errors.Add(PropertyID.PAR_AxDec, _result);
+            _result = Motion.mAcm_SetProperty(_mAxishand[axisNum], (uint)PropertyID.PAR_AxJerk, ref jerk, 8); _errors.Add(PropertyID.PAR_AxJerk, _result);
+           // result = Motion.mAcm_SetProperty(_mAxishand[axisNum], (uint)PropertyID.PAR_AxHomeVelLow, ref homeVelLow, 8); errors.Add(PropertyID.PAR_AxHomeVelLow, result);
+           // result = Motion.mAcm_SetProperty(_mAxishand[axisNum], (uint)PropertyID.PAR_AxHomeVelHigh, ref homeVelHigh, 8); errors.Add(PropertyID.PAR_AxHomeVelHigh, result);
+            _result = Motion.mAcm_SetProperty(_mAxishand[axisNum], (uint)PropertyID.CFG_AxSwPelEnable, ref buf, 4); _errors.Add(PropertyID.CFG_AxSwPelEnable, _result);
+
+           
 
             var errorText = new string("");
-            foreach (var error in errors.Where(err => err.Value != 0))
+            foreach (var error in _errors.Where(err => err.Value != 0))
             {
                 errorText += $"Axis №{axisNum} In {error.Key} has {(ErrorCode)error.Value}\n";
             }
@@ -366,7 +371,7 @@ namespace MachineClassLibrary.Machine.MotionDevices
         }
         public void SetGroupConfig(int gpNum, MotionDeviceConfigs configs)
         {
-            var res = new uint();
+            //var res = new uint();
             var acc = configs.acc;
             var dec = configs.dec;
             var jerk = configs.jerk;
@@ -375,20 +380,20 @@ namespace MachineClassLibrary.Machine.MotionDevices
             double axMaxDec = 180;
             double axMaxVel = 50;
             uint buf = 0;
-            res = Motion.mAcm_SetProperty(_mGpHand[gpNum], (uint)PropertyID.CFG_GpMaxAcc, ref axMaxAcc, 8);
-            res = Motion.mAcm_SetProperty(_mGpHand[gpNum], (uint)PropertyID.CFG_GpMaxDec, ref axMaxDec, 8);
-            res = Motion.mAcm_SetProperty(_mGpHand[gpNum], (uint)PropertyID.CFG_GpMaxVel, ref axMaxVel, 8);
-            res = Motion.mAcm_SetProperty(_mGpHand[gpNum], (uint)PropertyID.CFG_GpPPU, ref ppu, 4);
-            res = Motion.mAcm_SetProperty(_mGpHand[gpNum], (uint)PropertyID.PAR_GpAcc, ref acc, 8);
-            res = Motion.mAcm_SetProperty(_mGpHand[gpNum], (uint)PropertyID.PAR_GpDec, ref dec, 8);
-            res = Motion.mAcm_SetProperty(_mGpHand[gpNum], (uint)PropertyID.PAR_GpJerk, ref jerk, 8);
+            _result = Motion.mAcm_SetProperty(_mGpHand[gpNum], (uint)PropertyID.CFG_GpMaxAcc, ref axMaxAcc, 8);
+            _result = Motion.mAcm_SetProperty(_mGpHand[gpNum], (uint)PropertyID.CFG_GpMaxDec, ref axMaxDec, 8);
+            _result = Motion.mAcm_SetProperty(_mGpHand[gpNum], (uint)PropertyID.CFG_GpMaxVel, ref axMaxVel, 8);
+            _result = Motion.mAcm_SetProperty(_mGpHand[gpNum], (uint)PropertyID.CFG_GpPPU, ref ppu, 4);
+            _result = Motion.mAcm_SetProperty(_mGpHand[gpNum], (uint)PropertyID.PAR_GpAcc, ref acc, 8);
+            _result = Motion.mAcm_SetProperty(_mGpHand[gpNum], (uint)PropertyID.PAR_GpDec, ref dec, 8);
+            _result = Motion.mAcm_SetProperty(_mGpHand[gpNum], (uint)PropertyID.PAR_GpJerk, ref jerk, 8);
         }
         protected double GetAxisVelocity(int axisNum)
         {
-            uint res = 0;
+            //uint res = 0;
             double vel = 0;
             uint bufLength = 8;
-            res = Motion.mAcm_GetProperty(_mAxishand[axisNum], (uint)PropertyID.PAR_AxVelHigh, ref vel, ref bufLength);
+            _result = Motion.mAcm_GetProperty(_mAxishand[axisNum], (uint)PropertyID.PAR_AxVelHigh, ref vel, ref bufLength);
             return vel;
         }
         public virtual async Task MoveAxisPreciselyAsync(int axisNum, double lineCoefficient, double position, int rec = 0)
@@ -397,8 +402,8 @@ namespace MachineClassLibrary.Machine.MotionDevices
         }
         public void ResetAxisCounter(int axisNum)
         {
-            var result = Motion.mAcm_AxSetCmdPosition(_mAxishand[axisNum], 0);
-            result = Motion.mAcm_AxSetActualPosition(_mAxishand[axisNum], 0);
+            _result = Motion.mAcm_AxSetCmdPosition(_mAxishand[axisNum], 0);
+            _result = Motion.mAcm_AxSetActualPosition(_mAxishand[axisNum], 0);
         }
         public async Task HomeMoving((int axisNum, double vel, uint mode)[] axVels)
         {
@@ -413,7 +418,7 @@ namespace MachineClassLibrary.Machine.MotionDevices
             }
 
             ResetErrors();
-            var result = new uint();
+            //var result = new uint();
             foreach (var axvel in axVels)
             {
                 try
@@ -426,11 +431,11 @@ namespace MachineClassLibrary.Machine.MotionDevices
                     break;
                 }
 
-                result = Motion.mAcm_AxHome(_mAxishand[axvel.axisNum], axvel.mode, (uint)HomeDir.NegDir);
+                _result = Motion.mAcm_AxHome(_mAxishand[axvel.axisNum], axvel.mode, (uint)HomeDir.NegDir);
 
-                if (!Success(result))
+                if (!Success(_result))
                 {
-                    ThrowMessage?.Invoke($"Ось № {axvel.axisNum} прервало движение домой с ошибкой {(ErrorCode)result}", 0);
+                    ThrowMessage?.Invoke($"Ось № {axvel.axisNum} прервало движение домой с ошибкой {(ErrorCode)_result}", 0);
                 }
             }
         }
@@ -438,7 +443,7 @@ namespace MachineClassLibrary.Machine.MotionDevices
         {
             uint elements = (uint)position.Length;
             var state = new ushort();
-            uint res = 0;
+            //uint res = 0;
             double vel = 20;
             uint bufLength = 8;
 
@@ -457,14 +462,14 @@ namespace MachineClassLibrary.Machine.MotionDevices
         public async Task MoveGroupPreciselyAsync(int groupNum, double[] position, (int axisNum, double lineCoefficient)[] gpAxes)
         {
             var state = new ushort();
-            uint res = 0;
+            //uint res = 0;
             uint buf = 0;
 
             buf = (uint)SwLmtEnable.SLMT_DIS;
             for (int i = 0; i < gpAxes.Length; i++)
             {
-                res = Motion.mAcm_SetProperty(_mAxishand[gpAxes[i].axisNum], (uint)PropertyID.CFG_AxSwPelEnable, ref buf, 4);
-                res = Motion.mAcm_SetProperty(_mAxishand[gpAxes[i].axisNum], (uint)PropertyID.CFG_AxSwMelEnable, ref buf, 4);
+                _result = Motion.mAcm_SetProperty(_mAxishand[gpAxes[i].axisNum], (uint)PropertyID.CFG_AxSwPelEnable, ref buf, 4);
+                _result = Motion.mAcm_SetProperty(_mAxishand[gpAxes[i].axisNum], (uint)PropertyID.CFG_AxSwMelEnable, ref buf, 4);
             }
 
 
@@ -507,11 +512,11 @@ namespace MachineClassLibrary.Machine.MotionDevices
         private int GetAxisCount()
         {
             uint axesPerDev = default;
-            var result = Motion.mAcm_GetU32Property(DeviceHandle, (uint)PropertyID.FT_DevAxesCount, ref axesPerDev);
+            _result = Motion.mAcm_GetU32Property(DeviceHandle, (uint)PropertyID.FT_DevAxesCount, ref axesPerDev);
 
-            if (!Success(result))
+            if (!Success(_result))
             {
-                throw new MotionException($"Get Axis Number Failed With Error Code: [0x{result:X}]");
+                throw new MotionException($"Get Axis Number Failed With Error Code: [0x{_result:X}]");
             }
 
             return (int)axesPerDev;

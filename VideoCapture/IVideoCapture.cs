@@ -17,10 +17,11 @@ namespace MachineClassLibrary.VideoCapture
         /// Start video capture device
         /// </summary>
         /// <param name="ind">index of device</param>
-        public void StartCamera(int ind);
+        public void StartCamera(int ind, int capabilitiesInd = 0);
         public void FreezeCameraImage();
         public void StopCamera();
         public int GetDevicesCount();
+        int GetVideCapabilitiesCount();
 
         public event BitmapHandler OnBitmapChanged;
 

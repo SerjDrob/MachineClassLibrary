@@ -20,21 +20,15 @@ namespace DicingBlade.Classes
             _localWebCam.SignalToStop();
         }
 
-        public void StartCamera(int ind)
+        public void StartCamera(int ind, int capabilitiesInd = 0)
         {
             if (_localWebCam is null)
             {
                 _localWebCam = GetCamera(ind);
 
-                //while (_localWebCam is null)
-                //{
-                //    MessageBox.Show("Включите питание видеокамеры !");
-                //    _localWebCam = GetCamera();
-                //}
-
                 try
                 {
-                    _localWebCam.VideoResolution = _localWebCam.VideoCapabilities[1]; //8
+                    _localWebCam.VideoResolution = _localWebCam.VideoCapabilities[capabilitiesInd]; //8
                     _localWebCam.NewFrame += HandleNewFrame;
                 }
                 catch (IndexOutOfRangeException)
@@ -45,10 +39,11 @@ namespace DicingBlade.Classes
 
             _localWebCam.Start();
         }
-
+        public int GetVideCapabilitiesCount() => _localWebCam?.VideoCapabilities.Length ?? 0;
+       
         public void StopCamera()
         {
-            _localWebCam.Stop();
+            _localWebCam?.Stop();
         }
 
         public event BitmapHandler OnBitmapChanged;

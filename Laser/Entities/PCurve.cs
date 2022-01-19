@@ -19,6 +19,8 @@ namespace MachineClassLibrary.Laser.Entities
         public Curve PObject { get; init; }
         public string LayerName { get; set; }
 
+        public IProcObject<Curve> CloneWithPosition(double x, double y) => new PCurve(x, y, Angle, PObject, LayerName);
+
         public (double x, double y) GetSize()
         {
             throw new NotImplementedException();

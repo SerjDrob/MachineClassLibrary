@@ -36,10 +36,22 @@ namespace MachineClassLibrary.Laser.Markers
             else IsMarkDeviceInit = true;
         }
 
+        public async Task<bool> PierceLineAsync(double x1, double y1, double x2, double y2)
+        {
+            Lmc.lmc1_MarkLine(x1, y1, x2, y2, 0);
+            return true;
+        }
+
         public async Task<bool> PierceObjectAsync(IPerforatorBuilder perforatorBuilder)
         {
             var perforator = perforatorBuilder.Build();
             await perforator.PierceObjectAsync();
+            return true;
+        }
+
+        public async Task<bool> PiercePointAsync(double x = 0, double y = 0)
+        {
+            Lmc.lmc1_MarkPoint(x, y, 0, 0);
             return true;
         }
 

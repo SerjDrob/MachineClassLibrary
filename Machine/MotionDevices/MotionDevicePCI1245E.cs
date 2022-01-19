@@ -11,6 +11,18 @@ namespace MachineClassLibrary.Machine.MotionDevices
 {
     public class MotionDevicePCI1245E : MotionDevicePCI1240U
     {
+        public override void SetAxisConfig(int axisNum, MotionDeviceConfigs configs)
+        {
+            double homeVelLow = configs.homeVelLow;
+            double homeVelHigh = configs.homeVelHigh;
+            _errors = new();
+            _result = Motion.mAcm_SetProperty(_mAxishand[axisNum], (uint)PropertyID.CFG_AxPulseInLogic, ref configs.plsInLogic, 4); _errors.Add(PropertyID.CFG_AxPulseInLogic, _result);
+            _result = Motion.mAcm_SetProperty(_mAxishand[axisNum], (uint)PropertyID.PAR_AxHomeVelLow, ref homeVelLow, 8); _errors.Add(PropertyID.PAR_AxHomeVelLow, _result);
+            _result = Motion.mAcm_SetProperty(_mAxishand[axisNum], (uint)PropertyID.PAR_AxHomeVelHigh, ref homeVelHigh, 8); _errors.Add(PropertyID.PAR_AxHomeVelHigh, _result);
+            _initErrorsDictionaryInBaseClass = false;
+            base.SetAxisConfig(axisNum, configs);
+            _initErrorsDictionaryInBaseClass= true;
+        }
         public override async Task MoveAxisPreciselyAsync(int axisNum, double lineCoefficient, double position, int rec = 0)
         {
             var state = new uint();

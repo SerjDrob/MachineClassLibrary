@@ -40,7 +40,10 @@ namespace MachineClassLibrary.BehaviourTree
             }
             return true;
         }
-
+        public override Ticker SetBlock(Block block)
+        {
+            return (Ticker)base.SetBlock(block);
+        }
         public Ticker Hire(WorkerBase worker)
         {
             worker.GiveMeName(false, $"{_name}.1");

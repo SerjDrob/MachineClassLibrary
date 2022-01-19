@@ -23,6 +23,8 @@ namespace MachineClassLibrary.Laser.Entities
         public Line PObject { get; init; }
         public string LayerName { get; set; }
 
+        public IProcObject<Line> CloneWithPosition(double x, double y) => new PLine(x, y, Angle, PObject, LayerName);
+
         public (double x, double y) GetSize()
         {
             return (Math.Abs(PObject.X2 - PObject.X1), Math.Abs(PObject.Y2 - PObject.Y1));

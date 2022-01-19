@@ -1,4 +1,6 @@
 ﻿
+using System;
+
 namespace MachineClassLibrary.Laser.Entities
 {
     public interface IProcObject<TObject>
@@ -9,6 +11,6 @@ namespace MachineClassLibrary.Laser.Entities
         public double Angle { get; init; }
         public TObject PObject { get; init; }
         public (double x, double y) GetSize();
-        //object
+        public IProcObject<TObject> CloneWithPosition(double x, double y);
     }
 }

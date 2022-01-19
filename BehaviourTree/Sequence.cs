@@ -55,7 +55,14 @@ namespace MachineClassLibrary.BehaviourTree
         {
             return (Sequence)base.SetActionBeforeWork(action);
         }
-
+        public override Sequence SetBlock(Block block)
+        {
+            return (Sequence)base.SetBlock(block);
+        }
+        /// <summary>
+        /// Cancells all hired work
+        /// </summary>
+        /// <param name="info">true value means to cancell</param>
         public override void CancellAction(bool info)
         {
             _isCancelled = true;
