@@ -8,13 +8,14 @@ namespace MachineClassLibrary.Laser.Entities
 {
     public class PLine : IProcObject<Line>
     {
-        public PLine(double x, double y, double angle, Line pObject, string layerName)
+        public PLine(double x, double y, double angle, Line pObject, string layerName, int rgbColor)
         {
             X = x;
             Y = y;
             Angle = angle;
             PObject = pObject;
             LayerName = layerName;
+            ARGBColor = rgbColor;
         }
 
         public double X { get; init; }
@@ -22,8 +23,9 @@ namespace MachineClassLibrary.Laser.Entities
         public double Angle { get; init; }
         public Line PObject { get; init; }
         public string LayerName { get; set; }
+        public int ARGBColor { get; set; }
 
-        public IProcObject<Line> CloneWithPosition(double x, double y) => new PLine(x, y, Angle, PObject, LayerName);
+        public IProcObject<Line> CloneWithPosition(double x, double y) => new PLine(x, y, Angle, PObject, LayerName,ARGBColor);
 
         public (double x, double y) GetSize()
         {

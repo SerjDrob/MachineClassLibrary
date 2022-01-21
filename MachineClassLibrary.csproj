@@ -4,9 +4,9 @@
     <TargetFramework>net5.0</TargetFramework>
     <!--<UseWPF>true</UseWPF>-->
     <GeneratePackageOnBuild>False</GeneratePackageOnBuild>
-    <Version>1.6.9</Version>
+    <Version>1.8.6</Version>
     <Description>
-      with netDxt.netstandart(2.4.0)
+     
     </Description>
   </PropertyGroup>
 
@@ -25,6 +25,7 @@
     <PackageReference Include="AForge.Video.DirectShow" Version="2.2.5" />
     <PackageReference Include="EasyModbusTCP" Version="5.6.0" />
     <PackageReference Include="FluentModbus" Version="3.2.1" />
+    <PackageReference Include="IxMilia.Dxf" Version="0.8.2" />
     <PackageReference Include="Microsoft.Toolkit.Diagnostics" Version="7.1.2" />
     <PackageReference Include="Microsoft.VisualStudio.Workspace" Version="16.3.43" />
     <!--<PackageReference Include="netDXF" Version="2.2.0.1" />-->
@@ -32,6 +33,7 @@
     <PackageReference Include="NModbus4" Version="2.1.0" />
     <PackageReference Include="propertychanged.fody" Version="3.4.0" />
     <PackageReference Include="System.Drawing.Common" Version="6.0.0" />
+    <PackageReference Include="System.Management" Version="6.0.0" />
   </ItemGroup>
   
   <ItemGroup>

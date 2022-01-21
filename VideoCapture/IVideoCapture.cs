@@ -13,6 +13,8 @@ namespace MachineClassLibrary.VideoCapture
     public delegate void BitmapHandler(BitmapImage bitmapImage);
     public interface IVideoCapture
     {
+        Dictionary<int, (string, string[])> AvaliableDevices { get; }
+
         /// <summary>
         /// Start video capture device
         /// </summary>

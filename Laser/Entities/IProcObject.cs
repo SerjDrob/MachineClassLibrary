@@ -5,6 +5,7 @@ namespace MachineClassLibrary.Laser.Entities
 {
     public interface IProcObject<TObject>
     {
+        public int ARGBColor { get; set; }
         public string LayerName { get; set; }
         public double X { get; init; }
         public double Y { get; init; }

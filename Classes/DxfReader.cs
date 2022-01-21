@@ -5,7 +5,7 @@ using System.Collections.Generic;
 namespace MachineClassLibrary.Classes
 {
 
-    public class DxfReader
+    public class DxfReader : IDxfReader
     {
         private readonly string _fileName;
         public readonly DxfDocument Document;
@@ -18,7 +18,7 @@ namespace MachineClassLibrary.Classes
         {
             foreach (var circle in Document.Circles)
             {
-                yield return new PCircle(circle.Center.X, circle.Center.Y, 0, new Laser.Entities.Circle() { Radius = circle.Radius }, circle.Layer.Name);
+                yield return new PCircle(circle.Center.X, circle.Center.Y, 0, new Laser.Entities.Circle() { Radius = circle.Radius }, circle.Layer.Name, circle.Color.ToColor().ToArgb());
             }
         }
         public IEnumerable<PLine> GetLines()
@@ -33,7 +33,40 @@ namespace MachineClassLibrary.Classes
                     Y1 = line.StartPoint.Y,
                     X2 = line.EndPoint.X,
                     Y2 = line.EndPoint.Y
-                }, line.Layer.Name);
+                }, line.Layer.Name, line.Color.ToColor().ToArgb());
+            }
+        }
+
+        public IDictionary<string, int> GetLayers()
+        {
+            var result = new Dictionary<string, int>();
+            foreach (var layer in Document.Layers)
+            {
+                result.TryAdd(layer.Name,layer.Color.ToColor().ToArgb());
+            }
+            return result;
+        }
+
+        public IEnumerable<PLine> GetAllSegments()
+        {
+            foreach (var polyline in Document.LwPolylines)
+            {
+                var figures = polyline.Explode();
+                foreach (var newEntity in figures)
+                {
+                    if (newEntity is netDxf.Entities.Line dxfLine)
+                    {
+                        var xCenter = dxfLine.EndPoint.X - dxfLine.StartPoint.X;
+                        var yCenter = dxfLine.EndPoint.Y - dxfLine.StartPoint.Y;
+                        yield return new PLine(xCenter, yCenter, 0, new Laser.Entities.Line()
+                        {
+                            X1 = dxfLine.StartPoint.X,
+                            Y1 = dxfLine.StartPoint.Y,
+                            X2 = dxfLine.EndPoint.X,
+                            Y2 = dxfLine.EndPoint.Y
+                        }, dxfLine.Layer.Name, dxfLine.Color.ToColor().ToArgb());
+                    }                    
+                }
             }
         }
     }
