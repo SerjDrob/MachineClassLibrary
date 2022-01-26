@@ -8,6 +8,7 @@ using System.Collections.Generic;
 using System.Drawing;
 using System.Drawing.Imaging;
 using System.IO;
+using System.Linq;
 using System.Management;
 using System.Threading.Tasks;
 using System.Windows.Media.Imaging;
@@ -21,25 +22,46 @@ namespace DicingBlade.Classes
         private int _localCameraIndex;
         private int _localCameraCapabilities;
         private bool _isStarted = false;
-        public Dictionary<int, (string, string[])> AvaliableDevices { get; private set; }
+        private string _currentMonikerString;
+        public Dictionary<int, (string, string[])> AvaliableVideoCaptureDevices { get; private set; }
+        public bool IsVideoCaptureConnected { get; private set; } = false;
+
+        private string _errorMessage;
+
         private List<VideoCaptureDevice> _videoCaptureDevices;
-        private ManagementEventWatcher watcher = new ManagementEventWatcher();
-        private const string queryString = "SELECT * FROM Win32_DeviceChangeEvent WHERE EventType = 2";
+        private const string queryString = "SELECT * FROM Win32_DeviceChangeEvent WHERE EventType = 2 OR EventType = 3";
         public USBCamera()
         {
             _videoCaptureDevices = GetVideoCaptureDevices();
-
+            var watcher = new ManagementEventWatcher();
             var query = new WqlEventQuery(queryString);
+            watcher.Query = query;
             watcher.EventArrived += Watcher_EventArrived;
-
+            watcher.Start();
         }
+
+        public event EventHandler<VideoCaptureEventArgs> OnBitmapChanged;
 
         private void Watcher_EventArrived(object sender, EventArrivedEventArgs e)
         {
+            var eventNum = (int)e.NewEvent.Properties["EventType"].Value;
             _videoCaptureDevices = GetVideoCaptureDevices();
-            if (_isStarted & !_localCamera.IsRunning)
+
+            if (eventNum == 2)
             {
-                StartCamera(_localCameraIndex, _localCameraCapabilities);
+                if (_isStarted & !(_localCamera?.IsRunning ?? false))
+                {
+                    StartCamera(_localCameraIndex, _localCameraCapabilities);
+                }
+            }
+            else if (eventNum == 3 & _isStarted)
+            {
+                if (AvaliableVideoCaptureDevices.Values.Count == 0 | AvaliableVideoCaptureDevices.Values.Any(dev => dev.Item1 == _currentMonikerString))
+                {
+                    IsVideoCaptureConnected = false;
+                    _errorMessage = "Device has been switched off";
+                    OnBitmapChanged?.Invoke(this, new VideoCaptureEventArgs(new BitmapImage(), _errorMessage));
+                }
             }
         }
         private List<VideoCaptureDevice> GetVideoCaptureDevices()
@@ -48,18 +70,21 @@ namespace DicingBlade.Classes
             var videoCaptureDevices = new List<VideoCaptureDevice>();
             if (devices.Count != 0)
             {
-                AvaliableDevices = new();
+                AvaliableVideoCaptureDevices = new();
                 for (int i = 0; i < devices.Count; i++)
                 {
                     var device = new VideoCaptureDevice(devices[i].MonikerString);
-                    videoCaptureDevices.Add(device);
-                    var caps = new string[device.VideoCapabilities.Length];
-                    for (int n = 0; n < device.VideoCapabilities.Length; n++)
+                    if (device.VideoCapabilities?.Length > 0)
                     {
-                        var cap = device.VideoCapabilities[n];
-                        caps[n] = $"{cap.FrameSize.Width} X {cap.FrameSize.Height} {cap.FrameRate}fps";
+                        videoCaptureDevices.Add(device);
+                        var caps = new string[device.VideoCapabilities.Length];
+                        for (int n = 0; n < device.VideoCapabilities.Length; n++)
+                        {
+                            var cap = device.VideoCapabilities[n];
+                            caps[n] = $"{cap.FrameSize.Width} X {cap.FrameSize.Height} {cap.FrameRate}fps";
+                        }
+                        AvaliableVideoCaptureDevices.Add(i, (devices[i].MonikerString, caps));
                     }
-                    AvaliableDevices.Add(i, (devices[i].MonikerString, caps));
                 }
             }
             return videoCaptureDevices;
@@ -72,22 +97,33 @@ namespace DicingBlade.Classes
         public void StartCamera(int ind, int capabilitiesInd = 0)
         {
             _isStarted = true;
-            Guard.IsGreaterThan(AvaliableDevices.Count, 0, nameof(_videoCaptureDevices.Count));
-            Guard.IsInRange(ind, 0, AvaliableDevices.Count - 1, nameof(ind));
             try
             {
-                Guard.IsInRange(capabilitiesInd, 0, AvaliableDevices[ind].Item2.Length - 1, nameof(capabilitiesInd));
+                Guard.IsGreaterThan(AvaliableVideoCaptureDevices.Count, 0, nameof(_videoCaptureDevices.Count));
+            }
+            catch (ArgumentOutOfRangeException ex)
+            {
+                _errorMessage = $"Device count is 0";
+                return;
+            }
+            Guard.IsInRange(ind, 0, AvaliableVideoCaptureDevices.Count, nameof(ind));
+            try
+            {
+                Guard.IsInRange(capabilitiesInd, 0, AvaliableVideoCaptureDevices[ind].Item2.Length, nameof(capabilitiesInd));
             }
             catch (ArgumentOutOfRangeException)
             {
                 capabilitiesInd = 0;
             }
-            _localCamera = new VideoCaptureDevice(AvaliableDevices[ind].Item1);
+            _currentMonikerString = AvaliableVideoCaptureDevices[ind].Item1;
+            _localCamera = new VideoCaptureDevice(_currentMonikerString);
             if (!_localCamera.IsRunning)
             {
                 _localCamera.VideoResolution = _localCamera.VideoCapabilities[capabilitiesInd]; //8
                 _localCamera.NewFrame += HandleNewFrame;
                 _localCamera.Start();
+                IsVideoCaptureConnected = true;
+                _errorMessage = string.Empty;
                 _localCameraIndex = ind;
                 _localCameraCapabilities = capabilitiesInd;
             }
@@ -96,7 +132,7 @@ namespace DicingBlade.Classes
                 throw new Exception("No device found");
             }
         }
-        public int GetVideCapabilitiesCount() => _localCamera?.VideoCapabilities.Length ?? 0;
+        public int GetVideoCapabilitiesCount() => _localCamera?.VideoCapabilities.Length ?? 0;
 
         public void StopCamera()
         {
@@ -104,13 +140,11 @@ namespace DicingBlade.Classes
             _localCamera?.Stop();
         }
 
-        public event BitmapHandler OnBitmapChanged;
-
-        public int GetDevicesCount()
+        public int GetVideoCaptureDevicesCount()
         {
             return new FilterInfoCollection(FilterCategory.VideoInputDevice).Count;
         }
-        
+
         private async void HandleNewFrame(object sender, NewFrameEventArgs eventArgs)
         {
             try
@@ -129,7 +163,7 @@ namespace DicingBlade.Classes
                 bitmap.StreamSource = ms;
                 bitmap.EndInit();
                 bitmap.Freeze();
-                OnBitmapChanged?.Invoke(bitmap);
+                OnBitmapChanged?.Invoke(this, new VideoCaptureEventArgs(bitmap, _errorMessage));
             }
             catch (Exception ex)
             {

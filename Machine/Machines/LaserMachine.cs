@@ -24,6 +24,9 @@ namespace MachineClassLibrary.Machine.Machines
         private readonly IVideoCapture _videoCapture;
         private Dictionary<LMPlace, (Ax axis, double pos)[]> _places;
         private Dictionary<LMPlace, double> _singlePlaces;
+
+        public event EventHandler<VideoCaptureEventArgs> OnBitmapChanged;
+
         public LaserMachine(ExceptionsAgregator exceptionsAgregator, MotionDevicePCI1240U motionDevice, IMarkLaser markLaser, IVideoCapture videoCapture) : base(exceptionsAgregator, motionDevice)
         {
             Guard.IsNotNull(markLaser, nameof(markLaser));
@@ -220,24 +223,28 @@ namespace MachineClassLibrary.Machine.Machines
 
             return pl;
         }
-        private void _videoCapture_OnBitmapChanged(BitmapImage bitmapImage)
+        private void _videoCapture_OnBitmapChanged(object sender, VideoCaptureEventArgs eventArgs)
         {
-            OnVideoSourceBmpChanged?.Invoke(this, new BitmapEventArgs(bitmapImage));
+            OnBitmapChanged?.Invoke(this, eventArgs);
         }
 
         public bool IsMarkDeviceInit => _markLaser.IsMarkDeviceInit;
 
-        public event EventHandler<BitmapEventArgs> OnVideoSourceBmpChanged;
+        public Dictionary<int, (string, string[])> AvaliableVideoCaptureDevices => _videoCapture.AvaliableVideoCaptureDevices;
+
+        public bool IsVideoCaptureConnected => _videoCapture.IsVideoCaptureConnected;
+
+        //public event EventHandler<BitmapEventArgs> OnVideoSourceBmpChanged;
 
         public void CloseMarkDevice()
         {
             _markLaser.CloseMarkDevice();
         }
 
-        public void FreezeVideoCapture()
-        {
-            _videoCapture.FreezeCameraImage();
-        }
+        //public void FreezeVideoCapture()
+        //{
+        //    _videoCapture.FreezeCameraImage();
+        //}
 
         public void InitMarkDevice()
         {
@@ -264,10 +271,20 @@ namespace MachineClassLibrary.Machine.Machines
             return await _markLaser.PierceLineAsync(x1, y1, x2, y2);
         }
 
-        public void StartVideoCapture(int ind, int capabilitiesInd = 0) => _videoCapture.StartCamera(ind, capabilitiesInd);
+        public void StartCamera(int ind, int capabilitiesInd = 0) => _videoCapture.StartCamera(ind, capabilitiesInd);        
 
-        public void StopVideoCapture() => _videoCapture.StopCamera();
-        public int GetCamerasCount() => _videoCapture.GetDevicesCount();
-        public int GetCameraCapabilitiesCount() => _videoCapture.GetVideCapabilitiesCount();
+        public void FreezeCameraImage()=>_videoCapture.FreezeCameraImage();
+
+        public void StopCamera() => _videoCapture.StopCamera();        
+
+        public int GetVideoCaptureDevicesCount() => _videoCapture.GetVideoCaptureDevicesCount();      
+
+        public int GetVideoCapabilitiesCount() => _videoCapture.GetVideoCapabilitiesCount();
+
+        //public void StartVideoCapture(int ind, int capabilitiesInd = 0) => _videoCapture.StartCamera(ind, capabilitiesInd);
+
+        //public void StopVideoCapture() => _videoCapture.StopCamera();
+        //public int GetCamerasCount() => _videoCapture.GetVideoCaptureDevicesCount();
+        //public int GetCameraCapabilitiesCount() => _videoCapture.GetVideoCapabilitiesCount();
     }
 }

@@ -10,10 +10,10 @@ using System.Windows.Media.Imaging;
 
 namespace MachineClassLibrary.VideoCapture
 {
-    public delegate void BitmapHandler(BitmapImage bitmapImage);
     public interface IVideoCapture
     {
-        Dictionary<int, (string, string[])> AvaliableDevices { get; }
+        public Dictionary<int, (string, string[])> AvaliableVideoCaptureDevices { get; }
+        public bool IsVideoCaptureConnected { get; }
 
         /// <summary>
         /// Start video capture device
@@ -22,10 +22,11 @@ namespace MachineClassLibrary.VideoCapture
         public void StartCamera(int ind, int capabilitiesInd = 0);
         public void FreezeCameraImage();
         public void StopCamera();
-        public int GetDevicesCount();
-        int GetVideCapabilitiesCount();
+        public int GetVideoCaptureDevicesCount();
+        int GetVideoCapabilitiesCount();
+       
 
-        public event BitmapHandler OnBitmapChanged;
+        public event EventHandler<VideoCaptureEventArgs> OnBitmapChanged;
 
     }
 }

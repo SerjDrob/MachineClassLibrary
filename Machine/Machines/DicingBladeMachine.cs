@@ -36,18 +36,19 @@ namespace MachineClassLibrary.Machine.Machines
             }
         }
 
-        private void _videoCamera_OnBitmapChanged(BitmapImage bitmapImage)
+        private void _videoCamera_OnBitmapChanged(object sender, VideoCaptureEventArgs Args)
         {
-            OnVideoSourceBmpChanged?.Invoke(this, new BitmapEventArgs(bitmapImage));
+            OnBitmapChanged?.Invoke(this, Args);
         }
 
         public event EventHandler<ValveEventArgs> OnValveStateChanged;
 
-        public event EventHandler<BitmapEventArgs> OnVideoSourceBmpChanged;
 
         public event EventHandler<SensorsEventArgs> OnSensorStateChanged;
 
         public event EventHandler<SpindleEventArgs> OnSpindleStateChanging;
+        public event EventHandler<VideoCaptureEventArgs> OnBitmapChanged;
+
         public void ConfigureGeometry(Dictionary<Place, (Ax, double)[]> places)
         {
             if (_places is not null)
@@ -283,10 +284,10 @@ namespace MachineClassLibrary.Machine.Machines
             return name;
         }
 
-        public void FreezeVideoCapture()
-        {
-            _videoCamera.FreezeCameraImage();
-        }
+        //public void FreezeVideoCapture()
+        //{
+        //    _videoCamera.FreezeCameraImage();
+        //}
 
         public void SetSpindleFreq(int frequency)
         {
@@ -310,6 +311,11 @@ namespace MachineClassLibrary.Machine.Machines
         }
 
         private List<Sensors> _spindleBlockers;
+
+        public Dictionary<int, (string, string[])> AvaliableVideoCaptureDevices => _videoCamera.AvaliableVideoCaptureDevices;
+
+        public bool IsVideoCaptureConnected  => _videoCamera.IsVideoCaptureConnected; 
+
         public void StopSpindle()
         {
             _spindle.Stop();
@@ -324,17 +330,38 @@ namespace MachineClassLibrary.Machine.Machines
             _spindle.Dispose();
         }
 
-        public void StartVideoCapture(int ind, int capabilitiesInd = 0)
+        public void StartCamera(int ind, int capabilitiesInd = 0)
         {
             _videoCamera.StartCamera(ind, capabilitiesInd);
         }
 
-        public void StopVideoCapture()
+        public void FreezeCameraImage()
+        {
+            _videoCamera.FreezeCameraImage();
+        }
+
+        public void StopCamera()
         {
             _videoCamera.StopCamera();
         }
 
-        public int GetCamerasCount()=> _videoCamera.GetDevicesCount();
-        public int GetCameraCapabilitiesCount()=>_videoCamera.GetVideCapabilitiesCount();
+        public int GetVideoCaptureDevicesCount() => _videoCamera.GetVideoCaptureDevicesCount();
+       
+
+        public int GetVideoCapabilitiesCount() => _videoCamera.GetVideoCapabilitiesCount();
+       
+
+        //public void StartVideoCapture(int ind, int capabilitiesInd = 0)
+        //{
+        //    _videoCamera.StartCamera(ind, capabilitiesInd);
+        //}
+
+        //public void StopVideoCapture()
+        //{
+        //    _videoCamera.StopCamera();
+        //}
+
+        //public int GetCamerasCount()=> _videoCamera.GetDevicesCount();
+        //public int GetCameraCapabilitiesCount()=>_videoCamera.GetVideCapabilitiesCount();
     }
 }
