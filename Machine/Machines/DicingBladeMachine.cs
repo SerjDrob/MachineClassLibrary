@@ -314,7 +314,9 @@ namespace MachineClassLibrary.Machine.Machines
 
         public Dictionary<int, (string, string[])> AvaliableVideoCaptureDevices => _videoCamera.AvaliableVideoCaptureDevices;
 
-        public bool IsVideoCaptureConnected  => _videoCamera.IsVideoCaptureConnected; 
+        public bool IsVideoCaptureConnected  => _videoCamera.IsVideoCaptureConnected;
+
+        public string VideoCaptureMessage => _videoCamera.VideoCaptureMessage;
 
         public void StopSpindle()
         {

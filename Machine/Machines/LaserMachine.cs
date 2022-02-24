@@ -225,7 +225,9 @@ namespace MachineClassLibrary.Machine.Machines
         }
         private void _videoCapture_OnBitmapChanged(object sender, VideoCaptureEventArgs eventArgs)
         {
-            OnBitmapChanged?.Invoke(this, eventArgs);
+            var image = _videoCapture.IsVideoCaptureConnected ? eventArgs.Image : null;
+            var args = new VideoCaptureEventArgs(image, _videoCapture.VideoCaptureMessage);
+            OnBitmapChanged?.Invoke(this, args);
         }
 
         public bool IsMarkDeviceInit => _markLaser.IsMarkDeviceInit;
@@ -233,6 +235,8 @@ namespace MachineClassLibrary.Machine.Machines
         public Dictionary<int, (string, string[])> AvaliableVideoCaptureDevices => _videoCapture.AvaliableVideoCaptureDevices;
 
         public bool IsVideoCaptureConnected => _videoCapture.IsVideoCaptureConnected;
+
+        public string VideoCaptureMessage => _videoCapture.VideoCaptureMessage;
 
         //public event EventHandler<BitmapEventArgs> OnVideoSourceBmpChanged;
 

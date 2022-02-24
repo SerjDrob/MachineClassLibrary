@@ -12,21 +12,20 @@ namespace MachineClassLibrary.VideoCapture
 {
     public interface IVideoCapture
     {
-        public Dictionary<int, (string, string[])> AvaliableVideoCaptureDevices { get; }
-        public bool IsVideoCaptureConnected { get; }
-
+        Dictionary<int, (string, string[])> AvaliableVideoCaptureDevices { get; }
+        bool IsVideoCaptureConnected { get; }
+        string VideoCaptureMessage { get; }
         /// <summary>
         /// Start video capture device
         /// </summary>
         /// <param name="ind">index of device</param>
-        public void StartCamera(int ind, int capabilitiesInd = 0);
-        public void FreezeCameraImage();
-        public void StopCamera();
-        public int GetVideoCaptureDevicesCount();
-        int GetVideoCapabilitiesCount();
-       
+        void StartCamera(int ind, int capabilitiesInd = 0);
+        void FreezeCameraImage();
+        void StopCamera();
+        int GetVideoCaptureDevicesCount();
+        int GetVideoCapabilitiesCount();       
 
-        public event EventHandler<VideoCaptureEventArgs> OnBitmapChanged;
+        event EventHandler<VideoCaptureEventArgs> OnBitmapChanged;
 
     }
 }

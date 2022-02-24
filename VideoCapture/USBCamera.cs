@@ -8,7 +8,6 @@ using System.Collections.Generic;
 using System.Drawing;
 using System.Drawing.Imaging;
 using System.IO;
-using System.Linq;
 using System.Management;
 using System.Threading.Tasks;
 using System.Windows.Media.Imaging;
@@ -26,10 +25,13 @@ namespace DicingBlade.Classes
         public Dictionary<int, (string, string[])> AvaliableVideoCaptureDevices { get; private set; }
         public bool IsVideoCaptureConnected { get; private set; } = false;
 
+        public string VideoCaptureMessage => _errorMessage;
+
         private string _errorMessage;
 
         private List<VideoCaptureDevice> _videoCaptureDevices;
-        private const string queryString = "SELECT * FROM Win32_DeviceChangeEvent WHERE EventType = 2 OR EventType = 3";
+        private const string queryString = "SELECT * FROM Win32_DeviceChangeEvent WHERE EventType = 2";
+        private object _eventLocker = new object();
         public USBCamera()
         {
             _videoCaptureDevices = GetVideoCaptureDevices();
@@ -44,24 +46,12 @@ namespace DicingBlade.Classes
 
         private void Watcher_EventArrived(object sender, EventArrivedEventArgs e)
         {
-            var eventNum = (int)e.NewEvent.Properties["EventType"].Value;
+            Task.Delay(100).Wait();
             _videoCaptureDevices = GetVideoCaptureDevices();
 
-            if (eventNum == 2)
+            if (_isStarted & !(_localCamera?.IsRunning ?? false))
             {
-                if (_isStarted & !(_localCamera?.IsRunning ?? false))
-                {
-                    StartCamera(_localCameraIndex, _localCameraCapabilities);
-                }
-            }
-            else if (eventNum == 3 & _isStarted)
-            {
-                if (AvaliableVideoCaptureDevices.Values.Count == 0 | AvaliableVideoCaptureDevices.Values.Any(dev => dev.Item1 == _currentMonikerString))
-                {
-                    IsVideoCaptureConnected = false;
-                    _errorMessage = "Device has been switched off";
-                    OnBitmapChanged?.Invoke(this, new VideoCaptureEventArgs(new BitmapImage(), _errorMessage));
-                }
+                StartCamera(_localCameraIndex, _localCameraCapabilities);
             }
         }
         private List<VideoCaptureDevice> GetVideoCaptureDevices()
@@ -97,9 +87,11 @@ namespace DicingBlade.Classes
         public void StartCamera(int ind, int capabilitiesInd = 0)
         {
             _isStarted = true;
+            _localCameraIndex = ind;
+            _localCameraCapabilities = capabilitiesInd;
             try
             {
-                Guard.IsGreaterThan(AvaliableVideoCaptureDevices.Count, 0, nameof(_videoCaptureDevices.Count));
+                Guard.IsGreaterThan(AvaliableVideoCaptureDevices?.Count ?? 0, 0, nameof(_videoCaptureDevices.Count));
             }
             catch (ArgumentOutOfRangeException ex)
             {
@@ -119,7 +111,8 @@ namespace DicingBlade.Classes
             _localCamera = new VideoCaptureDevice(_currentMonikerString);
             if (!_localCamera.IsRunning)
             {
-                _localCamera.VideoResolution = _localCamera.VideoCapabilities[capabilitiesInd]; //8
+                _localCamera.VideoResolution = _localCamera.VideoCapabilities[capabilitiesInd];
+                _localCamera.PlayingFinished += _localCamera_PlayingFinished;
                 _localCamera.NewFrame += HandleNewFrame;
                 _localCamera.Start();
                 IsVideoCaptureConnected = true;
@@ -132,6 +125,15 @@ namespace DicingBlade.Classes
                 throw new Exception("No device found");
             }
         }
+
+        private void _localCamera_PlayingFinished(object sender, ReasonToFinishPlaying reason)
+        {
+            _localCamera.NewFrame -= HandleNewFrame;
+            IsVideoCaptureConnected = false;
+            _errorMessage = "Device has been switched off";
+            OnBitmapChanged?.Invoke(this, new VideoCaptureEventArgs(null, _errorMessage));
+        }
+
         public int GetVideoCapabilitiesCount() => _localCamera?.VideoCapabilities.Length ?? 0;
 
         public void StopCamera()
