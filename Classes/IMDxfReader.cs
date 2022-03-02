@@ -1,11 +1,8 @@
 ﻿using IxMilia.Dxf;
 using IxMilia.Dxf.Entities;
 using MachineClassLibrary.Laser.Entities;
-using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 
 
 namespace MachineClassLibrary.Classes
@@ -13,68 +10,55 @@ namespace MachineClassLibrary.Classes
     public class IMDxfReader : IDxfReader
     {
         private readonly string _fileName;
-        public readonly DxfFile Document;
+        private readonly DxfFile _document;
         public IMDxfReader(string fileName)
         {
             _fileName = fileName;
-            Document = DxfFile.Load(_fileName);
+            _document = DxfFile.Load(_fileName);
         }
         public IEnumerable<PCircle> GetCircles()
         {
-            foreach (var circle in Document.Entities.Where(entity => entity.EntityType is DxfEntityType.Circle))
-            {
-                yield return new PCircle(((DxfCircle)circle).Center.X, ((DxfCircle)circle).Center.Y, 0, new Laser.Entities.Circle() { Radius = ((DxfCircle)circle).Radius }, ((DxfCircle)circle).Layer, ((DxfCircle)circle).Color.ToRGB());
-            }
+            return _document.Entities.OfType<DxfCircle>()
+                .Select(circle => new PCircle(circle.Center.X, circle.Center.Y, 0, new Circle() { Radius = circle.Radius }, circle.Layer, circle.Color.ToRGB()));
         }
 
         public IEnumerable<PLine> GetLines()
         {
-            foreach (var line in Document.Entities.Where(entity => entity.EntityType is DxfEntityType.Line))
-            {
-                var xCenter = ((DxfLine)line).P2.X - ((DxfLine)line).P1.X;
-                var yCenter = ((DxfLine)line).P2.Y - ((DxfLine)line).P1.Y;
-                yield return new PLine(xCenter, yCenter, 0, new Laser.Entities.Line()
+            return _document.Entities.OfType<DxfLine>()
+                .Select(line =>
+                new PLine(line.P2.X - line.P1.X, line.P2.Y - line.P1.Y, 0, new Line()
                 {
-                    X1 = ((DxfLine)line).P1.X,
-                    Y1 = ((DxfLine)line).P1.Y,
-                    X2 = ((DxfLine)line).P2.X,
-                    Y2 = ((DxfLine)line).P2.Y
-                }, ((DxfLine)line).Layer, ((DxfLine)line).Color.ToRGB());
-            }
+                    X1 = line.P1.X,
+                    Y1 = line.P1.Y,
+                    X2 = line.P2.X,
+                    Y2 = line.P2.Y
+                }, line.Layer, line.Color.ToRGB())
+            );
         }
         public IEnumerable<PLine> GetAllSegments()
-        {            
-            foreach (var polyline in Document.Entities.Where(entity=>entity.EntityType is DxfEntityType.LwPolyline))
-            {
-
-                var figures = ((DxfLwPolyline)polyline).AsSimpleEntities();
-                
-                foreach (var newEntity in figures)
-                {
-                    if (newEntity is DxfLine dxfLine)
-                    {
-                        var xCenter = dxfLine.P2.X - dxfLine.P1.X;
-                        var yCenter = dxfLine.P2.Y - dxfLine.P1.Y;
-                        yield return new PLine(xCenter, yCenter, 0, new Laser.Entities.Line()
-                        {
-                            X1 = dxfLine.P1.X,
-                            Y1 = dxfLine.P1.Y,
-                            X2 = dxfLine.P2.X,
-                            Y2 = dxfLine.P2.Y
-                        }, dxfLine.Layer, dxfLine.Color.ToRGB());
-                    }                    
-                }
-
-            }
-        }
-        public IDictionary<string, int> GetLayers()
         {
-            var result  = new Dictionary<string, int>();    
-            foreach (var layer in Document.Layers)
-            {
-                result.TryAdd(layer.Name,layer.Color.ToRGB());
-            }
-            return result;
+            return _document.Entities.OfType<DxfLwPolyline>()
+                 .Select(
+                     polyline => polyline.AsSimpleEntities()
+                     .OfType<DxfLine>().Select(dxfLine =>
+                     new PLine(dxfLine.P2.X - dxfLine.P1.X, dxfLine.P2.Y - dxfLine.P1.Y, 0, new Line()
+                     {
+                         X1 = dxfLine.P1.X,
+                         Y1 = dxfLine.P1.Y,
+                         X2 = dxfLine.P2.X,
+                         Y2 = dxfLine.P2.Y
+                     }, polyline.Layer, dxfLine.Color.ToRGB())
+                 )).SelectMany(x => x);
+        }
+        public IDictionary<string, int> GetLayers() => _document.Layers.ToDictionary(layer => layer.Name, layer => layer.Color.ToRGB());
+
+        public IDictionary<string, IEnumerable<(string objType, int count)>> GetLayersStructure()
+        {
+            return _document.Layers
+                .ToDictionary(layer => layer.Name, layer => _document.Entities
+                    .Where(ent => ent.Layer == layer.Name)
+                    .GroupBy(ent => ent.EntityTypeString)
+                    .Select(group => (group.Key, group.Count())));
         }
     }
 }

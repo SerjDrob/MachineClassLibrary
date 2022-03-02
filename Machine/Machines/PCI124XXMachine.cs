@@ -1,14 +1,10 @@
 ﻿using MachineClassLibrary.Classes;
 using MachineClassLibrary.Machine.MotionDevices;
-using MachineClassLibrary.SFC;
-using MachineClassLibrary.VideoCapture;
 using Microsoft.Toolkit.Diagnostics;
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Text;
 using System.Threading.Tasks;
-using System.Windows.Media.Imaging;
 
 namespace MachineClassLibrary.Machine.Machines
 {
@@ -463,49 +459,52 @@ namespace MachineClassLibrary.Machine.Machines
 
         private void MotionDevice_TransmitAxState(object obj, AxNumEventArgs axNumEventArgs)
         {
-            var axisNum = axNumEventArgs.AxisNum;
-            var state = axNumEventArgs.AxisState;
-
-            if (_axes != null)
+            if (_axes is not null)
             {
-                var axis = _axes.Where(a => a.Value.AxisNum == axisNum).First().Key;
-                _axes[axis].ActualPosition = state.actPos * _axes[axis].LineCoefficient;
-                _axes[axis].CmdPosition = state.cmdPos;
-                _axes[axis].DIs = state.sensors;
-                _axes[axis].DOs = state.outs;
-                _axes[axis].LmtN = state.nLmt;
-                _axes[axis].LmtP = state.pLmt;
-                _axes[axis].HomeDone = state.homeDone;
-                _axes[axis].MotionDone = state.motionDone;
-                var position = _axes[axis].ActualPosition;
-                if (_axes[axis].LineCoefficient == 0) position = state.cmdPos;
+                var axisNum = axNumEventArgs.AxisNum;
+                var state = axNumEventArgs.AxisState;
+                if (axisNum < _axes.Count())
+                {
+                    var axis = _axes.Where(a => a.Value.AxisNum == axisNum).First().Key;
+                    _axes[axis].ActualPosition = state.actPos * _axes[axis].LineCoefficient;
+                    _axes[axis].CmdPosition = state.cmdPos;
+                    _axes[axis].DIs = state.sensors;
+                    _axes[axis].DOs = state.outs;
+                    _axes[axis].LmtN = state.nLmt;
+                    _axes[axis].LmtP = state.pLmt;
+                    _axes[axis].HomeDone = state.homeDone;
+                    _axes[axis].MotionDone = state.motionDone;
+                    var position = _axes[axis].ActualPosition;
+                    if (_axes[axis].LineCoefficient == 0) position = state.cmdPos;
 
-                OnAxisMotionStateChanged?.Invoke(this, new AxisStateEventArgs(axis, position, state.nLmt, state.pLmt, state.motionDone,
-                    state.vhStart));
+                    OnAxisMotionStateChanged?.Invoke(this, new AxisStateEventArgs(axis, position, state.nLmt, state.pLmt, state.motionDone,
+                        state.vhStart));
 
 
 
-                //foreach (var sensor in Enum.GetValues(typeof(Sensors)))
-                //    if (_sensors != null)
-                //    {
-                //        var ax = _sensors[(Sensors)sensor].axis;
-                //        var condition = _axes[ax].GetDi(_sensors[(Sensors)sensor].dIn) ^
-                //                        _sensors[(Sensors)sensor].invertion;
-                //        if (!condition & (_spindleBlockers?.Contains((Sensors)sensor) ?? false))
-                //        {
-                //            StopSpindle();
-                //            //throw new MachineException(
-                //            //    $"Аварийное отключение шпинделя. {_sensors[(Sensors) sensor].name}");
-                //        }
-                //        OnSensorStateChanged?.Invoke(this, new SensorsEventArgs((Sensors)sensor, condition));
-                //    }
+                    //foreach (var sensor in Enum.GetValues(typeof(Sensors)))
+                    //    if (_sensors != null)
+                    //    {
+                    //        var ax = _sensors[(Sensors)sensor].axis;
+                    //        var condition = _axes[ax].GetDi(_sensors[(Sensors)sensor].dIn) ^
+                    //                        _sensors[(Sensors)sensor].invertion;
+                    //        if (!condition & (_spindleBlockers?.Contains((Sensors)sensor) ?? false))
+                    //        {
+                    //            StopSpindle();
+                    //            //throw new MachineException(
+                    //            //    $"Аварийное отключение шпинделя. {_sensors[(Sensors) sensor].name}");
+                    //        }
+                    //        OnSensorStateChanged?.Invoke(this, new SensorsEventArgs((Sensors)sensor, condition));
+                    //    }
 
-                //foreach (var valve in Enum.GetValues(typeof(Valves)))
-                //    if (_valves != null)
-                //    {
-                //        var ax = _valves[(Valves)valve].axis;
-                //        OnValveStateChanged?.Invoke(this, new ValveEventArgs((Valves)valve, _axes[ax].GetDo(_valves[(Valves)valve].dOut)));
-                //    }
+                    //foreach (var valve in Enum.GetValues(typeof(Valves)))
+                    //    if (_valves != null)
+                    //    {
+                    //        var ax = _valves[(Valves)valve].axis;
+                    //        OnValveStateChanged?.Invoke(this, new ValveEventArgs((Valves)valve, _axes[ax].GetDo(_valves[(Valves)valve].dOut)));
+                    //    }
+                }
+
             }
         }
 

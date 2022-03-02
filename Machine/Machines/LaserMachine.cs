@@ -61,7 +61,7 @@ namespace MachineClassLibrary.Machine.Machines
                         ax[i] = (_axes[axis].AxisNum, _places[place][i].pos, _axes[axis].LineCoefficient);
                     }
 
-                    _motionDevice.MoveAxesByCoorsPrecAsync(ax);
+                    await _motionDevice.MoveAxesByCoorsPrecAsync(ax);
                 }
                 else
                 {
@@ -72,7 +72,7 @@ namespace MachineClassLibrary.Machine.Machines
                         ax[i] = (_axes[axis].AxisNum, _places[place][i].pos);
                     }
 
-                    _motionDevice.MoveAxesByCoorsAsync(ax);
+                    await _motionDevice.MoveAxesByCoorsAsync(ax);
                 }
             }
             else
@@ -84,11 +84,11 @@ namespace MachineClassLibrary.Machine.Machines
                     (_axes[Ax.Z].AxisNum, _velRegimes[Ax.Z][Velocity.Service], 1)
                 };
                 var axArr = new[] { Ax.X, Ax.Z };
-                _motionDevice.HomeMoving(arr);
+                _motionDevice.HomeMoving(arr);// maybe make it awaitable with returning info about success?
                 foreach (var axis in axArr)
                     Task.Run(() =>
                     {
-                        while (!_axes[axis].LmtN) Task.Delay(10).Wait();
+                        while (!_axes[axis].LmtN) Task.Delay(10).Wait();// _axes[axis].Wait(LmtN, waitingTime) maybe throw an Exception?
                         ResetErrors(axis);
                         _motionDevice.ResetAxisCounter(_axes[axis].AxisNum);
                         MoveAxInPosAsync(axis, 1, true);
@@ -99,7 +99,7 @@ namespace MachineClassLibrary.Machine.Machines
         }
         public async Task MoveGpInPlaceAsync(Groups group, LMPlace place, bool precisely = false)
         {
-            MoveGpInPosAsync(group, _places[place].Select(p => p.pos).ToArray(), precisely);
+            await MoveGpInPosAsync(group, _places[place].Select(p => p.pos).ToArray(), precisely);
         }
 
         public async Task MoveAxesInPlaceAsync(LMPlace place)

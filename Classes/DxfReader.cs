@@ -69,5 +69,10 @@ namespace MachineClassLibrary.Classes
                 }
             }
         }
+
+        public IDictionary<string, IEnumerable<(string objType, int count)>> GetLayersStructure()
+        {
+            throw new System.NotImplementedException();
+        }
     }
 }
