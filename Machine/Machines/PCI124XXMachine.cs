@@ -32,7 +32,7 @@ namespace MachineClassLibrary.Machine.Machines
 
             if (_motionDevice.DevicesConnection())
             {
-                _motionDevice.StartMonitoringAsync();
+                _ = _motionDevice.StartMonitoringAsync();
                 _motionDevice.TransmitAxState += MotionDevice_TransmitAxState;
             }
         }
@@ -251,7 +251,11 @@ namespace MachineClassLibrary.Machine.Machines
 
         public void EmgStop()
         {
-            throw new NotImplementedException();
+            _motionDevice.StopAxis(0);
+            _motionDevice.StopAxis(1);
+            _motionDevice.StopAxis(2);
+            _motionDevice.StopAxis(3);
+
         }
 
 

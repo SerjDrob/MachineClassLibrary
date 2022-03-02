@@ -98,7 +98,7 @@ namespace MachineClassLibrary.Machine.Machines
                     (_axes[Ax.Z].AxisNum, _velRegimes[Ax.Z][Velocity.Service], 1)
                 };
                 var axArr = new[] { Ax.X, Ax.Z };
-                _motionDevice.HomeMoving(arr);
+                _motionDevice.HomeMovingAsync(arr);
                 foreach (var axis in axArr)
                     Task.Run(() =>
                     {

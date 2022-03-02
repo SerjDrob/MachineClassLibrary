@@ -84,16 +84,17 @@ namespace MachineClassLibrary.Machine.Machines
                     (_axes[Ax.Z].AxisNum, _velRegimes[Ax.Z][Velocity.Service], 1)
                 };
                 var axArr = new[] { Ax.X, Ax.Z };
-                _motionDevice.HomeMoving(arr);// maybe make it awaitable with returning info about success?
-                foreach (var axis in axArr)
-                    Task.Run(() =>
-                    {
-                        while (!_axes[axis].LmtN) Task.Delay(10).Wait();// _axes[axis].Wait(LmtN, waitingTime) maybe throw an Exception?
-                        ResetErrors(axis);
-                        _motionDevice.ResetAxisCounter(_axes[axis].AxisNum);
-                        MoveAxInPosAsync(axis, 1, true);
-                    });
+                await _motionDevice.HomeMovingAsync(arr);
 
+                var tasks = new List<Task>(arr.Length);
+
+                foreach (var axis in axArr)
+                {
+                    ResetErrors(axis);
+                    _motionDevice.ResetAxisCounter(_axes[axis].AxisNum);
+                    tasks.Add(MoveAxInPosAsync(axis, 1, true));
+                }
+                await Task.WhenAll(tasks);
                 _motionDevice.ResetAxisCounter(_axes[Ax.U].AxisNum);
             }
         }

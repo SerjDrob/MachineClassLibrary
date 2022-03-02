@@ -26,7 +26,6 @@ namespace MachineClassLibrary.Machine.MotionDevices
         private List<IntPtr> _mGpHand;
         protected double _storeSpeed;
         private Dictionary<int, int> _bridges;
-        private AxisState[] _axisStates;
         public static IntPtr DeviceHandle { get; private set; }
 
         public event EventHandler<AxNumEventArgs> TransmitAxState;
@@ -38,7 +37,6 @@ namespace MachineClassLibrary.Machine.MotionDevices
             try
             {
                 AxisCount = GetAxisCount();
-                _axisStates = new AxisState[AxisCount];
             }
             //catch (MotionException e)
             //{
@@ -71,7 +69,10 @@ namespace MachineClassLibrary.Machine.MotionDevices
                 axisEnableEvent[i] |= (uint)EventType.EVT_AX_VH_START;
                 axisEnableEvent[i] |= (uint)EventType.EVT_AX_HOME_DONE;
                 axisEnableEvent[i] |= (uint)EventType.EVT_AX_VH_START;
+               
             }
+
+            gpEnableEvent[0] |= (uint)EventType.EVT_AX_MOTION_DONE;
 
             _result = Motion.mAcm_EnableMotionEvent(DeviceHandle, axisEnableEvent, gpEnableEvent, (uint)AxisCount, 1);
             if (!Success(_result))
@@ -81,9 +82,9 @@ namespace MachineClassLibrary.Machine.MotionDevices
 
             return true;
         }
-        public async Task StartMonitoringAsync()
+        public Task StartMonitoringAsync()
         {
-            await DeviceStateMonitorAsync();
+            return DeviceStateMonitorAsync();
         }
         private async Task DeviceStateMonitorAsync()
         {
@@ -97,7 +98,7 @@ namespace MachineClassLibrary.Machine.MotionDevices
 
             while (true)
             {
-                eventResult = Motion.mAcm_CheckMotionEvent(DeviceHandle, axEvtStatusArray, gpEvtStatusArray, (uint)AxisCount, 0, 10);
+                eventResult = Motion.mAcm_CheckMotionEvent(DeviceHandle, axEvtStatusArray, gpEvtStatusArray, (uint)AxisCount, 1, 10);
                 for (int num = 0; num < _mAxishand.Length; num++)
                 {
                     var axState = new AxisState();
@@ -136,9 +137,11 @@ namespace MachineClassLibrary.Machine.MotionDevices
                     if (Success(eventResult))
                     {
                         axState.motionDone = (axEvtStatusArray[num] & (uint)EventType.EVT_AX_MOTION_DONE) > 0;
-                        if (axState.motionDone) GetMotionDoneEvent?.Invoke(this, num);
+                        if (axState.motionDone) GetMotionDoneEvent?.Invoke(num);
                         axState.homeDone = (axEvtStatusArray[num] & (uint)EventType.EVT_AX_HOME_DONE) > 0;
+                        if (axState.homeDone) GetHomeMotionDoneEvent?.Invoke(num);
                         axState.vhStart = (axEvtStatusArray[num] & (uint)EventType.EVT_AX_VH_START) > 0;
+                        if ((gpEvtStatusArray[0] & (uint)EventType.EVT_GP1_MOTION_DONE) > 0) GetGPMotionDoneEvent?.Invoke();
                     }
 
                     TransmitAxState?.Invoke(this, new AxNumEventArgs(num, axState));
@@ -147,7 +150,9 @@ namespace MachineClassLibrary.Machine.MotionDevices
             }
         }
 
-        private event EventHandler<int> GetMotionDoneEvent;
+        private event Action<int> GetMotionDoneEvent;
+        private event Action<int> GetHomeMotionDoneEvent;
+        private event Action GetGPMotionDoneEvent;
 
         public int FormAxesGroup(int[] axisNums)
         {
@@ -167,34 +172,95 @@ namespace MachineClassLibrary.Machine.MotionDevices
             _mGpHand.Add(hand);
             return _mGpHand.IndexOf(hand);
         }
-        public /*async*/ Task MoveAxisContiniouslyAsync(int axisNum, AxDir dir)
-        {            
-            void foo(object o, int n)
+        public async Task MoveAxisContiniouslyAsync(int axisNum, AxDir dir)
+        {
+            await WrapAxisMovementToAsync(axisNum, () => Motion.mAcm_AxMoveVel(_mAxishand[axisNum], (ushort)dir));
+        }
+
+        private Task WrapAxisMovementToAsync(int axisNum, Func<uint> motion)
+        {
+            var moving = true;
+            void Watcher(int n)
             {
-                if (axisNum==n)
+                if (axisNum == n)
                 {
-                    _axisStates[n].motionDone = true;
+                    GetMotionDoneEvent -= Watcher;
+                    moving = false;
                 }
             }
-            GetMotionDoneEvent += foo;
-            Motion.mAcm_AxMoveVel(_mAxishand[axisNum], (ushort)dir);
-            return Task.Run(() => 
+            GetMotionDoneEvent += Watcher;
+
+            var result = motion.Invoke();
+            if (!Success(result))
             {
-                while (!_axisStates[axisNum].motionDone) ;
-                GetMotionDoneEvent -= foo;
+                throw new MotionException($"Motion was cancelled with code {(ErrorCode)result}");
+            }
+
+            return Task.Run(() =>
+            {
+                while (moving) ;
             });
         }
 
+        private Task WrapAxisHomingToAsync(int axisNum, Func<uint> motion)
+        {
+            var moving = true;
+            void Watcher(int n)
+            {
+                if (axisNum == n)
+                {
+                    GetHomeMotionDoneEvent -= Watcher;
+                    moving = false;
+                }
+            }
+            GetHomeMotionDoneEvent += Watcher;
+
+            var result = motion.Invoke();
+            if (!Success(result))
+            {
+                throw new MotionException($"Axis homing was cancelled with code {(ErrorCode)result}");
+            }
+
+            return Task.Run(() =>
+            {
+                while (moving) ;
+            });
+        }
+
+        private Task WrapGPMotionToAsync(Func<uint> motion)
+        {
+            var moving = true;
+            void Watcher()
+            {
+                GetGPMotionDoneEvent -= Watcher;
+                moving = false;
+            }
+            GetGPMotionDoneEvent += Watcher;
+
+            var result = motion.Invoke();
+            if (!Success(result))
+            {
+                throw new MotionException($"GP motion was cancelled with code {(ErrorCode)result}");
+            }
+
+            return Task.Run(() =>
+            {
+                while (moving) ;
+            });
+        }
         public async Task MoveAxesByCoorsAsync((int axisNum, double position)[] ax)
         {
             if (ax.Where(ind => ind.axisNum > _mAxishand.Length - 1).Any())
             {
                 throw new MotionException($"Для настоящего устройства не определена ось № {ax.Max(num => num.axisNum)}");
             }
+            var tasks = new List<Task>(ax.Length);
             foreach (var item in ax)
             {
-                Motion.mAcm_AxMoveAbs(_mAxishand[item.axisNum], item.position);
+                var task = MoveAxisAsync(item.axisNum, item.position);
+                tasks.Add(task);
             }
+            await Task.WhenAll(tasks);
         }
         public async Task MoveAxesByCoorsPrecAsync((int axisNum, double position, double lineCoefficient)[] ax)
         {
@@ -202,11 +268,13 @@ namespace MachineClassLibrary.Machine.MotionDevices
             {
                 throw new MotionException($"Для настоящего устройства не определена ось № {ax.Max(num => num.axisNum)}");
             }
-
+            var tasks = new List<Task>(ax.Length);
             foreach (var item in ax)
             {
-                MoveAxisPreciselyAsync(item.axisNum, item.lineCoefficient, item.position);
+                var task = MoveAxisPreciselyAsync(item.axisNum, item.lineCoefficient, item.position);
+                tasks.Add(task);
             }
+            await Task.WhenAll(tasks);
         }
         protected double CalcActualPosition(int axisNum, double lineCoefficient)
         {
@@ -420,7 +488,7 @@ namespace MachineClassLibrary.Machine.MotionDevices
             _result = Motion.mAcm_AxSetCmdPosition(_mAxishand[axisNum], 0);
             _result = Motion.mAcm_AxSetActualPosition(_mAxishand[axisNum], 0);
         }
-        public async Task HomeMoving((int axisNum, double vel, uint mode)[] axVels)
+        public async Task HomeMovingAsync((int axisNum, double vel, uint mode)[] axVels)
         {
             var state = new ushort();
             foreach (var axis in axVels)
@@ -433,7 +501,9 @@ namespace MachineClassLibrary.Machine.MotionDevices
             }
 
             ResetErrors();
-            //var result = new uint();
+
+            var tasks = new List<Task>(axVels.Length);
+
             foreach (var axvel in axVels)
             {
                 try
@@ -446,38 +516,34 @@ namespace MachineClassLibrary.Machine.MotionDevices
                     break;
                 }
 
-                _result = Motion.mAcm_AxHome(_mAxishand[axvel.axisNum], axvel.mode, (uint)HomeDir.NegDir);
-
-                if (!Success(_result))
-                {
-                    ThrowMessage?.Invoke($"Ось № {axvel.axisNum} прервало движение домой с ошибкой {(ErrorCode)_result}", 0);
-                }
+                var task = WrapAxisHomingToAsync(axvel.axisNum, () => Motion.mAcm_AxHome(_mAxishand[axvel.axisNum], axvel.mode, (uint)HomeDir.NegDir));
+                tasks.Add(task);
             }
+            await Task.WhenAll(tasks);
         }
         public async Task MoveGroupAsync(int groupNum, double[] position)
         {
             uint elements = (uint)position.Length;
-            var state = new ushort();
-            //uint res = 0;
-            double vel = 20;
-            uint bufLength = 8;
+            //var state = new ushort();
 
 
             Motion.mAcm_GpResetError(_mGpHand[groupNum]);
-            Motion.mAcm_GpMoveLinearAbs(_mGpHand[groupNum], position, ref elements);
-            await Task.Run(() =>
-            {
-                do
-                {
-                    Task.Delay(10).Wait();
-                    Motion.mAcm_GpGetState(_mGpHand[groupNum], ref state);
-                } while ((state & (ushort)GroupState.STA_Gp_Motion) > 0);
-            });
+            //Motion.mAcm_GpMoveLinearAbs(_mGpHand[groupNum], position, ref elements);
+
+            await WrapGPMotionToAsync(() => Motion.mAcm_GpMoveLinearAbs(_mGpHand[groupNum], position, ref elements));
+
+
+            //await Task.Run(() =>
+            //{
+            //    do
+            //    {
+            //        Task.Delay(10).Wait();
+            //        Motion.mAcm_GpGetState(_mGpHand[groupNum], ref state);
+            //    } while ((state & (ushort)GroupState.STA_Gp_Motion) > 0);
+            //});
         }
         public async Task MoveGroupPreciselyAsync(int groupNum, double[] position, (int axisNum, double lineCoefficient)[] gpAxes)
         {
-            var state = new ushort();
-            //uint res = 0;
             uint buf = 0;
 
             buf = (uint)SwLmtEnable.SLMT_DIS;
@@ -496,7 +562,7 @@ namespace MachineClassLibrary.Machine.MotionDevices
         }
         public async Task MoveAxisAsync(int axisNum, double position)
         {
-            Motion.mAcm_AxMoveAbs(_mAxishand[axisNum], position);
+            await WrapAxisMovementToAsync(axisNum, () => Motion.mAcm_AxMoveAbs(_mAxishand[axisNum], position));
         }
         private static IntPtr OpenDevice(in DEV_LIST device)
         {
