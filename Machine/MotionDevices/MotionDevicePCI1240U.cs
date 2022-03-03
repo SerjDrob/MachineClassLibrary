@@ -141,7 +141,10 @@ namespace MachineClassLibrary.Machine.MotionDevices
                         axState.homeDone = (axEvtStatusArray[num] & (uint)EventType.EVT_AX_HOME_DONE) > 0;
                         if (axState.homeDone) GetHomeMotionDoneEvent?.Invoke(num);
                         axState.vhStart = (axEvtStatusArray[num] & (uint)EventType.EVT_AX_VH_START) > 0;
-                        if ((gpEvtStatusArray[0] & (uint)EventType.EVT_GP1_MOTION_DONE) > 0) GetGPMotionDoneEvent?.Invoke();
+                        if ((gpEvtStatusArray[0] & (uint)EventType.EVT_GP1_MOTION_DONE) > 0)
+                        {
+                            GetGPMotionDoneEvent?.Invoke();
+                        }
                     }
 
                     TransmitAxState?.Invoke(this, new AxNumEventArgs(num, axState));
@@ -172,10 +175,7 @@ namespace MachineClassLibrary.Machine.MotionDevices
             _mGpHand.Add(hand);
             return _mGpHand.IndexOf(hand);
         }
-        public async Task MoveAxisContiniouslyAsync(int axisNum, AxDir dir)
-        {
-            await WrapAxisMovementToAsync(axisNum, () => Motion.mAcm_AxMoveVel(_mAxishand[axisNum], (ushort)dir));
-        }
+       
 
         private Task WrapAxisMovementToAsync(int axisNum, Func<uint> motion)
         {
@@ -276,6 +276,103 @@ namespace MachineClassLibrary.Machine.MotionDevices
             }
             await Task.WhenAll(tasks);
         }
+        public async Task MoveAxisContiniouslyAsync(int axisNum, AxDir dir)
+        {
+            var state = new ushort();
+            Motion.mAcm_AxGetState(_mAxishand[axisNum], ref state);
+            if (state == (ushort)Advantech.Motion.AxisState.STA_AX_READY)
+            {
+                await WrapAxisMovementToAsync(axisNum, () => Motion.mAcm_AxMoveVel(_mAxishand[axisNum], (ushort)dir));
+            }
+        }
+        public virtual async Task MoveAxisPreciselyAsync(int axisNum, double lineCoefficient, double position, int rec = 0)
+        {
+            throw new NotImplementedException();
+        }
+
+        public async Task HomeMovingAsync((int axisNum, double vel, uint mode)[] axVels)
+        {
+            var state = new ushort();
+            foreach (var axis in axVels)
+            {
+                Motion.mAcm_AxGetState(_mAxishand[axis.axisNum], ref state);
+                if ((state & (ushort)Advantech.Motion.AxisState.STA_AX_HOMING) != 0)
+                {
+                    return;
+                }
+            }
+
+            ResetErrors();
+
+            var tasks = new List<Task>(axVels.Length);
+
+            foreach (var axvel in axVels)
+            {
+                try
+                {
+                    SetAxisVelocity(axvel.axisNum, axvel.vel);
+                }
+                catch (Exception ex)
+                {
+                    ThrowMessage?.Invoke($"{ex.StackTrace} :\n {ex.Message}", 0);
+                    break;
+                }
+
+                var task = WrapAxisHomingToAsync(axvel.axisNum, () => Motion.mAcm_AxHome(_mAxishand[axvel.axisNum], axvel.mode, (uint)HomeDir.NegDir));
+                tasks.Add(task);
+            }
+            await Task.WhenAll(tasks);
+        }
+        public async Task MoveGroupAsync(int groupNum, double[] position)
+        {
+            uint elements = (uint)position.Length;
+            //var state = new ushort();
+
+
+            Motion.mAcm_GpResetError(_mGpHand[groupNum]);
+            //Motion.mAcm_GpMoveLinearAbs(_mGpHand[groupNum], position, ref elements);
+
+            await WrapGPMotionToAsync(() => Motion.mAcm_GpMoveLinearAbs(_mGpHand[groupNum], position, ref elements));
+
+
+            //await Task.Run(() =>
+            //{
+            //    do
+            //    {
+            //        Task.Delay(10).Wait();
+            //        Motion.mAcm_GpGetState(_mGpHand[groupNum], ref state);
+            //    } while ((state & (ushort)GroupState.STA_Gp_Motion) > 0);
+            //});
+        }
+        public async Task MoveGroupPreciselyAsync(int groupNum, double[] position, (int axisNum, double lineCoefficient)[] gpAxes)
+        {
+            uint buf = 0;
+
+            buf = (uint)SwLmtEnable.SLMT_DIS;
+            for (int i = 0; i < gpAxes.Length; i++)
+            {
+                _result = Motion.mAcm_SetProperty(_mAxishand[gpAxes[i].axisNum], (uint)PropertyID.CFG_AxSwPelEnable, ref buf, 4);
+                _result = Motion.mAcm_SetProperty(_mAxishand[gpAxes[i].axisNum], (uint)PropertyID.CFG_AxSwMelEnable, ref buf, 4);
+            }
+
+
+            await MoveGroupAsync(groupNum, position);
+            for (int i = 0; i < gpAxes.Length; i++)
+            {
+                await MoveAxisPreciselyAsync(gpAxes[i].axisNum, gpAxes[i].lineCoefficient, position[i]);
+            }
+        }
+        public async Task MoveAxisAsync(int axisNum, double position)
+        {
+            await WrapAxisMovementToAsync(axisNum, () => Motion.mAcm_AxMoveAbs(_mAxishand[axisNum], position));
+        }
+        public void StopAxis(int axisNum)
+        {
+            Motion.mAcm_AxStopEmg(_mAxishand[axisNum]);
+        }
+        
+        
+        
         protected double CalcActualPosition(int axisNum, double lineCoefficient)
         {
             //var result = new uint();
@@ -375,10 +472,7 @@ namespace MachineClassLibrary.Machine.MotionDevices
 
             }
         }
-        public void StopAxis(int axisNum)
-        {
-            Motion.mAcm_AxStopEmg(_mAxishand[axisNum]);
-        }
+        
         public void ResetErrors(int axisNum = 888)
         {
             if (axisNum == 888)
@@ -479,91 +573,13 @@ namespace MachineClassLibrary.Machine.MotionDevices
             _result = Motion.mAcm_GetProperty(_mAxishand[axisNum], (uint)PropertyID.PAR_AxVelHigh, ref vel, ref bufLength);
             return vel;
         }
-        public virtual async Task MoveAxisPreciselyAsync(int axisNum, double lineCoefficient, double position, int rec = 0)
-        {
-            throw new NotImplementedException();
-        }
+        
         public void ResetAxisCounter(int axisNum)
         {
             _result = Motion.mAcm_AxSetCmdPosition(_mAxishand[axisNum], 0);
             _result = Motion.mAcm_AxSetActualPosition(_mAxishand[axisNum], 0);
         }
-        public async Task HomeMovingAsync((int axisNum, double vel, uint mode)[] axVels)
-        {
-            var state = new ushort();
-            foreach (var axis in axVels)
-            {
-                Motion.mAcm_AxGetState(_mAxishand[axis.axisNum], ref state);
-                if ((state & (ushort)Advantech.Motion.AxisState.STA_AX_HOMING) != 0)
-                {
-                    return;
-                }
-            }
-
-            ResetErrors();
-
-            var tasks = new List<Task>(axVels.Length);
-
-            foreach (var axvel in axVels)
-            {
-                try
-                {
-                    SetAxisVelocity(axvel.axisNum, axvel.vel);
-                }
-                catch (Exception ex)
-                {
-                    ThrowMessage?.Invoke($"{ex.StackTrace} :\n {ex.Message}", 0);
-                    break;
-                }
-
-                var task = WrapAxisHomingToAsync(axvel.axisNum, () => Motion.mAcm_AxHome(_mAxishand[axvel.axisNum], axvel.mode, (uint)HomeDir.NegDir));
-                tasks.Add(task);
-            }
-            await Task.WhenAll(tasks);
-        }
-        public async Task MoveGroupAsync(int groupNum, double[] position)
-        {
-            uint elements = (uint)position.Length;
-            //var state = new ushort();
-
-
-            Motion.mAcm_GpResetError(_mGpHand[groupNum]);
-            //Motion.mAcm_GpMoveLinearAbs(_mGpHand[groupNum], position, ref elements);
-
-            await WrapGPMotionToAsync(() => Motion.mAcm_GpMoveLinearAbs(_mGpHand[groupNum], position, ref elements));
-
-
-            //await Task.Run(() =>
-            //{
-            //    do
-            //    {
-            //        Task.Delay(10).Wait();
-            //        Motion.mAcm_GpGetState(_mGpHand[groupNum], ref state);
-            //    } while ((state & (ushort)GroupState.STA_Gp_Motion) > 0);
-            //});
-        }
-        public async Task MoveGroupPreciselyAsync(int groupNum, double[] position, (int axisNum, double lineCoefficient)[] gpAxes)
-        {
-            uint buf = 0;
-
-            buf = (uint)SwLmtEnable.SLMT_DIS;
-            for (int i = 0; i < gpAxes.Length; i++)
-            {
-                _result = Motion.mAcm_SetProperty(_mAxishand[gpAxes[i].axisNum], (uint)PropertyID.CFG_AxSwPelEnable, ref buf, 4);
-                _result = Motion.mAcm_SetProperty(_mAxishand[gpAxes[i].axisNum], (uint)PropertyID.CFG_AxSwMelEnable, ref buf, 4);
-            }
-
-
-            await MoveGroupAsync(groupNum, position);
-            for (int i = 0; i < gpAxes.Length; i++)
-            {
-                await MoveAxisPreciselyAsync(gpAxes[i].axisNum, gpAxes[i].lineCoefficient, position[i]);
-            }
-        }
-        public async Task MoveAxisAsync(int axisNum, double position)
-        {
-            await WrapAxisMovementToAsync(axisNum, () => Motion.mAcm_AxMoveAbs(_mAxishand[axisNum], position));
-        }
+        
         private static IntPtr OpenDevice(in DEV_LIST device)
         {
             var deviceHandle = IntPtr.Zero;
