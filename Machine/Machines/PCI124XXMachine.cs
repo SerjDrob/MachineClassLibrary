@@ -19,6 +19,7 @@ namespace MachineClassLibrary.Machine.Machines
         //private Dictionary<Place, (Ax axis, double pos)[]> _places;
         //private Dictionary<Place, double> _singlePlaces;
         protected Dictionary<Ax, Dictionary<Velocity, double>> _velRegimes;
+        private Dictionary<Ax, (AxDir direction, HomeRst homeRst, HmMode homeMode, double velocity, double positionAfterHoming)> _homingConfigs = new();
 
         //private Dictionary<Sensors, (Ax axis, Di dIn, bool invertion, string name)> _sensors;
         //private Dictionary<Valves, (Ax axis, Do dOut)> _valves;
@@ -267,18 +268,86 @@ namespace MachineClassLibrary.Machine.Machines
             {
                 SetAxisBusy(axis);
                 if (precisely)
-                    await _motionDevice.MoveAxisPreciselyAsync(_axes[axis].AxisNum, _axes[axis].LineCoefficient,
-                        position);
+                {
+                    await _motionDevice.MoveAxisPreciselyAsync(_axes[axis].AxisNum, _axes[axis].LineCoefficient, position);
+                }
                 else
+                {
                     await Task.Run(() =>
                     {
                         _motionDevice.MoveAxisAsync(_axes[axis].AxisNum, position);
                         while (!_axes[axis].MotionDone) ;
                     });
+                }
                 ResetAxisBusy(axis);
             }
         }
+        public async Task MoveGpInPosAsync(Groups group, double[] position, bool precisely = false)
+        {
 
+
+            if (!BusyGroup(group))
+            {
+                var k = new double();
+                try
+                {
+                    k = Math.Abs((position.First() - _axes[Ax.X].CmdPosition) /
+                                 (position.Last() - _axes[Ax.Y].ActualPosition)); //ctg a
+                }
+                catch (DivideByZeroException)
+                {
+                    k = 1000;
+                }
+
+                var vx = _velRegimes[Ax.X][VelocityRegime];
+                var vy = _velRegimes[Ax.Y][VelocityRegime];
+                var kmax = vx / vy; // ctg a
+
+                var v = (k / kmax) switch
+                {
+                    1 => Math.Sqrt(vx * vx + vy * vy),
+                    < 1 => vy / Math.Sin(Math.Atan(1 / k)), // / Math.Sqrt(1 / (1 + k * k)),//yconst
+                    > 1 => vx / Math.Cos(Math.Atan(1 / k)) //Math.Sqrt(k * k / (1 + k * k)) //xconst
+                };
+                _motionDevice.SetGroupVelocity(_axesGroups[group].groupNum, v);
+
+                if (precisely)
+                {
+                    var gpNum = _axesGroups[group].groupNum;
+                    var axesNums = _axes.Where(a => _axesGroups[group].axes.Contains(a.Key)).Select(n => n.Value.AxisNum);
+                    var lineCoeffs = _axes.Where(a => _axesGroups[group].axes.Contains(a.Key))
+                        .Select(n => n.Value.LineCoefficient);
+                    var gpAxes = axesNums.Zip(lineCoeffs, (a, b) => new ValueTuple<int, double>(a, b)).ToArray();
+
+                    var n = _axesGroups[group].axes.FindIndex(a => a == Ax.Y);
+
+                    position[n] -= 0.03;
+
+                    await _motionDevice.MoveGroupPreciselyAsync(gpNum, position, gpAxes);
+
+                    position[n] += 0.03;
+
+                    await _motionDevice.MoveAxisPreciselyAsync(_axes[Ax.Y].AxisNum, _axes[Ax.Y].LineCoefficient,
+                        position[n]);
+                }
+                else
+                {
+                    await _motionDevice.MoveGroupAsync(_axesGroups[group].groupNum, position);
+                }
+            }
+        }
+        public async Task MoveAxRelativeAsync(Ax axis, double diffPosition, bool precisely = false)
+        {
+            var initialPos = _axes[axis].ActualPosition;
+            await MoveAxInPosAsync(axis, initialPos + diffPosition, precisely);
+        }
+        public async Task MoveGpRelativeAsync(Groups group, double[] offset, bool precisely = false)
+        {
+            Guard.HasSizeEqualTo(offset, 2, nameof(offset));
+            await MoveGpInPosAsync(group,
+                new double[] { _axes[Ax.X].ActualPosition + offset.First(), _axes[Ax.Y].ActualPosition + offset.Last() },
+                precisely);
+        }
         public void ResetErrors(Ax axis = Ax.All)
         {
             if (axis == Ax.All)
@@ -344,60 +413,8 @@ namespace MachineClassLibrary.Machine.Machines
             return busy;
         }
 
-        public async Task MoveGpInPosAsync(Groups group, double[] position, bool precisely = false)
-        {
+        
 
-
-            if (!BusyGroup(group))
-            {
-                var k = new double();
-                try
-                {
-                    k = Math.Abs((position.First() - _axes[Ax.X].CmdPosition) /
-                                 (position.Last() - _axes[Ax.Y].ActualPosition)); //ctg a
-                }
-                catch (DivideByZeroException)
-                {
-                    k = 1000;
-                }
-
-                var vx = _velRegimes[Ax.X][VelocityRegime];
-                var vy = _velRegimes[Ax.Y][VelocityRegime];
-                var kmax = vx / vy; // ctg a
-
-                var v = (k / kmax) switch
-                {
-                    1 => Math.Sqrt(vx * vx + vy * vy),
-                    < 1 => vy / Math.Sin(Math.Atan(1 / k)), // / Math.Sqrt(1 / (1 + k * k)),//yconst
-                    > 1 => vx / Math.Cos(Math.Atan(1 / k)) //Math.Sqrt(k * k / (1 + k * k)) //xconst
-                };
-                _motionDevice.SetGroupVelocity(_axesGroups[group].groupNum, v);
-
-                if (precisely)
-                {
-                    var gpNum = _axesGroups[group].groupNum;
-                    var axesNums = _axes.Where(a => _axesGroups[group].axes.Contains(a.Key)).Select(n => n.Value.AxisNum);
-                    var lineCoeffs = _axes.Where(a => _axesGroups[group].axes.Contains(a.Key))
-                        .Select(n => n.Value.LineCoefficient);
-                    var gpAxes = axesNums.Zip(lineCoeffs, (a, b) => new ValueTuple<int, double>(a, b)).ToArray();
-
-                    var n = _axesGroups[group].axes.FindIndex(a => a == Ax.Y);
-
-                    position[n] -= 0.03;
-
-                    await _motionDevice.MoveGroupPreciselyAsync(gpNum, position, gpAxes);
-
-                    position[n] += 0.03;
-
-                    await _motionDevice.MoveAxisPreciselyAsync(_axes[Ax.Y].AxisNum, _axes[Ax.Y].LineCoefficient,
-                        position[n]);
-                }
-                else
-                {
-                    await _motionDevice.MoveGroupAsync(_axesGroups[group].groupNum, position);
-                }
-            }
-        }
         public void ConfigureVelRegimes(Dictionary<Ax, Dictionary<Velocity, double>> velRegimes)
         {
             _velRegimes = new Dictionary<Ax, Dictionary<Velocity, double>>(velRegimes);
@@ -413,11 +430,14 @@ namespace MachineClassLibrary.Machine.Machines
         }
         public async Task WaitUntilAxisStopAsync(Ax axis)
         {
-            var status = new uint();
-            await Task.Run(() =>
-            {
-                while (!_axes[axis].MotionDone) Task.Delay(10).Wait();
-            });
+            //var status = new uint();
+            //await Task.Run(() =>
+            //{
+            //    while (!_axes[axis].MotionDone) Task.Delay(10).Wait();
+            //});
+
+            while (!_axes[axis].MotionDone) await Task.Delay(10);
+
         }
 
         public double GetAxisSetVelocity(Ax axis)
@@ -456,6 +476,88 @@ namespace MachineClassLibrary.Machine.Machines
         {
             return _doubleFeatures[feature];
         }
+
+        public async Task GoHomeAsync()
+        {
+            if (_homingConfigs is null)
+            {
+                throw new MachineException($"Homing mode is not configured. {nameof(_homingConfigs)} is null");
+            }
+            var par = _homingConfigs.Select(p => 
+            (
+              p.Value.direction,
+              p.Value.homeRst,
+              p.Value.homeMode,
+              p.Value.velocity,
+              _axes[p.Key].AxisNum
+            )).ToArray();
+
+            _motionDevice.HomeMovingAsync(par);
+
+            var tasks = _homingConfigs.Select(async p => 
+            {
+                while (!_axes[p.Key].MotionDone) await Task.Delay(10);
+                ResetErrors(p.Key);
+                await MoveAxInPosAsync(p.Key, p.Value.positionAfterHoming, true);
+                _motionDevice.ResetAxisCounter(_axes[p.Key].AxisNum);
+            }).ToArray();
+
+            await Task.WhenAll(tasks).ConfigureAwait(false);
+        }
+
+        public IHomingBuilder ConfigureHomingForAxis(Ax axis)
+        {
+            return new HomingBuilder(axis, _homingConfigs);
+        }
+
+        public class HomingBuilder : IHomingBuilder
+        {
+            private readonly Ax _axis;
+            Dictionary<Ax, (AxDir direction, HomeRst homeRst, HmMode homeMode, double velocity, double positionAfterHoming)> _homingConfigs;
+            private AxDir _axDir = AxDir.Neg;
+            private HomeRst _homeRst = HomeRst.HOME_RESET_EN;
+            private HmMode _hmMode = HmMode.MODE2_Lmt;
+            private double _velocity = 1;
+            private double _positionAfterHoming = 0;
+            public HomingBuilder(Ax axis, Dictionary<Ax, (AxDir direction, HomeRst homeRst, HmMode homeMode, double velocity, double positionAfterHoming)> homingConfigs)
+            {
+                _axis = axis;
+                _homingConfigs = homingConfigs ?? throw new NullReferenceException($"{nameof(homingConfigs)}");
+            }
+            public void Configure()
+            {
+                if(!_homingConfigs.TryAdd(_axis, (_axDir, _homeRst, _hmMode, _velocity, _positionAfterHoming)))
+                {
+                    _homingConfigs[_axis] = (_axDir, _homeRst, _hmMode, _velocity, _positionAfterHoming);
+                }
+            }
+            public IHomingBuilder SetHomingDirection(AxDir direction)
+            {
+                _axDir = direction;
+                return this;
+            }
+            public IHomingBuilder SetHomingReset(HomeRst homeRst)
+            {
+                _homeRst = homeRst;
+                return this;
+            }
+            public IHomingBuilder SetHomingMode(HmMode hmMode)
+            {
+                _hmMode = hmMode;
+                return this;
+            }
+            public IHomingBuilder SetHomingVelocity(double velocity)
+            {
+                _velocity = velocity;
+                return this;
+            }
+            public IHomingBuilder SetPositionAfterHoming(double position)
+            {
+                _positionAfterHoming = position;
+                return this;
+            }
+        }
+
 
         private void MotionDevice_TransmitAxState(object obj, AxNumEventArgs axNumEventArgs)
         {
@@ -518,17 +620,6 @@ namespace MachineClassLibrary.Machine.Machines
             _axes[axis].Busy = false;
         }
 
-        public async Task MoveAxRelativeAsync(Ax axis, double diffPosition, bool precisely = false)
-        {
-            var initialPos = _axes[axis].ActualPosition;
-            await MoveAxInPosAsync(axis, initialPos + diffPosition, precisely);
-        }
-        public async Task MoveGpRelativeAsync(Groups group, double[] offset, bool precisely = false)
-        {
-            Guard.HasSizeEqualTo(offset, 2, nameof(offset));
-            await MoveGpInPosAsync(group,
-                new double[] { _axes[Ax.X].ActualPosition + offset.First(), _axes[Ax.Y].ActualPosition + offset.Last() },
-                precisely);
-        }
+        
     }
 }

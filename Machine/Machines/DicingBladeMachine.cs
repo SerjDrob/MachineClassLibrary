@@ -1,5 +1,4 @@
 ﻿using MachineClassLibrary.Classes;
-using MachineClassLibrary.Machine.Machines;
 using MachineClassLibrary.Machine.MotionDevices;
 using MachineClassLibrary.SFC;
 using MachineClassLibrary.VideoCapture;
@@ -7,7 +6,6 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
-using System.Windows.Media.Imaging;
 
 namespace MachineClassLibrary.Machine.Machines
 {
@@ -98,7 +96,7 @@ namespace MachineClassLibrary.Machine.Machines
                     (_axes[Ax.Z].AxisNum, _velRegimes[Ax.Z][Velocity.Service], 1)
                 };
                 var axArr = new[] { Ax.X, Ax.Z };
-                _motionDevice.HomeMoving(arr);
+                _motionDevice.HomeMovingAsync(arr);
                 foreach (var axis in axArr)
                     Task.Run(() =>
                     {
@@ -314,7 +312,7 @@ namespace MachineClassLibrary.Machine.Machines
 
         public Dictionary<int, (string, string[])> AvaliableVideoCaptureDevices => _videoCamera.AvaliableVideoCaptureDevices;
 
-        public bool IsVideoCaptureConnected  => _videoCamera.IsVideoCaptureConnected;
+        public bool IsVideoCaptureConnected => _videoCamera.IsVideoCaptureConnected;
 
         public string VideoCaptureMessage => _videoCamera.VideoCaptureMessage;
 
@@ -348,10 +346,10 @@ namespace MachineClassLibrary.Machine.Machines
         }
 
         public int GetVideoCaptureDevicesCount() => _videoCamera.GetVideoCaptureDevicesCount();
-       
+
 
         public int GetVideoCapabilitiesCount() => _videoCamera.GetVideoCapabilitiesCount();
-       
+
 
         //public void StartVideoCapture(int ind, int capabilitiesInd = 0)
         //{

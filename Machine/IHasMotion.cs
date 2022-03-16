@@ -1,4 +1,5 @@
 ﻿using MachineClassLibrary.Classes;
+using MachineClassLibrary.Machine.Machines;
 using MachineClassLibrary.Machine.MotionDevices;
 using System;
 using System.Collections.Generic;
@@ -48,5 +49,7 @@ namespace MachineClassLibrary.Machine
         public void ConfigureAxesGroups(Dictionary<Groups, Ax[]> groups);
         public void ConfigureDoubleFeatures(Dictionary<MFeatures, double> doubleFeatures);
         public double GetFeature(MFeatures feature);
+        Task GoHomeAsync();
+        IHomingBuilder ConfigureHomingForAxis(Ax axis);
     }
 }

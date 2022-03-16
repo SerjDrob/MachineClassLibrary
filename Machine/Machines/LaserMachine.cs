@@ -1,18 +1,12 @@
-﻿using MachineClassLibrary;
-using MachineClassLibrary.Classes;
+﻿using MachineClassLibrary.Classes;
 using MachineClassLibrary.Laser;
-using MachineClassLibrary.Laser.Entities;
-using MachineClassLibrary.Machine;
-using MachineClassLibrary.Machine.Machines;
 using MachineClassLibrary.Machine.MotionDevices;
 using MachineClassLibrary.VideoCapture;
 using Microsoft.Toolkit.Diagnostics;
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Text;
 using System.Threading.Tasks;
-using System.Windows.Media.Imaging;
 
 
 
@@ -72,29 +66,47 @@ namespace MachineClassLibrary.Machine.Machines
                         ax[i] = (_axes[axis].AxisNum, _places[place][i].pos);
                     }
 
-                    await _motionDevice.MoveAxesByCoorsAsync(ax);
+                    _motionDevice.MoveAxesByCoorsAsync(ax);
+
+                    var tasks = new List<Task>(ax.Length);
+
+                    tasks = _places[place].Select(p => WaitUntilAxisStopAsync(p.axis)).ToList();
+
+
+                    //foreach (var item in _places[place])
+                    //{
+                    //    tasks.Add(WaitUntilAxisStopAsync(item.axis));
+                    //}
+                    await Task.WhenAll(tasks).ConfigureAwait(false);
                 }
             }
             else
             {
                 var arr = new (int, double, uint)[]
                 {
-                    (_axes[Ax.X].AxisNum, _velRegimes[Ax.X][Velocity.Service], 1),
+                    (_axes[Ax.X].AxisNum, _velRegimes[Ax.X][Velocity.Service], 5),
                     (_axes[Ax.Y].AxisNum, _velRegimes[Ax.Y][Velocity.Service], 5),
                     (_axes[Ax.Z].AxisNum, _velRegimes[Ax.Z][Velocity.Service], 1)
                 };
-                var axArr = new[] { Ax.X, Ax.Z };
-                _motionDevice.HomeMoving(arr);// maybe make it awaitable with returning info about success?
-                foreach (var axis in axArr)
-                    Task.Run(() =>
-                    {
-                        while (!_axes[axis].LmtN) Task.Delay(10).Wait();// _axes[axis].Wait(LmtN, waitingTime) maybe throw an Exception?
-                        ResetErrors(axis);
-                        _motionDevice.ResetAxisCounter(_axes[axis].AxisNum);
-                        MoveAxInPosAsync(axis, 1, true);
-                    });
+                
+                _motionDevice.HomeMovingAsync(arr);// maybe make it awaitable with returning info about success?
 
-                _motionDevice.ResetAxisCounter(_axes[Ax.U].AxisNum);
+                var tasks = new List<Task>(arr.Length);
+                foreach (var axis in _axes.Keys)
+                {
+
+                    var task = Task.Run(async () =>
+                        {
+                        while (!_axes[axis].MotionDone) await Task.Delay(10);
+                                                         //return Task.CompletedTask;
+                                                         ResetErrors(axis);
+                                                         //await MoveAxInPosAsync(axis, 1, true);
+                                                         _motionDevice.ResetAxisCounter(_axes[axis].AxisNum);
+                            });
+                    tasks.Add(task);
+                }
+                await Task.WhenAll(tasks).ConfigureAwait(false);
+                
             }
         }
         public async Task MoveGpInPlaceAsync(Groups group, LMPlace place, bool precisely = false)
@@ -275,13 +287,13 @@ namespace MachineClassLibrary.Machine.Machines
             return await _markLaser.PierceLineAsync(x1, y1, x2, y2);
         }
 
-        public void StartCamera(int ind, int capabilitiesInd = 0) => _videoCapture.StartCamera(ind, capabilitiesInd);        
+        public void StartCamera(int ind, int capabilitiesInd = 0) => _videoCapture.StartCamera(ind, capabilitiesInd);
 
-        public void FreezeCameraImage()=>_videoCapture.FreezeCameraImage();
+        public void FreezeCameraImage() => _videoCapture.FreezeCameraImage();
 
-        public void StopCamera() => _videoCapture.StopCamera();        
+        public void StopCamera() => _videoCapture.StopCamera();
 
-        public int GetVideoCaptureDevicesCount() => _videoCapture.GetVideoCaptureDevicesCount();      
+        public int GetVideoCaptureDevicesCount() => _videoCapture.GetVideoCaptureDevicesCount();
 
         public int GetVideoCapabilitiesCount() => _videoCapture.GetVideoCapabilitiesCount();
 

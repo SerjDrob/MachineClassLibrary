@@ -4,7 +4,7 @@ namespace MachineClassLibrary.Machine
 {
     public enum AxDir
     {
-        Pos,
-        Neg
+        Pos = 0,
+        Neg = 1
     }
 }
