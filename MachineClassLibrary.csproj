@@ -8,6 +8,7 @@
     <Description>
      
     </Description>
+    <Platforms>AnyCPU;x86</Platforms>
   </PropertyGroup>
 
   <ItemGroup>

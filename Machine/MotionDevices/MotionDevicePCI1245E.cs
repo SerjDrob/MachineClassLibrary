@@ -23,6 +23,8 @@ namespace MachineClassLibrary.Machine.MotionDevices
             base.SetAxisConfig(axisNum, configs);
             _initErrorsDictionaryInBaseClass= true;
         }
+
+
         public override async Task MoveAxisPreciselyAsync(int axisNum, double lineCoefficient, double position, int rec = 0)
         {
             var state = new uint();
@@ -35,68 +37,72 @@ namespace MachineClassLibrary.Machine.MotionDevices
 
             ushort direction = 0;
 
-            Motion.mAcm_GetProperty(_mAxishand[axisNum], (uint)PropertyID.CFG_AxPPU, ref ppu, ref bufLength);
+            Motion.mAcm_GetProperty(_mAxishand[axisNum], (uint)PropertyID.CFG_AxPPU, ref ppu, ref bufLength).CheckResult();
             var pos = (int)(position * ppu);
             buf = (uint)SwLmtEnable.SLMT_DIS;
-            res = Motion.mAcm_SetProperty(_mAxishand[axisNum], (uint)PropertyID.CFG_AxSwPelEnable, ref buf, 4);
-            res = Motion.mAcm_SetProperty(_mAxishand[axisNum], (uint)PropertyID.CFG_AxSwMelEnable, ref buf, 4);
+            Motion.mAcm_SetProperty(_mAxishand[axisNum], (uint)PropertyID.CFG_AxSwPelEnable, ref buf, 4).CheckResult();
+            Motion.mAcm_SetProperty(_mAxishand[axisNum], (uint)PropertyID.CFG_AxSwMelEnable, ref buf, 4).CheckResult();
             if (lineCoefficient != 0)
             {
                 var diff = position - CalcActualPosition(axisNum, lineCoefficient);
                 if (Math.Abs(diff) > tolerance)
                 {
-                    Motion.mAcm_AxResetError(_mAxishand[axisNum]);
+                    Motion.mAcm_AxResetError(_mAxishand[axisNum]).CheckResult();
                     buf = (uint)SwLmtReact.SLMT_IMMED_STOP;
-                    res = Motion.mAcm_SetProperty(_mAxishand[axisNum], (uint)PropertyID.CFG_AxSwPelReact, ref buf, 4);
-                    res = Motion.mAcm_SetProperty(_mAxishand[axisNum], (uint)PropertyID.CFG_AxSwMelReact, ref buf, 4);
+                    Motion.mAcm_SetProperty(_mAxishand[axisNum], (uint)PropertyID.CFG_AxSwPelReact, ref buf, 4).CheckResult();
+                    Motion.mAcm_SetProperty(_mAxishand[axisNum], (uint)PropertyID.CFG_AxSwMelReact, ref buf, 4).CheckResult();
                     var tol = 0;
                     switch (Math.Sign(diff))
                     {
                         case 1:
-                            res = Motion.mAcm_SetProperty(_mAxishand[axisNum], (uint)PropertyID.CFG_AxSwPelValue, ref pos, 4);
+                            pos = 5;
+                            Motion.mAcm_SetProperty(_mAxishand[axisNum], (uint)PropertyID.CFG_AxSwPelValue, ref pos, 4).CheckResult();
+                            int getPos = 0;
+                            uint bufL = 8;
+                            Motion.mAcm_GetProperty(_mAxishand[axisNum], (uint)PropertyID.CFG_AxSwPelValue, ref getPos, ref bufL).CheckResult();
                             buf = (uint)SwLmtEnable.SLMT_EN;
-                            res = Motion.mAcm_SetProperty(_mAxishand[axisNum], (uint)PropertyID.CFG_AxSwPelEnable, ref buf, 4);
-                            buf = (uint)SwLmtToleranceEnable.TOLERANCE_ENABLE;
-                            res = Motion.mAcm_SetProperty(_mAxishand[axisNum], (uint)PropertyID.CFG_AxSwPelToleranceEnable, ref buf, 4);
-                            res = Motion.mAcm_SetProperty(_mAxishand[axisNum], (uint)PropertyID.CFG_AxSwPelToleranceValue, ref tol, 4);
+                            Motion.mAcm_SetProperty(_mAxishand[axisNum], (uint)PropertyID.CFG_AxSwPelEnable, ref buf, 4).CheckResult();
+                            //buf = (uint)SwLmtToleranceEnable.TOLERANCE_ENABLE;
+                            //Motion.mAcm_SetProperty(_mAxishand[axisNum], (uint)PropertyID.CFG_AxSwPelToleranceEnable, ref buf, 4).CheckResult();
+                            //Motion.mAcm_SetProperty(_mAxishand[axisNum], (uint)PropertyID.CFG_AxSwPelToleranceValue, ref tol, 8).CheckResult();
                             direction = (ushort)VelMoveDir.DIR_POSITIVE;
                             break;
 
                         case -1:
-                            res = Motion.mAcm_SetProperty(_mAxishand[axisNum], (uint)PropertyID.CFG_AxSwMelValue, ref pos, 4);
+                            Motion.mAcm_SetProperty(_mAxishand[axisNum], (uint)PropertyID.CFG_AxSwMelValue, ref pos, 8).CheckResult();
                             buf = (uint)SwLmtEnable.SLMT_EN;
-                            res = Motion.mAcm_SetProperty(_mAxishand[axisNum], (uint)PropertyID.CFG_AxSwMelEnable, ref buf, 4);
-                            buf = (uint)SwLmtToleranceEnable.TOLERANCE_ENABLE;
-                            res = Motion.mAcm_SetProperty(_mAxishand[axisNum], (uint)PropertyID.CFG_AxSwMelToleranceEnable, ref buf, 4);
-                            res = Motion.mAcm_SetProperty(_mAxishand[axisNum], (uint)PropertyID.CFG_AxSwMelToleranceValue, ref tol, 4);
+                            Motion.mAcm_SetProperty(_mAxishand[axisNum], (uint)PropertyID.CFG_AxSwMelEnable, ref buf, 4).CheckResult();
+                            //buf = (uint)SwLmtToleranceEnable.TOLERANCE_ENABLE;
+                            //Motion.mAcm_SetProperty(_mAxishand[axisNum], (uint)PropertyID.CFG_AxSwMelToleranceEnable, ref buf, 4).CheckResult();
+                            //Motion.mAcm_SetProperty(_mAxishand[axisNum], (uint)PropertyID.CFG_AxSwMelToleranceValue, ref tol, 8).CheckResult();
                             direction = (ushort)VelMoveDir.DIR_NEGATIVE;
                             break;
                     }
 
-                    Motion.mAcm_AxMoveVel(_mAxishand[axisNum], direction);
+                    Motion.mAcm_AxMoveVel(_mAxishand[axisNum], direction).CheckResult();
                     uint status = 0;
                     uint slmtp = 0;
                     uint slmtn = 0;
-                    await Task.Run(() =>
+                    await Task.Run(async () =>
                     {
                         do
                         {
-                            Task.Delay(1).Wait();
+                            await Task.Delay(10);
                             //Thread.Sleep(1);
                             Motion.mAcm_AxGetMotionIO(_mAxishand[axisNum], ref status);
                             slmtp = status & (uint)Ax_Motion_IO.AX_MOTION_IO_SLMTP;
                             slmtn = status & (uint)Ax_Motion_IO.AX_MOTION_IO_SLMTN;
                         } while (slmtp == 0 & slmtn == 0);
                     }
-                    );
+                    ).ConfigureAwait(false);
                     SetAxisVelocity(axisNum, 1);
-                    Motion.mAcm_AxSetCmdPosition(_mAxishand[axisNum], CalcActualPosition(axisNum, lineCoefficient));
+                    Motion.mAcm_AxSetCmdPosition(_mAxishand[axisNum], CalcActualPosition(axisNum, lineCoefficient)).CheckResult();
                     await MoveAxisPreciselyAsync(axisNum, lineCoefficient, position, ++rec);
                     rec--;
                     if (rec == 0)
                     {
                         SetAxisVelocity(axisNum, _storeSpeed);
-                        Motion.mAcm_AxResetError(_mAxishand[axisNum]);
+                        Motion.mAcm_AxResetError(_mAxishand[axisNum]).CheckResult();
                     }
                 }
             }

@@ -579,7 +579,7 @@ namespace MachineClassLibrary.Machine.Machines
                     var position = _axes[axis].ActualPosition;
                     if (_axes[axis].LineCoefficient == 0) position = state.cmdPos;
 
-                    OnAxisMotionStateChanged?.Invoke(this, new AxisStateEventArgs(axis, position, state.nLmt, state.pLmt, state.motionDone,
+                    OnAxisMotionStateChanged?.Invoke(this, new AxisStateEventArgs(axis, position, state.cmdPos, state.nLmt, state.pLmt, state.motionDone,
                         state.vhStart));
 
 

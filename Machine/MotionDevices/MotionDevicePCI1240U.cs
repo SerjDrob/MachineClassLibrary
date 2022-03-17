@@ -55,28 +55,28 @@ namespace MachineClassLibrary.Machine.MotionDevices
             _mAxishand = new IntPtr[AxisCount];
             for (var i = 0; i < axisEnableEvent.Length; i++)
             {
-                _result = Motion.mAcm_AxOpen(DeviceHandle, (ushort)i, ref _mAxishand[i]);
-                if (!Success(_result))
-                {
-                    throw new MotionException($"Open Axis Failed With Error Code: [0x{_result:X}]");
-                }
+                Motion.mAcm_AxOpen(DeviceHandle, (ushort)i, ref _mAxishand[i]).CheckResult();
+                //if (!Success(_result))
+                //{
+                //    throw new MotionException($"Open Axis Failed With Error Code: [0x{_result:X}]");
+                //}
 
                 double cmdPosition = 0;
 
-                _result = Motion.mAcm_AxSetCmdPosition(_mAxishand[i], cmdPosition);
+               // Motion.mAcm_AxSetCmdPosition(_mAxishand[i], cmdPosition).CheckResult();
 
-                _result = Motion.mAcm_AxSetActualPosition(_mAxishand[i], cmdPosition);
+                //Motion.mAcm_AxSetActualPosition(_mAxishand[i], cmdPosition).CheckResult();
 
                 axisEnableEvent[i] |= (uint)EventType.EVT_AX_MOTION_DONE;
                 axisEnableEvent[i] |= (uint)EventType.EVT_AX_VH_START;
                 //axisEnableEvent[i] |= (uint)EventType.EVT_AX_LATCHED;
             }
 
-            _result = Motion.mAcm_EnableMotionEvent(DeviceHandle, axisEnableEvent, gpEnableEvent, (uint)AxisCount, 1);
-            if (!Success(_result))
-            {
-                throw new MotionException($"Enable motion events Failed With Error Code: [0x{_result:X}]");
-            }
+            Motion.mAcm_EnableMotionEvent(DeviceHandle, axisEnableEvent, gpEnableEvent, (uint)AxisCount, 1).CheckResult();
+            //if (!Success(_result))
+            //{
+            //    throw new MotionException($"Enable motion events Failed With Error Code: [0x{_result:X}]");
+            //}
 
             return true;
         }
@@ -101,8 +101,8 @@ namespace MachineClassLibrary.Machine.MotionDevices
                 {
                     var axState = new AxisState();
                     IntPtr ax = _mAxishand[num];
-                    _result = Motion.mAcm_AxGetMotionIO(ax, ref ioStatus);
-                    if (Success(_result))
+                    Motion.mAcm_AxGetMotionIO(ax, ref ioStatus).CheckResult();
+                   // if (Success(_result))
                     {
                         axState.nLmt = (ioStatus & (uint)Ax_Motion_IO.AX_MOTION_IO_LMTN) > 0;
                         axState.pLmt = (ioStatus & (uint)Ax_Motion_IO.AX_MOTION_IO_LMTP) > 0;
@@ -110,8 +110,8 @@ namespace MachineClassLibrary.Machine.MotionDevices
 
                     for (var channel = 0; channel < 4; channel++)
                     {
-                        _result = Motion.mAcm_AxDiGetBit(ax, (ushort)channel, ref bitData);
-                        if (Success(_result))
+                        Motion.mAcm_AxDiGetBit(ax, (ushort)channel, ref bitData).CheckResult();
+                        //if (Success(_result))
                         {
                             axState.sensors = bitData != 0 ? axState.sensors.SetBit(channel) : axState.sensors.ResetBit(channel);
                         }
