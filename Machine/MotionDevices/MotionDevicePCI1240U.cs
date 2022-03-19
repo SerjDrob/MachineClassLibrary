@@ -55,7 +55,7 @@ namespace MachineClassLibrary.Machine.MotionDevices
             _mAxishand = new IntPtr[AxisCount];
             for (var i = 0; i < axisEnableEvent.Length; i++)
             {
-                Motion.mAcm_AxOpen(DeviceHandle, (ushort)i, ref _mAxishand[i]).CheckResult();
+                Motion.mAcm_AxOpen(DeviceHandle, (ushort)i, ref _mAxishand[i]).CheckResult(i);
                 //if (!Success(_result))
                 //{
                 //    throw new MotionException($"Open Axis Failed With Error Code: [0x{_result:X}]");
@@ -63,9 +63,11 @@ namespace MachineClassLibrary.Machine.MotionDevices
 
                 double cmdPosition = 0;
 
-               // Motion.mAcm_AxSetCmdPosition(_mAxishand[i], cmdPosition).CheckResult();
+                Motion.mAcm_AxResetError(_mAxishand[i]).CheckResult(i);
 
-                //Motion.mAcm_AxSetActualPosition(_mAxishand[i], cmdPosition).CheckResult();
+                Motion.mAcm_AxSetCmdPosition(_mAxishand[i], cmdPosition).CheckResult(i);
+
+                Motion.mAcm_AxSetActualPosition(_mAxishand[i], cmdPosition).CheckResult(i);
 
                 axisEnableEvent[i] |= (uint)EventType.EVT_AX_MOTION_DONE;
                 axisEnableEvent[i] |= (uint)EventType.EVT_AX_VH_START;
@@ -226,12 +228,12 @@ namespace MachineClassLibrary.Machine.MotionDevices
             var velHigh = vel;
             var velLow = vel / 2;
 
-            _result = Motion.mAcm_SetProperty(_mAxishand[axisNum], (uint)PropertyID.PAR_AxVelHigh, ref velHigh, 8);
-            if (!Success(_result))
-            {
-                throw new MotionException($"Скорость {vel} не поддерживается осью № {axisNum}. Ошибка: {(ErrorCode)_result}");
-            }
-            Motion.mAcm_SetProperty(_mAxishand[axisNum], (uint)PropertyID.PAR_AxVelLow, ref velLow, 8);
+            Motion.mAcm_SetProperty(_mAxishand[axisNum], (uint)PropertyID.PAR_AxVelHigh, ref velHigh, 8).CheckResult();
+            //if (!Success(_result))
+            //{
+            //    throw new MotionException($"Скорость {vel} не поддерживается осью № {axisNum}. Ошибка: {(ErrorCode)_result}");
+            //}
+            Motion.mAcm_SetProperty(_mAxishand[axisNum], (uint)PropertyID.PAR_AxVelLow, ref velLow, 8).CheckResult();
         }
         public void SetGroupVelocity(int groupNum)
         {
@@ -259,31 +261,31 @@ namespace MachineClassLibrary.Machine.MotionDevices
                 throw new MotionException($"Запрос скорости для оси № {axisNum}. Ошибка: {(ErrorCode)_result}");
             }
             var velLow = velHigh / 2;
-            _result = Motion.mAcm_SetProperty(_mGpHand[groupNum], (uint)PropertyID.PAR_GpVelLow, ref velLow, 8);
-            if (!Success(_result))
-            {
-                throw new MotionException($"Скорость {velLow} не поддерживается группой № {groupNum}. Ошибка: {(ErrorCode)_result}");
-            }
-            _result = Motion.mAcm_SetProperty(_mGpHand[groupNum], (uint)PropertyID.PAR_GpVelHigh, ref velHigh, 8);
-            if (!Success(_result))
-            {
-                throw new MotionException($"Скорость {velHigh} не поддерживается группой № {groupNum}. Ошибка: {(ErrorCode)_result}");
-            }
+            Motion.mAcm_SetProperty(_mGpHand[groupNum], (uint)PropertyID.PAR_GpVelLow, ref velLow, 8).CheckResult();
+            //if (!Success(_result))
+            //{
+            //    throw new MotionException($"Скорость {velLow} не поддерживается группой № {groupNum}. Ошибка: {(ErrorCode)_result}");
+            //}
+            Motion.mAcm_SetProperty(_mGpHand[groupNum], (uint)PropertyID.PAR_GpVelHigh, ref velHigh, 8).CheckResult();
+            //if (!Success(_result))
+            //{
+            //    throw new MotionException($"Скорость {velHigh} не поддерживается группой № {groupNum}. Ошибка: {(ErrorCode)_result}");
+            //}
         }
         public void SetGroupVelocity(int groupNum, double velocity)
         {
             double velHigh = velocity;
             var velLow = velHigh / 2;
-            _result = Motion.mAcm_SetProperty(_mGpHand[groupNum], (uint)PropertyID.PAR_GpVelLow, ref velLow, 8);
-            if (!Success(_result))
-            {
-                throw new MotionException($"Скорость {velLow} не поддерживается группой № {groupNum}. Ошибка: {(ErrorCode)_result}");
-            }
-            _result = Motion.mAcm_SetProperty(_mGpHand[groupNum], (uint)PropertyID.PAR_GpVelHigh, ref velHigh, 8);
-            if (!Success(_result))
-            {
-                throw new MotionException($"Скорость {velHigh} не поддерживается группой № {groupNum}. Ошибка: {(ErrorCode)_result}");
-            }
+            Motion.mAcm_SetProperty(_mGpHand[groupNum], (uint)PropertyID.PAR_GpVelLow, ref velLow, 8).CheckResult();
+            //if (!Success(_result))
+            //{
+            //    throw new MotionException($"Скорость {velLow} не поддерживается группой № {groupNum}. Ошибка: {(ErrorCode)_result}");
+            //}
+            Motion.mAcm_SetProperty(_mGpHand[groupNum], (uint)PropertyID.PAR_GpVelHigh, ref velHigh, 8).CheckResult();
+            //if (!Success(_result))
+            //{
+            //    throw new MotionException($"Скорость {velHigh} не поддерживается группой № {groupNum}. Ошибка: {(ErrorCode)_result}");
+            //}
         }
         public void SetBridgeOnAxisDin(int axisNum, int bitNum, bool setReset)
         {
@@ -324,11 +326,11 @@ namespace MachineClassLibrary.Machine.MotionDevices
         public void SetAxisDout(int axisNum, ushort dOut, bool val)
         {
             var b = val ? (byte)1 : (byte)0;
-            _result = Motion.mAcm_AxDoSetBit(_mAxishand[axisNum], dOut, b);
-            if (!Success(_result))
-            {
-                ThrowMessage($"Switch on DOUT {dOut} of axis № {axisNum} failed with error:{(ErrorCode)_result}", 0);
-            }
+            Motion.mAcm_AxDoSetBit(_mAxishand[axisNum], dOut, b).CheckResult();
+            //if (!Success(_result))
+            //{
+            //    ThrowMessage($"Switch on DOUT {dOut} of axis № {axisNum} failed with error:{(ErrorCode)_result}", 0);
+            //}
         }
         public bool GetAxisDout(int axisNum, ushort dOut)
         {
@@ -381,7 +383,6 @@ namespace MachineClassLibrary.Machine.MotionDevices
         }
         public void SetGroupConfig(int gpNum, MotionDeviceConfigs configs)
         {
-            //var res = new uint();
             var acc = configs.acc;
             var dec = configs.dec;
             var jerk = configs.jerk;
@@ -389,14 +390,13 @@ namespace MachineClassLibrary.Machine.MotionDevices
             double axMaxAcc = 180;
             double axMaxDec = 180;
             double axMaxVel = 50;
-            uint buf = 0;
-            _result = Motion.mAcm_SetProperty(_mGpHand[gpNum], (uint)PropertyID.CFG_GpMaxAcc, ref axMaxAcc, 8);
-            _result = Motion.mAcm_SetProperty(_mGpHand[gpNum], (uint)PropertyID.CFG_GpMaxDec, ref axMaxDec, 8);
-            _result = Motion.mAcm_SetProperty(_mGpHand[gpNum], (uint)PropertyID.CFG_GpMaxVel, ref axMaxVel, 8);
-            _result = Motion.mAcm_SetProperty(_mGpHand[gpNum], (uint)PropertyID.CFG_GpPPU, ref ppu, 4);
-            _result = Motion.mAcm_SetProperty(_mGpHand[gpNum], (uint)PropertyID.PAR_GpAcc, ref acc, 8);
-            _result = Motion.mAcm_SetProperty(_mGpHand[gpNum], (uint)PropertyID.PAR_GpDec, ref dec, 8);
-            _result = Motion.mAcm_SetProperty(_mGpHand[gpNum], (uint)PropertyID.PAR_GpJerk, ref jerk, 8);
+            Motion.mAcm_SetProperty(_mGpHand[gpNum], (uint)PropertyID.CFG_GpMaxAcc, ref axMaxAcc, 8).CheckResult();
+            Motion.mAcm_SetProperty(_mGpHand[gpNum], (uint)PropertyID.CFG_GpMaxDec, ref axMaxDec, 8).CheckResult();
+            Motion.mAcm_SetProperty(_mGpHand[gpNum], (uint)PropertyID.CFG_GpMaxVel, ref axMaxVel, 8).CheckResult();
+            Motion.mAcm_SetProperty(_mGpHand[gpNum], (uint)PropertyID.CFG_GpPPU, ref ppu, 4).CheckResult();
+            Motion.mAcm_SetProperty(_mGpHand[gpNum], (uint)PropertyID.PAR_GpAcc, ref acc, 8).CheckResult();
+            Motion.mAcm_SetProperty(_mGpHand[gpNum], (uint)PropertyID.PAR_GpDec, ref dec, 8).CheckResult();
+            Motion.mAcm_SetProperty(_mGpHand[gpNum], (uint)PropertyID.PAR_GpJerk, ref jerk, 8).CheckResult();
         }
         protected double GetAxisVelocity(int axisNum)
         {
@@ -412,8 +412,8 @@ namespace MachineClassLibrary.Machine.MotionDevices
         }
         public void ResetAxisCounter(int axisNum)
         {
-            _result = Motion.mAcm_AxSetCmdPosition(_mAxishand[axisNum], 0);
-            _result = Motion.mAcm_AxSetActualPosition(_mAxishand[axisNum], 0);
+            Motion.mAcm_AxSetCmdPosition(_mAxishand[axisNum], 0).CheckResult();
+            Motion.mAcm_AxSetActualPosition(_mAxishand[axisNum], 0).CheckResult();
         }
         public void HomeMovingAsync((int axisNum, double vel, uint mode)[] axVels)
         {
@@ -471,9 +471,9 @@ namespace MachineClassLibrary.Machine.MotionDevices
                 {
                     SetAxisVelocity(axvel.axisNum, axvel.velocity);
                     var buf = (uint)axvel.homeRst;
-                    _result = Motion.mAcm_SetProperty(_mAxishand[axvel.axisNum], (uint)PropertyID.CFG_AxHomeResetEnable, ref buf, 4);
+                    Motion.mAcm_SetProperty(_mAxishand[axvel.axisNum], (uint)PropertyID.CFG_AxHomeResetEnable, ref buf, 4).CheckResult();
                     buf = (uint)axvel.homeMode;
-                    _result = Motion.mAcm_SetProperty(_mAxishand[axvel.axisNum], (uint)PropertyID.PAR_AxHomeMode, ref buf, 4);
+                    Motion.mAcm_SetProperty(_mAxishand[axvel.axisNum], (uint)PropertyID.PAR_AxHomeMode, ref buf, 4).CheckResult();
 
                 }
                 catch (Exception ex)
@@ -520,8 +520,8 @@ namespace MachineClassLibrary.Machine.MotionDevices
             buf = (uint)SwLmtEnable.SLMT_DIS;
             for (int i = 0; i < gpAxes.Length; i++)
             {
-                _result = Motion.mAcm_SetProperty(_mAxishand[gpAxes[i].axisNum], (uint)PropertyID.CFG_AxSwPelEnable, ref buf, 4);
-                _result = Motion.mAcm_SetProperty(_mAxishand[gpAxes[i].axisNum], (uint)PropertyID.CFG_AxSwMelEnable, ref buf, 4);
+                Motion.mAcm_SetProperty(_mAxishand[gpAxes[i].axisNum], (uint)PropertyID.CFG_AxSwPelEnable, ref buf, 4).CheckResult();
+                Motion.mAcm_SetProperty(_mAxishand[gpAxes[i].axisNum], (uint)PropertyID.CFG_AxSwMelEnable, ref buf, 4).CheckResult();
             }
 
 
