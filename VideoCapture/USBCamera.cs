@@ -139,7 +139,8 @@ namespace DicingBlade.Classes
         public void StopCamera()
         {
             _isStarted = false;
-            _localCamera?.Stop();
+            _localCamera.SignalToStop();
+            _localCamera.WaitForStop();//.Stop();
         }
 
         public int GetVideoCaptureDevicesCount()
