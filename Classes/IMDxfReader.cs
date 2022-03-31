@@ -60,5 +60,12 @@ namespace MachineClassLibrary.Classes
                     .GroupBy(ent => ent.EntityTypeString)
                     .Select(group => (group.Key, group.Count())));
         }
+
+        public (double width, double height) GetSize()
+        {
+            var w = _document.GetBoundingBox().Size.X;
+            var h = _document.GetBoundingBox().Size.Y;
+            return (w, h);
+        }
     }
 }

@@ -5,6 +5,7 @@ namespace MachineClassLibrary.Classes
 {
     public interface IDxfReader
     {
+        (double width, double height) GetSize();
         IEnumerable<PCircle> GetCircles();
         IEnumerable<PLine> GetLines();
         /// <summary>

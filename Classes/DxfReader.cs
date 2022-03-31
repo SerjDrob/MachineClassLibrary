@@ -74,5 +74,10 @@ namespace MachineClassLibrary.Classes
         {
             throw new System.NotImplementedException();
         }
+
+        public (double width, double height) GetSize()
+        {
+            throw new System.NotImplementedException();
+        }
     }
 }
