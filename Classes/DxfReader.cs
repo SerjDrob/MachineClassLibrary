@@ -1,6 +1,8 @@
 ﻿using MachineClassLibrary.Laser.Entities;
 using netDxf;
 using System.Collections.Generic;
+using System.Drawing;
+using System.Linq;
 
 namespace MachineClassLibrary.Classes
 {
@@ -79,5 +81,12 @@ namespace MachineClassLibrary.Classes
         {
             throw new System.NotImplementedException();
         }
+
+        public IEnumerable<PPoint> GetPoints()
+        {
+            throw new System.NotImplementedException();
+            //return Document.Points.Select(p => new PointF((float)p.Position.X, (float)p.Position.Y));
+        }
+       
     }
 }

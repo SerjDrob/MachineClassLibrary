@@ -15,7 +15,7 @@ namespace MachineClassLibrary.Classes
             _dxfReader = dxfReader;
         }
         public IEnumerable<Geometry> GetGeometies() => GetLineGeometry().Concat(GetEllipseGeometry()).Select(item => item.geometry);
-        public IEnumerable<AdaptedGeometry> GetGeometries() => GetLineGeometry().Concat(GetEllipseGeometry());
+        public IEnumerable<AdaptedGeometry> GetGeometries() => GetLineGeometry().Concat(GetEllipseGeometry()).Concat(GetPointGeometry());
         private IEnumerable<AdaptedGeometry> GetLineGeometry()
         {
             return _dxfReader.GetAllSegments()
@@ -40,6 +40,19 @@ namespace MachineClassLibrary.Classes
                     )
                 );
         }
+        private IEnumerable<AdaptedGeometry> GetPointGeometry()
+        {
+            return _dxfReader.GetPoints()
+                .Select(
+                    point=>new AdaptedGeometry(
+                        new EllipseGeometry(new Point((double)point.X,(double)point.Y), 0, 0),
+                        point.LayerName,
+                        GetColorFromArgb(_dxfReader.GetLayers()[point.LayerName]),
+                        GetColorFromArgb(point.ARGBColor)
+                        )
+                );
+        }
+       
         public static SolidColorBrush GetColorFromArgb(int argb)
         {
             var rgbValues = BitConverter.GetBytes(argb);

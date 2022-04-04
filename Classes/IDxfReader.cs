@@ -1,5 +1,6 @@
 ﻿using MachineClassLibrary.Laser.Entities;
 using System.Collections.Generic;
+using System.Drawing;
 
 namespace MachineClassLibrary.Classes
 {
@@ -8,6 +9,7 @@ namespace MachineClassLibrary.Classes
         (double width, double height) GetSize();
         IEnumerable<PCircle> GetCircles();
         IEnumerable<PLine> GetLines();
+        IEnumerable<PPoint> GetPoints();
         /// <summary>
         /// Gets a list of dxf layers
         /// </summary>

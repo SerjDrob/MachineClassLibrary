@@ -2,6 +2,7 @@
 using IxMilia.Dxf.Entities;
 using MachineClassLibrary.Laser.Entities;
 using System.Collections.Generic;
+using System.Drawing;
 using System.Linq;
 
 
@@ -66,6 +67,18 @@ namespace MachineClassLibrary.Classes
             var w = _document.GetBoundingBox().Size.X;
             var h = _document.GetBoundingBox().Size.Y;
             return (w, h);
+        }
+
+        public IEnumerable<PPoint> GetPoints()
+        {
+            return _document.Entities.OfType<DxfModelPoint>()
+                 .Select(point =>
+                 new PPoint(point.Location.X,point.Location.Y, 0, new Laser.Entities.Point
+                 {
+                     X = point.Location.X,
+                     Y = point.Location.Y,
+                 }, point.Layer, point.Color.ToRGB())
+             );
         }
     }
 }

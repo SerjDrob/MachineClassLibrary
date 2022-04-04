@@ -1,4 +1,5 @@
-﻿using System.Windows.Media;
+﻿using System.Windows;
+using System.Windows.Media;
 
 namespace MachineClassLibrary.Classes
 {
@@ -8,5 +9,5 @@ namespace MachineClassLibrary.Classes
         string LayerName,
         Brush LayerColor,
         Brush GeometryColor
-    );
+    );   
 }
