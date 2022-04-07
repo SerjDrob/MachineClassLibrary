@@ -509,15 +509,11 @@ namespace MachineClassLibrary.Machine.MotionDevices
                     Task.Delay(10).Wait();
                     Motion.mAcm_GpGetState(_mGpHand[groupNum], ref state);
                 } while ((state & (ushort)GroupState.STA_Gp_Motion) > 0);
-            });
+            }).ConfigureAwait(false);
         }
         public async Task MoveGroupPreciselyAsync(int groupNum, double[] position, (int axisNum, double lineCoefficient)[] gpAxes)
         {
-            var state = new ushort();
-            //uint res = 0;
-            uint buf = 0;
-
-            buf = (uint)SwLmtEnable.SLMT_DIS;
+            var buf = (uint)SwLmtEnable.SLMT_DIS;
             for (int i = 0; i < gpAxes.Length; i++)
             {
                 Motion.mAcm_SetProperty(_mAxishand[gpAxes[i].axisNum], (uint)PropertyID.CFG_AxSwPelEnable, ref buf, 4).CheckResult();

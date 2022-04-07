@@ -314,9 +314,13 @@ namespace MachineClassLibrary.Machine.Machines
                 if (precisely)
                 {
                     var gpNum = _axesGroups[group].groupNum;
-                    var axesNums = _axes.Where(a => _axesGroups[group].axes.Contains(a.Key)).Select(n => n.Value.AxisNum);
+                    
+                    var axesNums = _axes.Where(a => _axesGroups[group].axes.Contains(a.Key))
+                                        .Select(n => n.Value.AxisNum);
+                    
                     var lineCoeffs = _axes.Where(a => _axesGroups[group].axes.Contains(a.Key))
-                        .Select(n => n.Value.LineCoefficient);
+                                          .Select(n => n.Value.LineCoefficient);
+                    
                     var gpAxes = axesNums.Zip(lineCoeffs, (a, b) => new ValueTuple<int, double>(a, b)).ToArray();
 
                     var n = _axesGroups[group].axes.FindIndex(a => a == Ax.Y);
