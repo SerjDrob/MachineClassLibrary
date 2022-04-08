@@ -71,7 +71,7 @@ namespace MachineClassLibrary.Machine.MotionDevices
 
                 axisEnableEvent[i] |= (uint)EventType.EVT_AX_MOTION_DONE;
                 axisEnableEvent[i] |= (uint)EventType.EVT_AX_VH_START;
-                //axisEnableEvent[i] |= (uint)EventType.EVT_AX_LATCHED;
+                axisEnableEvent[i] |= (uint)EventType.EVT_AX_VH_END;
             }
 
             Motion.mAcm_EnableMotionEvent(DeviceHandle, axisEnableEvent, gpEnableEvent, (uint)AxisCount, 1).CheckResult();
@@ -82,9 +82,9 @@ namespace MachineClassLibrary.Machine.MotionDevices
 
             return true;
         }
-        public async Task StartMonitoringAsync()
+        public Task StartMonitoringAsync()
         {
-            await DeviceStateMonitorAsync();
+            return DeviceStateMonitorAsync();
         }
         private async Task DeviceStateMonitorAsync()
         {
@@ -139,6 +139,7 @@ namespace MachineClassLibrary.Machine.MotionDevices
                         axState.motionDone = (axEvtStatusArray[num] & (uint)EventType.EVT_AX_MOTION_DONE) > 0;
                         //axState.homeDone = (axEvtStatusArray[num] & (uint)EventType.EVT_AX_HOME_DONE) > 0;
                         axState.vhStart = (axEvtStatusArray[num] & (uint)EventType.EVT_AX_VH_START) > 0;
+                        axState.vhEnd = (axEvtStatusArray[num] & (uint)EventType.EVT_AX_VH_END) > 0;
                     }
 
                     TransmitAxState?.Invoke(this, new AxNumEventArgs(num, axState));
@@ -314,12 +315,12 @@ namespace MachineClassLibrary.Machine.MotionDevices
             {
                 foreach (var handle in _mAxishand)
                 {
-                    Motion.mAcm_AxResetError(handle);
+                    Motion.mAcm_AxResetError(handle).CheckResult();
                 }
             }
             else
             {
-                Motion.mAcm_AxResetError(_mAxishand[axisNum]);
+                Motion.mAcm_AxResetError(_mAxishand[axisNum]).CheckResult(axisNum);
             }
 
         }

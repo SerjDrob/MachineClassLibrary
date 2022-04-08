@@ -24,6 +24,9 @@ namespace MachineClassLibrary.Machine
         public bool GetDi(Di din);
         public bool GetDo(Do dout);
         public bool Busy { get; set; }
-
+        bool VHStart { get; set; }
+        bool VHEnd { get; set; }
+        bool SetMotionStarted();
+        bool SetMotionDone();
     }
 }

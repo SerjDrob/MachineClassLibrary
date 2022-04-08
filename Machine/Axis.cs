@@ -1,8 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
+﻿using System.Collections.Generic;
 
 namespace MachineClassLibrary.Machine
 {
@@ -22,9 +18,39 @@ namespace MachineClassLibrary.Machine
         public double CmdPosition { get; set; }
         public double ActualPosition { get; set; }
         public int Ppu { get; set; }
-        public bool MotionDone { get; set; }
+        
+        private bool _motionDone = true;
+        public bool MotionDone
+        {
+            get => _motionDone;
+            set
+            {
+                _motionDone = value ? value : _motionDone;
+            }
+        }
         public bool HomeDone { get; set; }
+        private bool _vhStart;
+        public bool VHStart
+        {
+            get => _vhStart;
+            set
+            {
+                _vhStart = value;
+                _motionDone = value ? false : _motionDone;
+            }
+        }
+        public bool VHEnd { get; set; }
         public bool Compared { get; set; }
+        public bool SetMotionStarted()
+        {
+            _motionDone = false;
+            return true;
+        }
+        public bool SetMotionDone()
+        {
+            _motionDone = true;
+            return true;
+        }
         public int DIs { get; set; }
         public int DOs { get; set; }
         public Dictionary<Velocity, double> VelRegimes { get; set; }

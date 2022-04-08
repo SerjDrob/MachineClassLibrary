@@ -259,6 +259,8 @@ namespace MachineClassLibrary.Machine.Machines
         public void GoWhile(Ax axis, AxDir direction)
         {
             ResetErrors(axis);
+            _axes[axis].SetMotionStarted();
+
             _motionDevice.MoveAxisContiniouslyAsync(_axes[axis].AxisNum, direction);
         }
 
@@ -267,9 +269,13 @@ namespace MachineClassLibrary.Machine.Machines
             if (!_axes[axis].Busy)
             {
                 SetAxisBusy(axis);
+                if (_axes[axis].CmdPosition - position != 0)
+                {
+                    _axes[axis].SetMotionStarted();
+                }
                 if (precisely)
                 {
-                    await _motionDevice.MoveAxisPreciselyAsync(_axes[axis].AxisNum, _axes[axis].LineCoefficient, position);
+                    await _motionDevice.MoveAxisPreciselyAsync(_axes[axis].AxisNum, _axes[axis].LineCoefficient, position).ConfigureAwait(false);
                 }
                 else
                 {
@@ -277,22 +283,31 @@ namespace MachineClassLibrary.Machine.Machines
                     {
                         _motionDevice.MoveAxisAsync(_axes[axis].AxisNum, position);
                         while (!_axes[axis].MotionDone) ;
-                    });
+                    }).ConfigureAwait(false);
                 }
                 ResetAxisBusy(axis);
             }
         }
-        public async Task MoveGpInPosAsync(Groups group, double[] position, bool precisely = false)
-        {
 
+        public async Task MoveGpInPosAsync(Groups group, double[] positions, bool precisely = false)
+        {
+            Guard.HasSizeEqualTo(positions, _axesGroups[group].axes.Length, nameof(positions));
 
             if (!BusyGroup(group))
             {
+
+                var motionDones = _axesGroups[group].axes
+                    .Zip(positions, (ax, pos) => (ax, _axes[ax].CmdPosition - pos))
+                    .Where(ax => ax.Item2 != 0);
+                
+                motionDones.Select(ax => _axes[ax.ax].SetMotionStarted())
+                .ToList();
+
                 var k = new double();
                 try
                 {
-                    k = Math.Abs((position.First() - _axes[Ax.X].CmdPosition) /
-                                 (position.Last() - _axes[Ax.Y].ActualPosition)); //ctg a
+                    k = Math.Abs((positions.First() - _axes[Ax.X].CmdPosition) /
+                                 (positions.Last() - _axes[Ax.Y].ActualPosition)); //ctg a
                 }
                 catch (DivideByZeroException)
                 {
@@ -314,30 +329,32 @@ namespace MachineClassLibrary.Machine.Machines
                 if (precisely)
                 {
                     var gpNum = _axesGroups[group].groupNum;
-                    
+
                     var axesNums = _axes.Where(a => _axesGroups[group].axes.Contains(a.Key))
                                         .Select(n => n.Value.AxisNum);
-                    
+
                     var lineCoeffs = _axes.Where(a => _axesGroups[group].axes.Contains(a.Key))
                                           .Select(n => n.Value.LineCoefficient);
-                    
+
                     var gpAxes = axesNums.Zip(lineCoeffs, (a, b) => new ValueTuple<int, double>(a, b)).ToArray();
 
                     var n = _axesGroups[group].axes.FindIndex(a => a == Ax.Y);
 
-                    position[n] -= 0.03;
+                    positions[n] -= 0.03;
 
-                    await _motionDevice.MoveGroupPreciselyAsync(gpNum, position, gpAxes);
+                    await _motionDevice.MoveGroupPreciselyAsync(gpNum, positions, gpAxes);
 
-                    position[n] += 0.03;
+                    positions[n] += 0.03;
 
                     await _motionDevice.MoveAxisPreciselyAsync(_axes[Ax.Y].AxisNum, _axes[Ax.Y].LineCoefficient,
-                        position[n]);
+                        positions[n]);
                 }
                 else
                 {
-                    await _motionDevice.MoveGroupAsync(_axesGroups[group].groupNum, position);
+                    await _motionDevice.MoveGroupAsync(_axesGroups[group].groupNum, positions);
                 }
+                motionDones.Select(ax => _axes[ax.ax].SetMotionDone())
+                .ToList();
             }
         }
         public async Task MoveAxRelativeAsync(Ax axis, double diffPosition, bool precisely = false)
@@ -347,10 +364,12 @@ namespace MachineClassLibrary.Machine.Machines
         }
         public async Task MoveGpRelativeAsync(Groups group, double[] offset, bool precisely = false)
         {
-            Guard.HasSizeEqualTo(offset, 2, nameof(offset));
-            await MoveGpInPosAsync(group,
-                new double[] { _axes[Ax.X].ActualPosition + offset.First(), _axes[Ax.Y].ActualPosition + offset.Last() },
-                precisely);
+            Guard.HasSizeEqualTo(offset, _axesGroups[group].axes.Length, nameof(offset));
+
+            var offsets = _axesGroups[group].axes.Select(ax => _axes[ax].ActualPosition).Zip(offset, (a, o) => a + o).ToArray();
+
+            await MoveGpInPosAsync(group, offsets, precisely);
+
         }
         public void ResetErrors(Ax axis = Ax.All)
         {
@@ -417,7 +436,7 @@ namespace MachineClassLibrary.Machine.Machines
             return busy;
         }
 
-        
+
 
         public void ConfigureVelRegimes(Dictionary<Ax, Dictionary<Velocity, double>> velRegimes)
         {
@@ -487,7 +506,11 @@ namespace MachineClassLibrary.Machine.Machines
             {
                 throw new MachineException($"Homing mode is not configured. {nameof(_homingConfigs)} is null");
             }
-            var par = _homingConfigs.Select(p => 
+
+
+            _axes[Ax.X].SetMotionStarted();
+
+            var par = _homingConfigs.Select(p =>
             (
               p.Value.direction,
               p.Value.homeRst,
@@ -496,13 +519,15 @@ namespace MachineClassLibrary.Machine.Machines
               _axes[p.Key].AxisNum
             )).ToArray();
 
+            _homingConfigs.Select(a => _axes[a.Key].SetMotionStarted()).ToList();
+
             _motionDevice.HomeMovingAsync(par);
 
-            var tasks = _homingConfigs.Select(async p => 
+            var tasks = _homingConfigs.Select(async p =>
             {
-                while (!_axes[p.Key].MotionDone) await Task.Delay(10);
+                while (!_axes[p.Key].MotionDone) await Task.Delay(10).ConfigureAwait(false);
                 ResetErrors(p.Key);
-                await MoveAxInPosAsync(p.Key, p.Value.positionAfterHoming, true);
+                await MoveAxInPosAsync(p.Key, p.Value.positionAfterHoming, true).ConfigureAwait(false);
                 _motionDevice.ResetAxisCounter(_axes[p.Key].AxisNum);
             }).ToArray();
 
@@ -530,7 +555,7 @@ namespace MachineClassLibrary.Machine.Machines
             }
             public void Configure()
             {
-                if(!_homingConfigs.TryAdd(_axis, (_axDir, _homeRst, _hmMode, _velocity, _positionAfterHoming)))
+                if (!_homingConfigs.TryAdd(_axis, (_axDir, _homeRst, _hmMode, _velocity, _positionAfterHoming)))
                 {
                     _homingConfigs[_axis] = (_axDir, _homeRst, _hmMode, _velocity, _positionAfterHoming);
                 }
@@ -580,37 +605,25 @@ namespace MachineClassLibrary.Machine.Machines
                     _axes[axis].LmtP = state.pLmt;
                     _axes[axis].HomeDone = state.homeDone;
                     _axes[axis].MotionDone = state.motionDone;
+                    _axes[axis].VHStart = state.vhStart;
+                    _axes[axis].VHEnd = state.vhEnd;
+
                     var position = _axes[axis].ActualPosition;
                     if (_axes[axis].LineCoefficient == 0) position = state.cmdPos;
 
-                    OnAxisMotionStateChanged?.Invoke(this, new AxisStateEventArgs(axis, position, state.cmdPos, state.nLmt, state.pLmt, state.motionDone,
-                        state.vhStart));
+                    //OnAxisMotionStateChanged?.Invoke(this, new AxisStateEventArgs(axis, position, state.cmdPos, state.nLmt, state.pLmt, state.motionDone, state.vhStart));
 
+                    OnAxisMotionStateChanged?.Invoke(this,
+                        new AxisStateEventArgs(
+                        axis: axis,
+                        position: _axes[axis].ActualPosition,
+                        cmdPosition: _axes[axis].CmdPosition,
+                        nLmt: _axes[axis].LmtN,
+                        pLmt: _axes[axis].LmtP,
+                        motionDone: _axes[axis].MotionDone,
+                        motionStart: _axes[axis].VHStart));
 
-
-                    //foreach (var sensor in Enum.GetValues(typeof(Sensors)))
-                    //    if (_sensors != null)
-                    //    {
-                    //        var ax = _sensors[(Sensors)sensor].axis;
-                    //        var condition = _axes[ax].GetDi(_sensors[(Sensors)sensor].dIn) ^
-                    //                        _sensors[(Sensors)sensor].invertion;
-                    //        if (!condition & (_spindleBlockers?.Contains((Sensors)sensor) ?? false))
-                    //        {
-                    //            StopSpindle();
-                    //            //throw new MachineException(
-                    //            //    $"Аварийное отключение шпинделя. {_sensors[(Sensors) sensor].name}");
-                    //        }
-                    //        OnSensorStateChanged?.Invoke(this, new SensorsEventArgs((Sensors)sensor, condition));
-                    //    }
-
-                    //foreach (var valve in Enum.GetValues(typeof(Valves)))
-                    //    if (_valves != null)
-                    //    {
-                    //        var ax = _valves[(Valves)valve].axis;
-                    //        OnValveStateChanged?.Invoke(this, new ValveEventArgs((Valves)valve, _axes[ax].GetDo(_valves[(Valves)valve].dOut)));
-                    //    }
                 }
-
             }
         }
 
@@ -624,6 +637,6 @@ namespace MachineClassLibrary.Machine.Machines
             _axes[axis].Busy = false;
         }
 
-        
+
     }
 }

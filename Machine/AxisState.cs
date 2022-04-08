@@ -11,5 +11,6 @@
         public bool motionDone;
         public bool homeDone;
         public bool vhStart;
+        public bool vhEnd;
     }
 }
