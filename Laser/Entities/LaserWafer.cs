@@ -49,7 +49,7 @@ namespace MachineClassLibrary.Laser.Entities
         /// <returns>LaserWafer<TObject></returns>
         public LaserWafer<TObject> Turn90()
         {
-            _turned90 ^= true;            
+            _turned90 ^= true;
             return this;
         }
         public LaserWafer<TObject> OffsetX(float offset)
@@ -64,22 +64,22 @@ namespace MachineClassLibrary.Laser.Entities
         }
         public LaserWafer<TObject> MirrorX()
         {
-            _mirroredX ^= true;           
+            _mirroredX ^= true;
             return this;
         }
         public LaserWafer<TObject> MirrorY()
         {
-            _mirroredY ^= true;           
+            _mirroredY ^= true;
             return this;
         }
         public LaserWafer<TObject> Scale(float scale)
         {
-            _scale *= scale;            
+            _scale *= scale;
             return this;
         }
 
         public IEnumerator<IProcObject<TObject>> GetEnumerator()
-        {   
+        {
             var transformation = Matrix3x2.Identity;
 
             if (_mirroredX)
@@ -91,17 +91,24 @@ namespace MachineClassLibrary.Laser.Entities
             if (_mirroredY)
             {
                 var mirror = Matrix3x2.CreateScale(1, -1);
-                var translation = Matrix3x2.CreateTranslation(0,(float)_size.y);
+                var translation = Matrix3x2.CreateTranslation(0, (float)_size.y);
                 transformation *= mirror * translation;
             }
             if (_turned90)
             {
                 var rotation = Matrix3x2.CreateRotation(MathF.PI * 90 / 180);
                 var translation = Matrix3x2.CreateTranslation((float)_size.y, 0);
-                transformation*= rotation * translation;
+                transformation *= rotation * translation;
             }
             var scaling = Matrix3x2.CreateScale(_scale);
             transformation *= scaling;
+
+            if (_offsetX != 0 || _offsetY != 0)
+            {
+                var translating = Matrix3x2.CreateTranslation(_offsetX, _offsetY);
+                transformation *= translating;
+            }
+
             _matrix = new Matrix(transformation);
 
             foreach (var pobject in _procObjects)
@@ -111,7 +118,6 @@ namespace MachineClassLibrary.Laser.Entities
                 yield return pobject.CloneWithPosition(points[0].X, points[0].Y);
             }
         }
-
         public IProcObject<TObject> this[int index]
         {
             get
