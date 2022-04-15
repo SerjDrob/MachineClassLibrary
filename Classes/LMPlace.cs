@@ -7,6 +7,8 @@
         LeftCorner,
         RightCorner,
         UnderCamera,
-        UnderLaser
+        UnderLaser,
+        FileOnWaferUnderCamera,
+        FileOnWaferUnderLaser
     }
 }
