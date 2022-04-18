@@ -42,9 +42,22 @@ namespace MachineClassLibrary.Machine.Machines
         public Velocity VelocityRegime { get; set; }
         public bool MachineInit { get; set; }
 
-        public void AddGroup(Groups group, IAxis[] axes)
+        public IHasMotion AddGroup(Groups group, Ax[] axes)
         {
-            throw new NotImplementedException();
+            if (_axesGroups is null)
+            {
+                _axesGroups = new();
+            }
+
+            if (!_axesGroups.ContainsKey(group))
+            {
+                var axesNums = _axes
+                .Where(a => axes.Contains(a.Key))
+                .Select(n => n.Value.AxisNum)
+                .ToArray();
+                _axesGroups.Add(group, (_motionDevice.FormAxesGroup(axesNums), axes));
+            }
+            return this;
         }
 
         public void ConfigureAxes((Ax axis, double linecoefficient)[] ax)
@@ -299,7 +312,7 @@ namespace MachineClassLibrary.Machine.Machines
                 var motionDones = _axesGroups[group].axes
                     .Zip(positions, (ax, pos) => (ax, _axes[ax].CmdPosition - pos))
                     .Where(ax => ax.Item2 != 0);
-                
+
                 motionDones.Select(ax => _axes[ax.ax].SetMotionStarted())
                 .ToList();
 

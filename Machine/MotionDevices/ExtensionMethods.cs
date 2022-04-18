@@ -1,4 +1,5 @@
 ﻿using Advantech.Motion;
+using System;
 using System.Text;
 
 namespace MachineClassLibrary.Machine.MotionDevices
@@ -13,6 +14,20 @@ namespace MachineClassLibrary.Machine.MotionDevices
                 Motion.mAcm_GetErrorMessage(result, sb, 50);
                 var axisName = axisNum != -1 ? $"in axis number {axisNum}" : string.Empty;
                 throw new MotionException($"{sb} Error Code: [0x{result:X}] {axisName}");
+            }
+        }
+        public static void CheckResult(this uint result, IntPtr handle)
+        {
+            if (result != 0)
+            {
+                ushort state = 0;
+                Motion.mAcm_AxGetState(handle, ref state).CheckResult();
+
+                //var sb = new StringBuilder(50);
+                //Motion.mAcm_GetErrorMessage(result, sb, 50);
+
+                var axisName = $"in axis number {handle}";
+                throw new MotionException($"{state} Error Code: [0x{result:X}] {axisName}");
             }
         }
     }

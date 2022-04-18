@@ -45,7 +45,7 @@ namespace MachineClassLibrary.Machine
         public void EmgScenario( /*DIEventArgs eventArgs*/);
         public void ConfigureAxes((Ax axis, double linecoefficient)[] ax);
         public void ConfigureVelRegimes(Dictionary<Ax, Dictionary<Velocity, double>> velRegimes);
-        public void AddGroup(Groups group, IAxis[] axes);        
+        public IHasMotion AddGroup(Groups group, Ax[] axes);        
         public void ConfigureAxesGroups(Dictionary<Groups, Ax[]> groups);
         public void ConfigureDoubleFeatures(Dictionary<MFeatures, double> doubleFeatures);
         public double GetFeature(MFeatures feature);

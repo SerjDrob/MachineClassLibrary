@@ -28,6 +28,9 @@ namespace MachineClassLibrary.Machine.MotionDevices
                 Motion.mAcm_AxStopEmg(axHandle).CheckResult();
                 Motion.mAcm_AxResetError(axHandle).CheckResult();
             }
+            Motion.mAcm_AxResetError(axHandle).CheckResult();
+            Motion.mAcm_AxResetError(axHandle).CheckResult();
+
             Motion.mAcm_AxGetState(axHandle, ref axState);
             return axState == (uint)Advantech.Motion.AxisState.STA_AX_READY;
         }
@@ -55,7 +58,7 @@ namespace MachineClassLibrary.Machine.MotionDevices
                 var diff = position - CalcActualPosition(axisNum, lineCoefficient);
                 if (Math.Abs(diff) > tolerance)
                 {
-                    Motion.mAcm_AxResetError(_mAxishand[axisNum]).CheckResult();
+                    Motion.mAcm_AxResetError(_mAxishand[axisNum]).CheckResult(_mAxishand[axisNum]);
                     buf = (uint)SwLmtReact.SLMT_IMMED_STOP;
                     Motion.mAcm_SetProperty(_mAxishand[axisNum], (uint)PropertyID.CFG_AxSwPelReact, ref buf, 4).CheckResult(axisNum);
                     Motion.mAcm_SetProperty(_mAxishand[axisNum], (uint)PropertyID.CFG_AxSwMelReact, ref buf, 4).CheckResult(axisNum);
@@ -114,7 +117,9 @@ namespace MachineClassLibrary.Machine.MotionDevices
                     rec--;
                     if (rec == 0)
                     {
-                        Motion.mAcm_AxResetError(_mAxishand[axisNum]).CheckResult(axisNum);
+                        // Motion.mAcm_AxResetError(_mAxishand[axisNum]).CheckResult(axisNum);
+                        Motion.mAcm_AxResetError(_mAxishand[axisNum]).CheckResult(_mAxishand[axisNum]);
+
                         SetAxisVelocity(axisNum, _storeSpeed);
                     }
                 }

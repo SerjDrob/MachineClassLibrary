@@ -229,12 +229,12 @@ namespace MachineClassLibrary.Machine.MotionDevices
             var velHigh = vel;
             var velLow = vel / 2;
 
-            Motion.mAcm_SetProperty(_mAxishand[axisNum], (uint)PropertyID.PAR_AxVelHigh, ref velHigh, 8).CheckResult();
+            Motion.mAcm_SetProperty(_mAxishand[axisNum], (uint)PropertyID.PAR_AxVelHigh, ref velHigh, 8).CheckResult(axisNum);
             //if (!Success(_result))
             //{
             //    throw new MotionException($"Скорость {vel} не поддерживается осью № {axisNum}. Ошибка: {(ErrorCode)_result}");
             //}
-            Motion.mAcm_SetProperty(_mAxishand[axisNum], (uint)PropertyID.PAR_AxVelLow, ref velLow, 8).CheckResult();
+            Motion.mAcm_SetProperty(_mAxishand[axisNum], (uint)PropertyID.PAR_AxVelLow, ref velLow, 8).CheckResult(axisNum);
         }
         public void SetGroupVelocity(int groupNum)
         {

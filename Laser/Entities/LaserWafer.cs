@@ -81,7 +81,7 @@ namespace MachineClassLibrary.Laser.Entities
         public IEnumerator<IProcObject<TObject>> GetEnumerator()
         {
             var transformation = Matrix3x2.Identity;
-
+                       
             if (_mirroredX)
             {
                 var mirror = Matrix3x2.CreateScale(-1, 1);
