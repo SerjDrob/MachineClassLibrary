@@ -19,7 +19,7 @@ namespace MachineClassLibrary.Laser
         public IPerforating Build()
         {
 
-            if (typeof(T) is Circle)
+            if (typeof(T) == typeof(Circle))
             {
                 return new CirclePerforator(_markLaserParams, (IProcObject<Circle>)_procObject, _paramsAdapting);
             }

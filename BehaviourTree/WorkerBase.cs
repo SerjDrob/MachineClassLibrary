@@ -24,10 +24,13 @@ namespace MachineClassLibrary.BehaviourTree
         private event Action ActionBeforeWork;
         public virtual WorkerBase SetActionBeforeWork(Action action)
         {
-            if (!_isCancelled)
-            {
-                ActionBeforeWork?.Invoke();
-            }
+            //if (!_isCancelled)
+            //{
+            //    ActionBeforeWork?.Invoke();
+            //}
+
+            ActionBeforeWork += action;
+
             return this;
         }
         public virtual async Task<bool> DoWork()

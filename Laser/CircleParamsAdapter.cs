@@ -11,7 +11,12 @@
 
         public double[] Adapt()
         {
-            var result = new double[3];
+            //formula for calculating parameters
+            var innerOffset = 0.001;
+            var outerOffset = 0.001;
+            var step = 0.001;
+
+            var result = new double[] {innerOffset, outerOffset, step};
             return result;
         }
     }
