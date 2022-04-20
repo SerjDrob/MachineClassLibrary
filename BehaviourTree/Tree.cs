@@ -11,8 +11,8 @@ namespace MachineClassLibrary.BehaviourTree
         {
             _myAction = action;
         }
-        public Tree SetAction(Action action) => new Tree(action);
-        public MakeLoop StartLoop(int count) => new MakeLoop(count);
+        public static Tree SetAction(Action action) => new Tree(action);
+        public static MakeLoop StartLoop(int count) => new MakeLoop(count);
         public class MakeLoop
         {
             public MakeLoop(int count)

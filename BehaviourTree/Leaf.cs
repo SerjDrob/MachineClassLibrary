@@ -30,14 +30,14 @@ namespace MachineClassLibrary.BehaviourTree
                 {
                     if (_notBlocked)
                     {
-                        var task = new Task(_myWork, cancellationTokenSource.Token);
-                        task.Start();
-                        await task;
-
-
-                        //var task = _myWork?.Invoke();
-                        ////task.Start();
+                        //var task = new Task(_myWork, cancellationTokenSource.Token);
+                        //task.Start();
                         //await task;
+
+
+                        var task = _myWork?.Invoke();
+                        //task.Start();
+                        await task;
                         if (_waitMeAfterWorkDone)
                             await _pauseTokenAfterWork.Token.WaitWhilePausedAsync().ContinueWith(t => { isPausedAfterWork = false; });
                     }
