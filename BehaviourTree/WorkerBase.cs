@@ -33,10 +33,11 @@ namespace MachineClassLibrary.BehaviourTree
 
             return this;
         }
-        public virtual async Task<bool> DoWork()
+
+        public virtual Task<bool> DoWorkAsync()
         {
             ActionBeforeWork?.Invoke();
-            return true;
+            return Task.FromResult(true);
         }
         public abstract void PulseAction(bool info);
         public abstract void CancellAction(bool info);

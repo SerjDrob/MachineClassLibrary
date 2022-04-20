@@ -8,24 +8,24 @@ namespace MachineClassLibrary.BehaviourTree
     public class Leaf : WorkerBase
     {
 
-        private readonly Action _myWork;
+        private readonly Func<Task> _myWork;
         private bool isPausedAfterWork = false;
         private CancellationTokenSource cancellationTokenSource = new();
         private int pauseCount = 0;
         private int resumeCount = 0;
 
         private object _lock = new object();
-        public Leaf(Action myWork)
+        public Leaf(Func<Task> myWork)
         {
             _myWork = myWork;
         }
         private PauseTokenSource _pauseTokenAfterWork = new();
         private bool _waitMeAfterWorkDone = false;
-        public override async Task<bool> DoWork()
+        public override async Task<bool> DoWorkAsync()
         {
             if (!_isCancelled)
             {
-                base.DoWork();
+                await base.DoWorkAsync();
                 try
                 {
                     if (_notBlocked)
@@ -34,6 +34,10 @@ namespace MachineClassLibrary.BehaviourTree
                         task.Start();
                         await task;
 
+
+                        //var task = _myWork?.Invoke();
+                        ////task.Start();
+                        //await task;
                         if (_waitMeAfterWorkDone)
                             await _pauseTokenAfterWork.Token.WaitWhilePausedAsync().ContinueWith(t => { isPausedAfterWork = false; });
                     }

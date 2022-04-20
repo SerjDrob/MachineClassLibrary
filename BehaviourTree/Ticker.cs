@@ -20,17 +20,17 @@ namespace MachineClassLibrary.BehaviourTree
 
         private WorkerBase _worker;
 
-        public override async Task<bool> DoWork()
+        public override async Task<bool> DoWorkAsync()
         {
             var loopCount = this.cycles;
             if (!_isCancelled)
             {
-                base.DoWork();
+                await base.DoWorkAsync();
                 while (_notBlocked && !_isCancelled & (cycles > 0 ? loopCount-- > 0 : true))
                 {
                     try
                     {
-                        await _worker.DoWork();
+                        await _worker.DoWorkAsync();
                     }
                     catch (Exception)
                     {

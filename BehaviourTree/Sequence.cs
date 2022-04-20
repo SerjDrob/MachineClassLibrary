@@ -12,18 +12,18 @@ namespace MachineClassLibrary.BehaviourTree
         public event Action<bool> Pulse;
         public event Action<bool> Cancell;
 
-        public override async Task<bool> DoWork()
+        public override async Task<bool> DoWorkAsync()
         {
             if (!_isCancelled)
             {
-                base.DoWork();
+                await base.DoWorkAsync();
                 if (_notBlocked)
                 {
                     foreach (var worker in _workers)
                     {
                         if (_isCancelled) return true;
                         if (worker is Leaf) worker.PulseAction(true);
-                        var res = await worker.DoWork();
+                        var res = await worker.DoWorkAsync();
                     }
                 }
             }
