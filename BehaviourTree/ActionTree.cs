@@ -3,15 +3,17 @@ using System.Collections.Generic;
 
 namespace MachineClassLibrary.BehaviourTree
 {
-    public class Tree
+
+    public class ActionTree
     {
         private readonly Action _myAction;
         public void DoAction() => _myAction.Invoke();
-        protected Tree(Action action)
+        public Action GetAction() => _myAction;
+        protected ActionTree(Action action)
         {
             _myAction = action;
         }
-        public static Tree SetAction(Action action) => new Tree(action);
+        public static ActionTree SetAction(Action action) => new ActionTree(action);
         public static MakeLoop StartLoop(int count) => new MakeLoop(count);
         public class MakeLoop
         {
@@ -19,17 +21,17 @@ namespace MachineClassLibrary.BehaviourTree
             {
                 _count = count;
             }
-            private List<Tree> _children = new();
+            private List<ActionTree> _children = new();
             private readonly int _count;
 
-            public MakeLoop AddChild(Tree child)
+            public MakeLoop AddChild(ActionTree child)
             {
                 _children.Add(child);
                 return this;
             }
-            public Tree EndLoop
+            public ActionTree EndLoop
             {
-                get => new Tree(() =>
+                get => new ActionTree(() =>
                 {
                     for (int i = 0; i < _count; i++)
                     {
