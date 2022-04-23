@@ -153,6 +153,25 @@ namespace MachineClassLibrary.Laser
                                                hatchParams.bHatchAutoRotate,
                                                hatchParams.dHatchRotateAngle);
 
+
+        public static int SetHatchParams(HatchParams hatchParams) => lmc1_SetHatchParam(hatchParams.bEnableContour,
+            hatchParams.bEnableHatch,
+            hatchParams.nPenNo,
+            HATCHATTRIB_LOOP,//48
+            hatchParams.dHatchEdgeDist,
+            hatchParams.dHatchLineDist,
+            hatchParams.dHatchStartOffset,
+            hatchParams.dHatchEndOffset,
+            hatchParams.dHatchRotateAngle,
+            0,
+            0,
+            48,
+            0,
+            0,
+            0,
+            0,
+            0);
+
         public static int SetPenParams(PenParams penParams) => Lmc.lmc1_SetPenParam(penParams.nPenNo,
                                               penParams.nMarkLoop,
                                               penParams.dMarkSpeed,

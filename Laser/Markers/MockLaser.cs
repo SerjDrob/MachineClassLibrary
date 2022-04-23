@@ -16,7 +16,7 @@ namespace MachineClassLibrary.Laser.Markers
             IsMarkDeviceInit = false;
         }
 
-        public void InitMarkDevice()
+        public void InitMarkDevice(string initDirPath)
         {
             IsMarkDeviceInit = true;
         }

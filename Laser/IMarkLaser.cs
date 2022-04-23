@@ -7,7 +7,7 @@ namespace MachineClassLibrary.Laser
     public interface IMarkLaser
     {
         public bool IsMarkDeviceInit { get; }
-        public void InitMarkDevice();
+        public void InitMarkDevice(string initDirPath);
         public void CloseMarkDevice();
         public void SetMarkDeviceParams();        
         public Task<bool> PierceObjectAsync(IPerforatorBuilder perforatorBuilder);

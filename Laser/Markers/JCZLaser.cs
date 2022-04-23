@@ -17,10 +17,10 @@ namespace MachineClassLibrary.Laser.Markers
             else IsMarkDeviceInit = false;
         }
 
-        public void InitMarkDevice()
+        public void InitMarkDevice(string initDirPath)
         {
             IntPtr Handle = new WindowInteropHelper(new Window()).Handle;
-            var result = Lmc.lmc1_Initial(Directory.GetCurrentDirectory(), 0, Handle);
+            var result = Lmc.lmc1_Initial(initDirPath, 0, Handle);
 
             if (result != 0)
             {

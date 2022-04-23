@@ -262,9 +262,9 @@ namespace MachineClassLibrary.Machine.Machines
         //    _videoCapture.FreezeCameraImage();
         //}
 
-        public void InitMarkDevice()
+        public void InitMarkDevice(string initDirPath)
         {
-            _markLaser.InitMarkDevice();
+            _markLaser.InitMarkDevice(initDirPath);
         }
 
         public async Task<bool> PierceObjectAsync(IPerforatorBuilder perforatorBuilder)

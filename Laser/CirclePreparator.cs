@@ -46,10 +46,16 @@ namespace MachineClassLibrary.Laser
             {
                 throw new Exception($"Set pen params failed with {(Lmc.EzCad_Error_Code)result}");
             }
-            result = Lmc.HatchObject(name.ToString(), _hatchParams with { nPenNo = penNo});
+            //result = Lmc.HatchObject(name.ToString(), _hatchParams with { nPenNo = penNo});
+            result = Lmc.SetHatchParams(_hatchParams with { nPenNo = penNo });            
             if (result != 0)
             {
                 throw new Exception($"Set hatch params failed with {(Lmc.EzCad_Error_Code)result}");
+            }
+            result = Lmc.lmc1_HatchEnt(name.ToString(), name.ToString());
+            if (result != 0)
+            {
+                throw new Exception($"Hatch entity failed with {(Lmc.EzCad_Error_Code)result}");
             }
             return name.ToString();
         }

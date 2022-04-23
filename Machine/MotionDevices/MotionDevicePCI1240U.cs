@@ -468,20 +468,20 @@ namespace MachineClassLibrary.Machine.MotionDevices
 
             foreach (var axvel in axs)
             {
-                try
-                {
-                    SetAxisVelocity(axvel.axisNum, axvel.velocity);
-                    var buf = (uint)axvel.homeRst;
-                    Motion.mAcm_SetProperty(_mAxishand[axvel.axisNum], (uint)PropertyID.CFG_AxHomeResetEnable, ref buf, 4).CheckResult();
-                    buf = (uint)axvel.homeMode;
-                    Motion.mAcm_SetProperty(_mAxishand[axvel.axisNum], (uint)PropertyID.PAR_AxHomeMode, ref buf, 4).CheckResult();
+                //try
+                //{
+                //    SetAxisVelocity(axvel.axisNum, axvel.velocity);
+                //    var buf = (uint)axvel.homeRst;
+                //    Motion.mAcm_SetProperty(_mAxishand[axvel.axisNum], (uint)PropertyID.CFG_AxHomeResetEnable, ref buf, 4).CheckResult();
 
-                }
-                catch (Exception ex)
-                {
-                    ThrowMessage?.Invoke($"{ex.StackTrace} :\n {ex.Message}", 0);
-                    break;
-                }
+                //    buf = (uint)axvel.homeMode;
+                //    Motion.mAcm_SetProperty(_mAxishand[axvel.axisNum], (uint)PropertyID.PAR_AxHomeMode, ref buf, 4).CheckResult();
+                //}
+                //catch (Exception ex)
+                //{
+                //    ThrowMessage?.Invoke($"{ex.StackTrace} :\n {ex.Message}", 0);
+                //    break;
+                //}
 
                 _result = Motion.mAcm_AxHome(_mAxishand[axvel.axisNum], (uint)axvel.homeMode, (uint)axvel.direction);
 
