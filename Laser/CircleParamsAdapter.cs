@@ -2,11 +2,12 @@
 {
     public class CircleParamsAdapter : IParamsAdapting
     {
-        private readonly CirclePierceParams circlePierceParams;
 
-        public CircleParamsAdapter(CirclePierceParams circlePierceParams)
+        private readonly PierceParams pierceParams;
+
+        public CircleParamsAdapter(PierceParams pierceParams)
         {
-            this.circlePierceParams = circlePierceParams;
+            this.pierceParams = pierceParams;
         }
 
         public double[] Adapt()
