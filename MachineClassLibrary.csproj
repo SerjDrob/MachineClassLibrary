@@ -8,6 +8,7 @@
     <Description>
      
     </Description>
+	<LangVersion>preview</LangVersion>
     <Platforms>AnyCPU;x86</Platforms>
     <ApplicationIcon />
     <OutputType>Library</OutputType>

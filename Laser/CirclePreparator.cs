@@ -35,10 +35,10 @@ namespace MachineClassLibrary.Laser
             var name = builder.AppendJoin("-",namePrefix, rand.Next(1000,10000));
             var name1 = builder.AppendJoin("-", namePrefix, rand.Next(1000, 10000));
             int result = 0;
-            result = Lmc.lmc1_AddCircleToLib(procObject.X, procObject.Y, procObject.PObject.Radius + _outerOffset, name.ToString(), 0);
+            result = Lmc.lmc1_AddCircleToLib(0, 0, procObject.PObject.Radius + _outerOffset, name.ToString(), 0);
             if (_innerOffset<procObject.PObject.Radius)
             {
-                result = Lmc.lmc1_AddCircleToLib(procObject.X, procObject.Y, procObject.PObject.Radius - _innerOffset, name1.ToString(), 0);
+                result = Lmc.lmc1_AddCircleToLib(0, 0, procObject.PObject.Radius - _innerOffset, name1.ToString(), 0);
                 result = Lmc.lmc1_GroupEnt(name.ToString(), name1.ToString(), name.ToString(), 0);
             }
             result = Lmc.SetPenParams(_penParams with { nPenNo = penNo});

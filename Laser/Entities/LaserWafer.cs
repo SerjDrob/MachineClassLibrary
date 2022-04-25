@@ -8,7 +8,7 @@ using System.Numerics;
 
 namespace MachineClassLibrary.Laser.Entities
 {
-    public class LaserWafer<TObject> : IEnumerable<IProcObject<TObject>>, IDisposable
+    public class LaserWafer<TObject> : IEnumerable<IProcObject<TObject>>, IDisposable where TObject:IShape
     {
         private readonly (double x, double y) _size;
         private readonly IEnumerable<IProcObject<TObject>> _procObjects;
@@ -115,7 +115,9 @@ namespace MachineClassLibrary.Laser.Entities
             {
                 var points = new PointF[] { new((float)pobject.X, (float)pobject.Y) };
                 _matrix.TransformPoints(points);
-                yield return pobject.CloneWithPosition(points[0].X, points[0].Y);
+                var newObj = pobject.CloneWithPosition(points[0].X, points[0].Y);
+                newObj.PObject.Scale(_scale);
+                yield return newObj;
             }
         }
         public IProcObject<TObject> this[int index]

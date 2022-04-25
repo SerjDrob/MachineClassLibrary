@@ -629,7 +629,7 @@ namespace MachineClassLibrary.Machine.Machines
                     OnAxisMotionStateChanged?.Invoke(this,
                         new AxisStateEventArgs(
                         axis: axis,
-                        position: _axes[axis].ActualPosition,
+                        position: _axes[axis].LineCoefficient == 0 ? _axes[axis].CmdPosition : _axes[axis].ActualPosition,
                         cmdPosition: _axes[axis].CmdPosition,
                         nLmt: _axes[axis].LmtN,
                         pLmt: _axes[axis].LmtP,

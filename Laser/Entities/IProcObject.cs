@@ -3,7 +3,7 @@ using System;
 
 namespace MachineClassLibrary.Laser.Entities
 {
-    public interface IProcObject<TObject>
+    public interface IProcObject<TObject> where TObject:IShape
     {
         public int ARGBColor { get; set; }
         public string LayerName { get; set; }

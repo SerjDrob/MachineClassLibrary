@@ -2,7 +2,7 @@
 
 namespace MachineClassLibrary.Laser
 {
-    public interface IMarkEntityPreparing<TObject>
+    public interface IMarkEntityPreparing<TObject> where TObject:IShape
     {
         /// <summary>
         /// Prepares given entity for marking

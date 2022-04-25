@@ -3,7 +3,7 @@ using System;
 
 namespace MachineClassLibrary.Laser
 {
-    public class PerforatorBuilder<T> : IPerforatorBuilder where T : class
+    public class PerforatorBuilder<T> : IPerforatorBuilder where T : IShape
     {
         private readonly IProcObject<T> _procObject;
         private readonly MarkLaserParams _markLaserParams;

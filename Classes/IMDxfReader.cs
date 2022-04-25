@@ -47,10 +47,15 @@ namespace MachineClassLibrary.Classes
                          X1 = dxfLine.P1.X,
                          Y1 = dxfLine.P1.Y,
                          X2 = dxfLine.P2.X,
-                         Y2 = dxfLine.P2.Y
+                         Y2 = dxfLine.P2.Y                         
                      }, polyline.Layer, dxfLine.Color.ToRGB())
                  )).SelectMany(x => x);
         }
+        //public IEnumerable<PCurve> GetAllCurves()
+        //{
+        //    return _document.Entities.OfType<DxfLwPolyline>()
+        //        .Select(polyline=>new PCurve(0,0,0)
+        //}
         public IDictionary<string, int> GetLayers() => _document.Layers.ToDictionary(layer => layer.Name, layer => layer.Color.ToRGB());
 
         public IDictionary<string, IEnumerable<(string objType, int count)>> GetLayersStructure()
