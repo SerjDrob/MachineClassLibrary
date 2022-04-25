@@ -87,6 +87,10 @@ namespace MachineClassLibrary.Classes
             throw new System.NotImplementedException();
             //return Document.Points.Select(p => new PointF((float)p.Position.X, (float)p.Position.Y));
         }
-       
+
+        public IEnumerable<PCurve> GetAllCurves()
+        {
+            throw new System.NotImplementedException();
+        }
     }
 }

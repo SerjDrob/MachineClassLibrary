@@ -1,13 +1,25 @@
 ﻿using IxMilia.Dxf;
 using IxMilia.Dxf.Entities;
 using MachineClassLibrary.Laser.Entities;
+using System;
 using System.Collections.Generic;
-using System.Drawing;
 using System.Linq;
 
 
 namespace MachineClassLibrary.Classes
 {
+    static class IxMiliaExtensionHelper
+    {
+
+        public static (double x, double y) GetPolylineCenter(this IList<DxfLwPolylineVertex> vertices)
+        {
+            var xmax = vertices.Max(vertex => vertex.X);
+            var ymax = vertices.Max(vertex => vertex.Y);
+            var xmin = vertices.Min(vertex => vertex.X);
+            var ymin = vertices.Min(vertex => vertex.Y);
+            return ((xmax-xmin)/2, (ymax - ymin)/2);
+        }
+    }
     public class IMDxfReader : IDxfReader
     {
         private readonly string _fileName;
@@ -47,15 +59,20 @@ namespace MachineClassLibrary.Classes
                          X1 = dxfLine.P1.X,
                          Y1 = dxfLine.P1.Y,
                          X2 = dxfLine.P2.X,
-                         Y2 = dxfLine.P2.Y                         
+                         Y2 = dxfLine.P2.Y
                      }, polyline.Layer, dxfLine.Color.ToRGB())
                  )).SelectMany(x => x);
         }
-        //public IEnumerable<PCurve> GetAllCurves()
-        //{
-        //    return _document.Entities.OfType<DxfLwPolyline>()
-        //        .Select(polyline=>new PCurve(0,0,0)
-        //}
+        public IEnumerable<PCurve> GetAllCurves()
+        {
+            return _document.Entities.OfType<DxfLwPolyline>()
+                .Select(polyline =>
+                new PCurve(polyline.Vertices.GetPolylineCenter().x, polyline.Vertices.GetPolylineCenter().y, 0,
+                new Curve { Vertices = polyline.Vertices.Select(vertex => (vertex.X, vertex.Y, vertex.Bulge)) },
+                polyline.Layer, polyline.Color.ToRGB()));
+        }
+
+
         public IDictionary<string, int> GetLayers() => _document.Layers.ToDictionary(layer => layer.Name, layer => layer.Color.ToRGB());
 
         public IDictionary<string, IEnumerable<(string objType, int count)>> GetLayersStructure()
@@ -78,7 +95,7 @@ namespace MachineClassLibrary.Classes
         {
             return _document.Entities.OfType<DxfModelPoint>()
                  .Select(point =>
-                 new PPoint(point.Location.X,point.Location.Y, 0, new Laser.Entities.Point
+                 new PPoint(point.Location.X, point.Location.Y, 0, new Laser.Entities.Point
                  {
                      X = point.Location.X,
                      Y = point.Location.Y,
