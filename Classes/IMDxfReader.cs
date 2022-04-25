@@ -72,6 +72,27 @@ namespace MachineClassLibrary.Classes
                 polyline.Layer, polyline.Color.ToRGB()));
         }
 
+        public IEnumerable<DxfCurve> GetAllDxfCurves()
+        {
+            foreach (var polyline in _document.Entities.OfType<DxfLwPolyline>())
+            {
+                var center = polyline.Vertices.GetPolylineCenter();
+                var vertices = polyline.Vertices.Select(vertex =>
+                {
+                    var x = vertex.X - center.x;
+                    var y = vertex.Y - center.y;
+                    var vert = vertex;
+                    vert.X= x;
+                    vert.Y= y;
+                    return vert;
+                });
+                var lw = new DxfLwPolyline(vertices);
+                var doc = new DxfFile();
+                doc.Entities.Add(lw);
+                doc.Save("");
+            }
+            throw new NotImplementedException();
+        }
 
         public IDictionary<string, int> GetLayers() => _document.Layers.ToDictionary(layer => layer.Name, layer => layer.Color.ToRGB());
 

@@ -23,10 +23,10 @@ namespace MachineClassLibrary.Laser
             {
                 return new CirclePerforator(_markLaserParams, (IProcObject<Circle>)_procObject, _paramsAdapting);
             }
-            //if (typeof(T) is Curve)
-            //{
-            //    return new CurvePerforator(_hatchParams, (IProcObject<Curve>)_procObject, _paramsAdapting);
-            //}
+            if (typeof(T) == typeof(Curve))
+            {
+                return new CurvePerforator(_markLaserParams, (IProcObject<Curve>)_procObject, _paramsAdapting);
+            }
             else
             {
                 throw new ArgumentException($"{typeof(T)} is mismatch to Circle or Curve");
