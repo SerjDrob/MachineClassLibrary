@@ -312,5 +312,18 @@ namespace MachineClassLibrary.Laser
                                                     double dCharSpace,
                                                     double dLineSpace,
                                                     bool bEqualCharWidth);
+
+        [DllImport("MarkEzd.dll", EntryPoint = "lmc1_MirrorEnt", CharSet = CharSet.Unicode, CallingConvention = CallingConvention.Cdecl)]
+        public static extern int lmc1_MirrorEnt(string pEntName,
+                                                double dCenx,
+                                                double dCeny,
+                                                bool bMirrorX,
+                                                bool bMirrorY);
+
+        [DllImport("MarkEzd.dll", EntryPoint = "lmc1_RotateEnt", CharSet = CharSet.Unicode, CallingConvention = CallingConvention.Cdecl)]
+        public static extern int lmc1_RotateEnt(string pEntName,
+                                                double dCenx,
+                                                double dCeny,
+                                                double dAngle);
     }
 }

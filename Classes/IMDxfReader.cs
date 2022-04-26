@@ -24,14 +24,13 @@ namespace MachineClassLibrary.Classes
     public class IMDxfReader : IDxfReader
     {
         private const string TEMP_FILE_NAME = "tempcurve";
-        private string _filePostfix = string.Empty;
         private readonly string _fileName;
         private readonly DxfFile _document;
+        private List<PDxfCurve> _tempDxfCurves = new();
         public IMDxfReader(string fileName)
         {
             _fileName = fileName;
             _document = DxfFile.Load(_fileName);
-            _filePostfix = Guid.NewGuid().ToString();
         }
         public IEnumerable<PCircle> GetCircles()
         {
@@ -80,28 +79,44 @@ namespace MachineClassLibrary.Classes
         /// </summary>
         /// <param name="folder">destination folder for curve file</param>
         /// <returns>DxfCurve containing filepath of the curve</returns>
-        public IEnumerable<DxfCurve> GetAllDxfCurves(string folder)
+        public IEnumerable<PDxfCurve> GetAllDxfCurves(string folder)
         {
+            var index = 0;
+            PDxfCurve pdxfCurve;
             foreach (var polyline in _document.Entities.OfType<DxfLwPolyline>())
             {
-                var center = polyline.Vertices.GetPolylineCenter();
-                var vertices = polyline.Vertices.Select(vertex =>
+
+                if (index + 1 < _tempDxfCurves.Count)
                 {
-                    var x = vertex.X - center.x;
-                    var y = vertex.Y - center.y;
-                    var vert = vertex;
-                    vert.X = x;
-                    vert.Y = y;
-                    return vert;
-                });
-                var lw = new DxfLwPolyline(vertices);
-                lw.IsClosed = polyline.IsClosed;
-                var doc = new DxfFile();
-                doc.Header.Version = DxfAcadVersion.R14;
-                doc.Entities.Add(lw);
-                var fullPath = Path.Combine(folder, $"{TEMP_FILE_NAME}{_filePostfix}.dxf");
-                doc.Save(fullPath);
-                yield return new DxfCurve(fullPath);
+                    pdxfCurve = _tempDxfCurves[index];
+                }
+                else
+                {
+                    var center = polyline.Vertices.GetPolylineCenter();
+                    var vertices = polyline.Vertices.Select(vertex =>
+                    {
+                        var x = vertex.X - center.x;
+                        var y = vertex.Y - center.y;
+                        var vert = vertex;
+                        vert.X = x;
+                        vert.Y = y;
+                        return vert;
+                    });
+
+                    var lw = new DxfLwPolyline(vertices);
+                    lw.IsClosed = polyline.IsClosed;
+                    var doc = new DxfFile();
+                    doc.Header.Version = DxfAcadVersion.R14;
+                    doc.Entities.Add(lw);
+                    var filePostfix = Guid.NewGuid().ToString();
+                    var fullPath = Path.Combine(folder, $"{TEMP_FILE_NAME}{filePostfix}.dxf");
+                    doc.Save(fullPath);
+                    pdxfCurve = new PDxfCurve(center.x,center.y,0, new DxfCurve(fullPath),polyline.Layer,polyline.Color.ToRGB());
+                    _tempDxfCurves.Add(pdxfCurve);
+                }
+
+                index++;
+                yield return pdxfCurve;
             }
         }
 

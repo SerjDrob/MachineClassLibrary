@@ -1,0 +1,30 @@
+﻿using System;
+
+namespace MachineClassLibrary.Laser.Entities
+{
+    public class PDxfCurve : IProcObject<DxfCurve>
+    {
+        public PDxfCurve(double x, double y, double angle, DxfCurve pObject, string layerName, int rgbColor)
+        {
+            X = x;
+            Y = y;
+            Angle = angle;
+            PObject = pObject;
+            LayerName = layerName;
+            ARGBColor = rgbColor;
+        }
+        public int ARGBColor { get; set; }
+        public string LayerName { get; set; }
+        public double X { get; init; }
+        public double Y { get; init; }
+        public double Angle { get; init; }
+        public DxfCurve PObject { get; init; }
+
+        public IProcObject<DxfCurve> CloneWithPosition(double x, double y) => new PDxfCurve(x, y, Angle, PObject, LayerName, ARGBColor);
+
+        public (double x, double y) GetSize()
+        {
+            throw new NotImplementedException();
+        }
+    }
+}
