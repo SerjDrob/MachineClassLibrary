@@ -117,6 +117,8 @@ namespace MachineClassLibrary.Laser.Entities
                 _matrix.TransformPoints(points);
                 var newObj = pobject.CloneWithPosition(points[0].X, points[0].Y);
                 newObj.PObject.Scale(_scale);
+                newObj.PObject.SetMirrorX(_mirroredX);
+                newObj.PObject.SetTurn90(_turned90);
                 yield return newObj;
             }
         }

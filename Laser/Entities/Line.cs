@@ -20,5 +20,15 @@ namespace MachineClassLibrary.Laser.Entities
             Y1 *= scale;
             Y2 *= scale;
         }
+
+        public void SetMirrorX(bool mirror)
+        {
+           // throw new NotImplementedException();
+        }
+
+        public void SetTurn90(bool turn)
+        {
+           // throw new NotImplementedException();
+        }
     }
 }

@@ -22,5 +22,6 @@ namespace MachineClassLibrary.Classes
         /// <returns>Dictionary  where a layer's name is a Key and Value is a list of the layer's object names with their count on the layer.</returns>
         IDictionary<string, IEnumerable<(string objType, int count)>> GetLayersStructure();
         IEnumerable<PCurve> GetAllCurves();
+        IEnumerable<DxfCurve> GetAllDxfCurves(string folder);
     }
 }

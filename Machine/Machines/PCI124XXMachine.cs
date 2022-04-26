@@ -282,10 +282,10 @@ namespace MachineClassLibrary.Machine.Machines
             if (!_axes[axis].Busy)
             {
                 SetAxisBusy(axis);
-                if (_axes[axis].CmdPosition - position != 0)
-                {
-                    _axes[axis].SetMotionStarted();
-                }
+                //if (_axes[axis].CmdPosition - position != 0)
+                //{
+                //    _axes[axis].SetMotionStarted();
+                //}
                 if (precisely)
                 {
                     await _motionDevice.MoveAxisPreciselyAsync(_axes[axis].AxisNum, _axes[axis].LineCoefficient, position).ConfigureAwait(false);

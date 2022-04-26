@@ -3,6 +3,7 @@ using IxMilia.Dxf.Entities;
 using MachineClassLibrary.Laser.Entities;
 using System;
 using System.Collections.Generic;
+using System.IO;
 using System.Linq;
 
 
@@ -17,17 +18,20 @@ namespace MachineClassLibrary.Classes
             var ymax = vertices.Max(vertex => vertex.Y);
             var xmin = vertices.Min(vertex => vertex.X);
             var ymin = vertices.Min(vertex => vertex.Y);
-            return ((xmax-xmin)/2, (ymax - ymin)/2);
+            return ((xmax + xmin) / 2, (ymax + ymin) / 2);
         }
     }
     public class IMDxfReader : IDxfReader
     {
+        private const string TEMP_FILE_NAME = "tempcurve";
+        private string _filePostfix = string.Empty;
         private readonly string _fileName;
         private readonly DxfFile _document;
         public IMDxfReader(string fileName)
         {
             _fileName = fileName;
             _document = DxfFile.Load(_fileName);
+            _filePostfix = Guid.NewGuid().ToString();
         }
         public IEnumerable<PCircle> GetCircles()
         {
@@ -71,8 +75,12 @@ namespace MachineClassLibrary.Classes
                 new Curve { Vertices = polyline.Vertices.Select(vertex => (vertex.X, vertex.Y, vertex.Bulge)) },
                 polyline.Layer, polyline.Color.ToRGB()));
         }
-
-        public IEnumerable<DxfCurve> GetAllDxfCurves()
+        /// <summary>
+        /// Get and save in .dxf file all curves from the file
+        /// </summary>
+        /// <param name="folder">destination folder for curve file</param>
+        /// <returns>DxfCurve containing filepath of the curve</returns>
+        public IEnumerable<DxfCurve> GetAllDxfCurves(string folder)
         {
             foreach (var polyline in _document.Entities.OfType<DxfLwPolyline>())
             {
@@ -82,16 +90,19 @@ namespace MachineClassLibrary.Classes
                     var x = vertex.X - center.x;
                     var y = vertex.Y - center.y;
                     var vert = vertex;
-                    vert.X= x;
-                    vert.Y= y;
+                    vert.X = x;
+                    vert.Y = y;
                     return vert;
                 });
                 var lw = new DxfLwPolyline(vertices);
+                lw.IsClosed = polyline.IsClosed;
                 var doc = new DxfFile();
+                doc.Header.Version = DxfAcadVersion.R14;
                 doc.Entities.Add(lw);
-                doc.Save("");
+                var fullPath = Path.Combine(folder, $"{TEMP_FILE_NAME}{_filePostfix}.dxf");
+                doc.Save(fullPath);
+                yield return new DxfCurve(fullPath);
             }
-            throw new NotImplementedException();
         }
 
         public IDictionary<string, int> GetLayers() => _document.Layers.ToDictionary(layer => layer.Name, layer => layer.Color.ToRGB());

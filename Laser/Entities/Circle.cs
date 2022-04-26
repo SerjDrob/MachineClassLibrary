@@ -8,5 +8,15 @@
         {
             Radius *= scale;
         }
+
+        public void SetMirrorX(bool mirror)
+        {
+          //  throw new System.NotImplementedException();
+        }
+
+        public void SetTurn90(bool turn)
+        {
+         //   throw new System.NotImplementedException();
+        }
     }
 }

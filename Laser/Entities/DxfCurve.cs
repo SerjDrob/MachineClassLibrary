@@ -8,12 +8,19 @@ namespace MachineClassLibrary.Laser.Entities
 {
     public class DxfCurve : IShape
     {
-        public double Scaling { get; private set; }
-        public bool Turn90 { get; private set; }
-        public bool MirrorX { get; private set; }
-        public void Scale(double scale)
+        private readonly string _fullPath;
+
+        public DxfCurve(string fullPath)
         {
-            Scaling = scale;
+            _fullPath = fullPath;
         }
+
+        public double Scaling { get; private set; } = 1;
+        public bool Turn90 { get; private set; } = false;
+        public bool MirrorX { get; private set; } = false;
+        public void Scale(double scale) => Scaling = scale;       
+        public void SetTurn90(bool turn) => Turn90 = turn;
+        public void SetMirrorX(bool mirror) => MirrorX = mirror;
+
     }
 }
