@@ -14,12 +14,12 @@ namespace MachineClassLibrary.Laser.Entities
             _fullPath = fullPath;
         }
 
-        public double Scaling { get; private set; } = 1;
-        public bool Turn90 { get; private set; } = false;
-        public bool MirrorX { get; private set; } = false;
-        public void Scale(double scale) => Scaling = scale;       
-        public void SetTurn90(bool turn) => Turn90 = turn;
-        public void SetMirrorX(bool mirror) => MirrorX = mirror;
+        //public double Scaling { get; private set; } = 1;
+        //public bool Turn90 { get; private set; } = false;
+        //public bool MirrorX { get; private set; } = false;
+        //public void Scale(double scale) => Scaling = scale;       
+        //public void SetTurn90(bool turn) => Turn90 = turn;
+        //public void SetMirrorX(bool mirror) => MirrorX = mirror;
 
     }
 }

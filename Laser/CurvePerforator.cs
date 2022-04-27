@@ -58,10 +58,11 @@ namespace MachineClassLibrary.Laser
             //var entName = preparator.EntityPreparing(_procObject);
 
             var curve = _procObject.PObject;
-
-            Lmc.lmc1_AddFileToLib(curve.FilePath, "curve", 0, 0, 0, 0, curve.Scaling, _markLaserParams.PenParams.nPenNo, false);
-            Lmc.lmc1_MirrorEnt("curve", 0, 0, curve.MirrorX, false);
-            Lmc.lmc1_RotateEnt("curve", 0, 0, curve.Turn90 ? 90 : 0);
+            Lmc.SetPenParams(_markLaserParams.PenParams);
+            Lmc.SetHatchParams(_markLaserParams.HatchParams);
+            Lmc.lmc1_AddFileToLib(curve.FilePath, "curve", 0, 0, 0, 0, 1, _markLaserParams.PenParams.nPenNo, false);
+            //Lmc.lmc1_MirrorEnt("curve", 0, 0, _procObject.MirrorX, false);
+            //Lmc.lmc1_RotateEnt("curve", 0, 0, _procObject.Turn90 ? 90 : 0);
 
             await Task.Run(() =>
             {

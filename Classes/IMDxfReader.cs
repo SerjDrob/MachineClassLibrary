@@ -79,11 +79,11 @@ namespace MachineClassLibrary.Classes
         /// </summary>
         /// <param name="folder">destination folder for curve file</param>
         /// <returns>DxfCurve containing filepath of the curve</returns>
-        public IEnumerable<PDxfCurve> GetAllDxfCurves(string folder)
+        public IEnumerable<PDxfCurve> GetAllDxfCurves(string folder, string fromLayer)
         {
             var index = 0;
             PDxfCurve pdxfCurve;
-            foreach (var polyline in _document.Entities.OfType<DxfLwPolyline>())
+            foreach (var polyline in _document.Entities.OfType<DxfLwPolyline>().Where(lw=>lw.Layer==fromLayer))
             {
 
                 if (index + 1 < _tempDxfCurves.Count)
@@ -120,6 +120,29 @@ namespace MachineClassLibrary.Classes
             }
         }
 
+        public IEnumerable<PDxfCurve2> GetAllDxfCurves2(string folder, string fromLayer)
+        {
+            return _document.Entities.OfType<DxfLwPolyline>()
+                .Where(p=>p.Layer==fromLayer)
+                .Select(polyline => {
+                    var centerX = polyline.Vertices.GetPolylineCenter().x;
+                    var centerY = polyline.Vertices.GetPolylineCenter().y;
+                    return new PDxfCurve2(centerX, centerY, 0,
+                    new Curve { Vertices = polyline.Vertices.Select(vertex => (vertex.X - centerX, vertex.Y - centerY, vertex.Bulge)) },
+                    polyline.Layer, polyline.Color.ToRGB(), polyline.IsClosed, this, folder);
+                });
+        }
+        public void WriteCurveToFile(string filePath, Curve curve, bool isClosed)
+        {
+            var lw = new DxfLwPolyline(curve.Vertices.Select(v=>new DxfLwPolylineVertex{ X=v.X, Y=v.Y,Bulge=v.Bulge}));
+            lw.ConstantWidth = 0.1d;
+            lw.IsClosed = isClosed;
+            var doc = new DxfFile();
+            doc.Header.Version = DxfAcadVersion.Max;
+            doc.Entities.Add(lw);
+            doc.Save(filePath);
+        }
+
         public IDictionary<string, int> GetLayers() => _document.Layers.ToDictionary(layer => layer.Name, layer => layer.Color.ToRGB());
 
         public IDictionary<string, IEnumerable<(string objType, int count)>> GetLayersStructure()
@@ -133,6 +156,7 @@ namespace MachineClassLibrary.Classes
 
         public (double width, double height) GetSize()
         {
+
             var w = _document.GetBoundingBox().Size.X;
             var h = _document.GetBoundingBox().Size.Y;
             return (w, h);

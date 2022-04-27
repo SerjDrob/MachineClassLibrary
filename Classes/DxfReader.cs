@@ -93,7 +93,17 @@ namespace MachineClassLibrary.Classes
             throw new System.NotImplementedException();
         }
 
-        public IEnumerable<PDxfCurve> GetAllDxfCurves(string folder)
+        public IEnumerable<PDxfCurve> GetAllDxfCurves(string folder, string fromLayer)
+        {
+            throw new System.NotImplementedException();
+        }
+
+        public void WriteCurveToFile(string filePath, Curve curve, bool isClosed)
+        {
+            throw new System.NotImplementedException();
+        }
+
+        public IEnumerable<PDxfCurve2> GetAllDxfCurves2(string folder, string fromLayer)
         {
             throw new System.NotImplementedException();
         }

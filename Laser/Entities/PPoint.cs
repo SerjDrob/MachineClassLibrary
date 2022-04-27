@@ -19,12 +19,32 @@ namespace MachineClassLibrary.Laser.Entities
         public double Y { get; init; }
         public double Angle { get; init; }
         public Point PObject { get; init; }
+        public double Scaling { get; private set; } = 1;
 
+        public bool MirrorX { get; private set; } = false;
+
+        public bool Turn90 { get; private set; } = false;
+        public void Scale(double scale)
+        {
+            Scaling = scale;
+        }
+
+        public void SetMirrorX(bool mirror)
+        {
+            MirrorX = mirror;
+        }
+
+        public void SetTurn90(bool turn)
+        {
+            Turn90 = turn;
+        }
         public IProcObject<Point> CloneWithPosition(double x, double y) => new PPoint(x, y, Angle, PObject, LayerName, ARGBColor);
         
         public (double x, double y) GetSize()
         {
             throw new NotImplementedException();
         }
+
+       
     }
 }

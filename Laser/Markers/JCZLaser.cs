@@ -24,7 +24,7 @@ namespace MachineClassLibrary.Laser.Markers
 
             if (result != 0)
             {
-                throw new Exception($"The device closing failed with error code {(Lmc.EzCad_Error_Code)result}");
+                throw new Exception($"The device opening failed with error code {(Lmc.EzCad_Error_Code)result}");
                 Lmc.lmc1_Close();
             }
             else IsMarkDeviceInit = true;

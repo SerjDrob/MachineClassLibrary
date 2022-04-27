@@ -24,12 +24,32 @@ namespace MachineClassLibrary.Laser.Entities
         public Line PObject { get; init; }
         public string LayerName { get; set; }
         public int ARGBColor { get; set; }
+        public double Scaling { get; private set; } = 1;
 
-        public IProcObject<Line> CloneWithPosition(double x, double y) => new PLine(x, y, Angle, PObject, LayerName,ARGBColor);
+        public bool MirrorX { get; private set; } = false;
+
+        public bool Turn90 { get; private set; } = false;
+        public void Scale(double scale)
+        {
+            Scaling = scale;
+        }
+
+        public void SetMirrorX(bool mirror)
+        {
+            MirrorX = mirror;
+        }
+
+        public void SetTurn90(bool turn)
+        {
+            Turn90 = turn;
+        }
+        public IProcObject<Line> CloneWithPosition(double x, double y) => new PLine(x, y, Angle, PObject, LayerName, ARGBColor);
 
         public (double x, double y) GetSize()
         {
             return (Math.Abs(PObject.X2 - PObject.X1), Math.Abs(PObject.Y2 - PObject.Y1));
         }
+
+
     }
 }
