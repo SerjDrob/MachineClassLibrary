@@ -36,9 +36,8 @@ namespace MachineClassLibrary.Laser.Markers
             return true;
         }
 
-        public async Task<bool> PierceObjectAsync(IPerforatorBuilder perforatorBuilder)
+        public async Task<bool> PierceObjectAsync(IPerforating perforator)
         {
-            var perforator = perforatorBuilder.Build();
             await perforator.PierceObjectAsync();
             return true;
         }

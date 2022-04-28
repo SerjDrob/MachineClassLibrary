@@ -60,7 +60,7 @@ namespace MachineClassLibrary.Laser.Entities
             var scaling = Matrix3x2.CreateScale((float)Scaling);
             var rotation = Matrix3x2.CreateRotation(Turn90 ? MathF.PI * 90 / 180 : 0);
             transformation *= scaling * mirror * rotation;
-            var matrix = new Matrix(/*transformation*/scaling);
+            var matrix = new Matrix(transformation/*scaling*/);
 
             var points = _curve.Vertices.Select(vertex => new PointF((float)vertex.X, (float)vertex.Y)).ToArray();
             matrix.TransformPoints(points);

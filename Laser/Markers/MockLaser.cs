@@ -27,9 +27,9 @@ namespace MachineClassLibrary.Laser.Markers
             return Task.FromResult(true);
         }
 
-        public Task<bool> PierceObjectAsync(IPerforatorBuilder perforatorBuilder)
+        public Task<bool> PierceObjectAsync(IPerforating perforator)
         {
-            Debug.WriteLine($"Laser is piercing object {perforatorBuilder.GetType().Name}");
+            Debug.WriteLine($"Laser is piercing object {perforator.GetType().Name}");
             return Task.FromResult(true);
         }
 

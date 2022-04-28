@@ -43,12 +43,14 @@ namespace MachineClassLibrary.Laser
         private readonly MarkLaserParams _markLaserParams;
         private readonly IProcObject<DxfCurve> _procObject;
         private readonly IParamsAdapting _paramsAdapter;
+        private readonly double _curveAngle;
 
-        public DxfCurvePerforator(MarkLaserParams markLaserParams, IProcObject<DxfCurve> procObject, IParamsAdapting paramsAdapter)
+        public DxfCurvePerforator(MarkLaserParams markLaserParams, IProcObject<DxfCurve> procObject, IParamsAdapting paramsAdapter, double curveAngle = 0)
         {
             _markLaserParams = markLaserParams;
             _procObject = procObject;
             _paramsAdapter = paramsAdapter;
+            _curveAngle = curveAngle;
         }
 
         public async Task PierceObjectAsync()
@@ -62,7 +64,7 @@ namespace MachineClassLibrary.Laser
             Lmc.SetHatchParams(_markLaserParams.HatchParams);
             Lmc.lmc1_AddFileToLib(curve.FilePath, "curve", 0, 0, 0, 0, 1, _markLaserParams.PenParams.nPenNo, false);
             //Lmc.lmc1_MirrorEnt("curve", 0, 0, _procObject.MirrorX, false);
-            //Lmc.lmc1_RotateEnt("curve", 0, 0, _procObject.Turn90 ? 90 : 0);
+            Lmc.lmc1_RotateEnt("curve", 0, 0, _curveAngle * 180 / Math.PI);
 
             await Task.Run(() =>
             {

@@ -267,9 +267,9 @@ namespace MachineClassLibrary.Machine.Machines
             _markLaser.InitMarkDevice(initDirPath);
         }
 
-        public async Task<bool> PierceObjectAsync(IPerforatorBuilder perforatorBuilder)
+        public async Task<bool> PierceObjectAsync(IPerforating perforator)
         {
-            return await _markLaser.PierceObjectAsync(perforatorBuilder);
+            return await _markLaser.PierceObjectAsync(perforator);
         }
 
         public void SetMarkDeviceParams()

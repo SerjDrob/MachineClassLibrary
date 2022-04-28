@@ -3,20 +3,22 @@ using System;
 
 namespace MachineClassLibrary.Laser
 {
-    public class PerforatorBuilder<T> : IPerforatorBuilder where T : IShape
+
+    public class PerforatorFactory<T> : IPerforatorBuilder where T : IShape
     {
         private readonly IProcObject<T> _procObject;
         private readonly MarkLaserParams _markLaserParams;
         private readonly IParamsAdapting _paramsAdapting;
 
-        public PerforatorBuilder(IProcObject<T> procObject, MarkLaserParams markLaserParams, IParamsAdapting paramsAdapting)
+        public PerforatorFactory(IProcObject<T> procObject, MarkLaserParams markLaserParams, IParamsAdapting paramsAdapting)
         {
             _procObject = procObject;
             _markLaserParams = markLaserParams;
             _paramsAdapting = paramsAdapting;
         }
 
-        public IPerforating Build()
+
+        public IPerforating GetPerforator()
         {
 
             if (typeof(T) == typeof(Circle))
@@ -34,10 +36,19 @@ namespace MachineClassLibrary.Laser
             else
             {
                 throw new ArgumentException($"{typeof(T)} is mismatch to Circle or Curve");
-            }
+            }            
+        }
 
-            
-            
+        public IPerforating GetPerforator(double angle)
+        {
+            if (typeof(T) == typeof(DxfCurve))
+            {
+                return new DxfCurvePerforator(_markLaserParams, (IProcObject<DxfCurve>)_procObject, _paramsAdapting, angle);
+            }
+            else
+            {
+                return GetPerforator();
+            }
         }
     }
 }

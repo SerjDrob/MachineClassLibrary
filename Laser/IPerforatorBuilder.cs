@@ -4,6 +4,6 @@ namespace MachineClassLibrary.Laser
 {
     public interface IPerforatorBuilder
     {
-        public IPerforating Build();
+        public IPerforating GetPerforator();
     }
 }
