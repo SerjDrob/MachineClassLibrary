@@ -1,4 +1,5 @@
-﻿using Microsoft.Toolkit.Diagnostics;
+﻿using MachineClassLibrary.Classes;
+using Microsoft.Toolkit.Diagnostics;
 using System;
 using System.Collections;
 using System.Collections.Generic;
@@ -19,6 +20,7 @@ namespace MachineClassLibrary.Laser.Entities
         private float _scale = 1;
         private float _offsetX = 0;
         private float _offsetY = 0;
+        private bool _shuffleEnumeration;
 
         public LaserWafer(IEnumerable<IProcObject<TObject>> procObjects, (double x, double y) size)// add scale here
         {
@@ -77,7 +79,7 @@ namespace MachineClassLibrary.Laser.Entities
             _scale *= scale;
             return this;
         }
-
+        public void SetEnumerationStyle(bool shuffle) => _shuffleEnumeration = shuffle;
         public IEnumerator<IProcObject<TObject>> GetEnumerator()
         {
             var transformation = Matrix3x2.Identity;
@@ -111,7 +113,9 @@ namespace MachineClassLibrary.Laser.Entities
 
             _matrix = new Matrix(transformation);
 
-            foreach (var pobject in _procObjects)
+            var objects = _shuffleEnumeration ? _procObjects.Shuffle() : _procObjects;
+
+            foreach (var pobject in objects)
             {
                 var points = new PointF[] { new((float)pobject.X, (float)pobject.Y) };
                 _matrix.TransformPoints(points);

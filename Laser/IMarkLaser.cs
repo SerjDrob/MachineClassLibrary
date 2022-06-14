@@ -9,10 +9,16 @@ namespace MachineClassLibrary.Laser
         public bool IsMarkDeviceInit { get; }
         public void InitMarkDevice(string initDirPath);
         public void CloseMarkDevice();
-        public void SetMarkDeviceParams();        
+        public void SetMarkDeviceParams();
+
+        public void SetMarkParams(MarkLaserParams markLaserParams);
+
+        public void SetExtMarkParams(ExtParamsAdapter paramsAdapter);
+
         public Task<bool> PierceObjectAsync(IPerforating perforator);
         //public Task<bool> PierceHatchRingAsync(double outerD, double width);
         public Task<bool> PiercePointAsync(double x=0, double y=0);
         public Task<bool> PierceLineAsync(double x1, double y1, double x2, double y2);
+        Task<bool> PierceDxfObjectAsync(string filePath);
     }
 }

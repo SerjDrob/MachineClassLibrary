@@ -142,6 +142,16 @@ namespace MachineClassLibrary.Classes
             doc.Entities.Add(lw);
             doc.Save(filePath);
         }
+        //TODO make function WriteShapesToFile(string filePath, params IShape[] shapes); 
+        public void WriteCircleToFile(string filePath, Circle circle)
+        {
+            var c = new DxfCircle(new DxfPoint(0, 0, 0), circle.Radius);
+            c.Thickness = 0.1d;
+            var doc = new DxfFile();
+            doc.Header.Version = DxfAcadVersion.Max;
+            doc.Entities.Add(c);
+            doc.Save(filePath);
+        }
 
         public IDictionary<string, int> GetLayers() => _document.Layers.ToDictionary(layer => layer.Name, layer => layer.Color.ToRGB());
 

@@ -21,6 +21,11 @@ namespace MachineClassLibrary.Laser.Markers
             IsMarkDeviceInit = true;
         }
 
+        public Task<bool> PierceDxfObjectAsync(string filePath)
+        {
+            throw new NotImplementedException();
+        }
+
         public Task<bool> PierceLineAsync(double x1, double y1, double x2, double y2)
         {
             Debug.WriteLine($"Laser is piercing line ({x1},{y1}),({x2},{y2})");
@@ -39,9 +44,19 @@ namespace MachineClassLibrary.Laser.Markers
             return Task.FromResult(true);
         }
 
+        public void SetExtMarkParams(ExtParamsAdapter paramsAdapter)
+        {
+            throw new NotImplementedException();
+        }
+
         public void SetMarkDeviceParams()
         {
             Debug.WriteLine($"Device params is set");
+        }
+
+        public void SetMarkParams(MarkLaserParams markLaserParams)
+        {
+            throw new NotImplementedException();
         }
     }
 }

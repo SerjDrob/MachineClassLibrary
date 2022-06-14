@@ -297,6 +297,21 @@ namespace MachineClassLibrary.Machine.Machines
 
         public int GetVideoCapabilitiesCount() => _videoCapture.GetVideoCapabilitiesCount();
 
+        public void SetMarkParams(MarkLaserParams markLaserParams)
+        {
+            _markLaser.SetMarkParams(markLaserParams);
+        }
+
+        public void SetExtMarkParams(ExtParamsAdapter paramsAdapter)
+        {
+            _markLaser.SetExtMarkParams(paramsAdapter);
+        }
+
+        public Task<bool> PierceDxfObjectAsync(string filePath)
+        {
+            return _markLaser.PierceDxfObjectAsync(filePath);
+        }
+
         //public void StartVideoCapture(int ind, int capabilitiesInd = 0) => _videoCapture.StartCamera(ind, capabilitiesInd);
 
         //public void StopVideoCapture() => _videoCapture.StopCamera();

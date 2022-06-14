@@ -41,13 +41,13 @@ namespace MachineClassLibrary.Laser
                 result = Lmc.lmc1_AddCircleToLib(0, 0, procObject.PObject.Radius - _innerOffset, name1.ToString(), 0);
                 result = Lmc.lmc1_GroupEnt(name.ToString(), name1.ToString(), name.ToString(), 0);
             }
-            result = Lmc.SetPenParams(_penParams with { nPenNo = penNo});
+            result = Lmc.SetPenParams(_penParams with { PenNo = penNo});
             if (result != 0)
             {
                 throw new Exception($"Set pen params failed with {(Lmc.EzCad_Error_Code)result}");
             }
             //result = Lmc.HatchObject(name.ToString(), _hatchParams with { nPenNo = penNo});
-            result = Lmc.SetHatchParams(_hatchParams with { nPenNo = penNo });            
+            result = Lmc.SetHatchParams(_hatchParams with { PenNo = penNo });            
             if (result != 0)
             {
                 throw new Exception($"Set hatch params failed with {(Lmc.EzCad_Error_Code)result}");
