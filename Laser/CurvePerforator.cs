@@ -65,13 +65,13 @@ namespace MachineClassLibrary.Laser
             Lmc.SetPenParams(_markLaserParams.PenParams);
             
            
-            Lmc.lmc1_AddFileToLib(curve.FilePath, "curve", 0, 0, 0, 0, 1, _markLaserParams.PenParams.nPenNo, false);
+            Lmc.lmc1_AddFileToLib(curve.FilePath, "curve", 0, 0, 0, 0, 1, _markLaserParams.PenParams.PenNo, false);
             Lmc.SetHatchParams(_markLaserParams.HatchParams);
             Lmc.lmc1_HatchEnt("curve", "curve");
 
-            var hatch90 = _markLaserParams.HatchParams with { dHatchRotateAngle = 90 };
+            var hatch90 = _markLaserParams.HatchParams with { HatchRotateAngle = 90 };
 
-            Lmc.lmc1_AddFileToLib(curve.FilePath, "curve1", 0, 0, 0, 0, 1, _markLaserParams.PenParams.nPenNo, false);
+            Lmc.lmc1_AddFileToLib(curve.FilePath, "curve1", 0, 0, 0, 0, 1, _markLaserParams.PenParams.PenNo, false);
             Lmc.SetHatchParams(hatch90);
             Lmc.lmc1_HatchEnt("curve1", "curve1");
 

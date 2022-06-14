@@ -317,16 +317,7 @@ namespace MachineClassLibrary.Machine.Machines
             return _markLaser.PierceDxfObjectAsync(filePath);
         }
 
-        public void SetExtMarkParams(ExtParamsAdapter paramsAdapter)
-        {
-            _markLaser.SetExtMarkParams(paramsAdapter);
-        }
-
-        public Task<bool> PierceDxfObjectAsync(string filePath)
-        {
-            return _markLaser.PierceDxfObjectAsync(filePath);
-        }
-
+               
         //public void StartVideoCapture(int ind, int capabilitiesInd = 0) => _videoCapture.StartCamera(ind, capabilitiesInd);
 
         //public void StopVideoCapture() => _videoCapture.StopCamera();

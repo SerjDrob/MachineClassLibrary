@@ -133,9 +133,11 @@ namespace MachineClassLibrary.Classes
                     polyline.Layer, polyline.Color.ToRGB(), polyline.IsClosed, this, folder);
                 });
         }
-        public void WriteCurveToFile(string filePath, Curve curve, bool isClosed, bool mirror)
+        public void WriteCurveToFile(string filePath, Curve curve, bool isClosed)
         {
-            var lw = new DxfLwPolyline(curve.Vertices.Select(v => new DxfLwPolylineVertex { X = v.X, Y = v.Y, Bulge = v.Bulge * (mirror ? -1 : 1) }));
+            //var lw = new DxfLwPolyline(curve.Vertices.Select(v => new DxfLwPolylineVertex { X = v.X, Y = v.Y, Bulge = v.Bulge * (mirror ? -1 : 1) }));
+            var lw = new DxfLwPolyline(curve.Vertices.Select(v => new DxfLwPolylineVertex { X = v.X, Y = v.Y, Bulge = v.Bulge }));
+
             lw.ConstantWidth = 0.1d;
             lw.IsClosed = isClosed;
             var doc = new DxfFile();

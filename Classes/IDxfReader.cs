@@ -23,7 +23,7 @@ namespace MachineClassLibrary.Classes
         IDictionary<string, IEnumerable<(string objType, int count)>> GetLayersStructure();
         IEnumerable<PCurve> GetAllCurves();
         IEnumerable<PDxfCurve> GetAllDxfCurves(string folder, string fromLayer);
-        void WriteCurveToFile(string filePath, Curve curve, bool isClosed, bool mirror);
+        void WriteCurveToFile(string filePath, Curve curve, bool isClosed);
         IEnumerable<PDxfCurve2> GetAllDxfCurves2(string folder, string fromLayer);
         void WriteCircleToFile(string filePath, Circle circle);
     }
