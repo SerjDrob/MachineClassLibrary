@@ -78,6 +78,14 @@ namespace MachineClassLibrary.Laser.Markers
         {
             Lmc.lmc1_SetDevCfg2(false, false);
         }
+<<<<<<< HEAD
+        public async Task<bool> PierceCircleAsync(double diameter)
+        {
+            Lmc.lmc1_AddCircleToLib(0, 0, diameter / 2, "circle", 0);
+            Lmc.lmc1_MarkEntity("circle");
+            Lmc.lmc1_DeleteEnt("circle");
+            return true;
+=======
 
         public void SetMarkParams(MarkLaserParams markLaserParams)
         {
@@ -91,13 +99,7 @@ namespace MachineClassLibrary.Laser.Markers
             {
                 throw new Exception($"The device opening failed with error code {(Lmc.EzCad_Error_Code)result}");
             }
-        }
-        public async Task<bool> PierceCircleAsync(double diameter)
-        {
-            Lmc.lmc1_AddCircleToLib(0, 0, diameter / 2, "circle", 0);
-            Lmc.lmc1_MarkEntity("circle");
-            Lmc.lmc1_DeleteEnt("circle");
-            return true;
+>>>>>>> e48bee5f835b4e306f1595fd76f839ce5a7c83ef
         }
     }
 }

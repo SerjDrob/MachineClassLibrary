@@ -25,5 +25,6 @@ namespace MachineClassLibrary.Classes
         IEnumerable<PDxfCurve> GetAllDxfCurves(string folder, string fromLayer);
         void WriteCurveToFile(string filePath, Curve curve, bool isClosed, bool mirror);
         IEnumerable<PDxfCurve2> GetAllDxfCurves2(string folder, string fromLayer);
+        void WriteCircleToFile(string filePath, Circle circle);
     }
 }

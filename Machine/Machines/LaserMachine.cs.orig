@@ -297,25 +297,15 @@ namespace MachineClassLibrary.Machine.Machines
 
         public int GetVideoCapabilitiesCount() => _videoCapture.GetVideoCapabilitiesCount();
 
+<<<<<<< HEAD
         public Task<bool> PierceCircleAsync(double diameter)
         {
             return _markLaser.PierceCircleAsync(diameter);
-        }
-        
+=======
         public void SetMarkParams(MarkLaserParams markLaserParams)
         {
             _markLaser.SetMarkParams(markLaserParams);
         }
-        
-        public void SetExtMarkParams(ExtParamsAdapter paramsAdapter)
-        {
-            _markLaser.SetExtMarkParams(paramsAdapter);
-        }
-
-        public Task<bool> PierceDxfObjectAsync(string filePath)
-        {
-            return _markLaser.PierceDxfObjectAsync(filePath);
-        }
 
         public void SetExtMarkParams(ExtParamsAdapter paramsAdapter)
         {
@@ -325,6 +315,7 @@ namespace MachineClassLibrary.Machine.Machines
         public Task<bool> PierceDxfObjectAsync(string filePath)
         {
             return _markLaser.PierceDxfObjectAsync(filePath);
+>>>>>>> e48bee5f835b4e306f1595fd76f839ce5a7c83ef
         }
 
         //public void StartVideoCapture(int ind, int capabilitiesInd = 0) => _videoCapture.StartCamera(ind, capabilitiesInd);

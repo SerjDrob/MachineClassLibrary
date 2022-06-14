@@ -7,6 +7,8 @@
     }
     public interface IProcObject
     {
+        public bool IsBeingProcessed { get; set; }
+        public bool IsProcessed { get; set; }
         public int ARGBColor { get; set; }
         public string LayerName { get; set; }
         public double X { get; init; }
@@ -19,5 +21,5 @@
         void Scale(double scale);
         void SetMirrorX(bool mirror);
         void SetTurn90(bool turn);
-    }
+    }   
 }

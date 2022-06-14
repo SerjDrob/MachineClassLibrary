@@ -32,6 +32,8 @@ namespace MachineClassLibrary.Laser.Entities
         public bool MirrorX { get; private set; } = false;
 
         public bool Turn90 { get; private set; } = false;
+        public bool IsBeingProcessed { get; set; } = false;
+        public bool IsProcessed { get; set; } = false;
         public void Scale(double scale)
         {
             Scaling = scale;
@@ -94,6 +96,8 @@ namespace MachineClassLibrary.Laser.Entities
         public double X { get => _pCurve.X; init => throw new NotImplementedException(); }
         public double Y { get => _pCurve.Y; init => throw new NotImplementedException(); }
         public double Angle { get => _pCurve.Angle; init => throw new NotImplementedException(); }
+        public bool IsBeingProcessed { get; set; } = false;
+        public bool IsProcessed { get; set; } = false;
 
         public double Scaling => _pCurve.Scaling;
         public bool MirrorX => _pCurve.MirrorX;

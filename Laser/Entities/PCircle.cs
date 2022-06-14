@@ -26,6 +26,9 @@ namespace MachineClassLibrary.Laser.Entities
         public bool MirrorX { get; private set; } = false;
 
         public bool Turn90 { get; private set; } = false;
+        public bool IsBeingProcessed { get; set; } = false;
+        public bool IsProcessed { get; set; } = false;
+
         public void Scale(double scale)
         {
             Scaling = scale;

@@ -21,15 +21,16 @@ namespace MachineClassLibrary.Laser.Markers
             IsMarkDeviceInit = true;
         }
 
+<<<<<<< HEAD
         public Task<bool> PierceCircleAsync(double diameter)
         {
             Debug.WriteLine($"Laser is piercing circle d = {diameter}");
             return Task.FromResult(true);
-        }
-        
+=======
         public Task<bool> PierceDxfObjectAsync(string filePath)
         {
             throw new NotImplementedException();
+>>>>>>> e48bee5f835b4e306f1595fd76f839ce5a7c83ef
         }
 
         public Task<bool> PierceLineAsync(double x1, double y1, double x2, double y2)

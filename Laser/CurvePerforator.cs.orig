@@ -63,6 +63,7 @@ namespace MachineClassLibrary.Laser
 
             var curve = _procObject.PObject;
             Lmc.SetPenParams(_markLaserParams.PenParams);
+<<<<<<< HEAD
             
            
             Lmc.lmc1_AddFileToLib(curve.FilePath, "curve", 0, 0, 0, 0, 1, _markLaserParams.PenParams.nPenNo, false);
@@ -75,6 +76,11 @@ namespace MachineClassLibrary.Laser
             Lmc.SetHatchParams(hatch90);
             Lmc.lmc1_HatchEnt("curve1", "curve1");
 
+=======
+            Lmc.SetHatchParams(_markLaserParams.HatchParams);
+            Lmc.lmc1_AddFileToLib(curve.FilePath, "curve", 0, 0, 0, 0, 1, _markLaserParams.PenParams.PenNo, false);
+            //Lmc.lmc1_MirrorEnt("curve", 0, 0, _procObject.MirrorX, false);
+>>>>>>> e48bee5f835b4e306f1595fd76f839ce5a7c83ef
             Lmc.lmc1_RotateEnt("curve", 0, 0, _curveAngle * 180 / Math.PI);
             Lmc.lmc1_RotateEnt("curve1", 0, 0, _curveAngle * 180 / Math.PI);
 
@@ -86,7 +92,7 @@ namespace MachineClassLibrary.Laser
                 var result = Lmc.lmc1_MarkEntity("curve");
                 result += Lmc.lmc1_MarkEntity("curve1");
                 if (result != 0)
-                {
+                {                    
                     Lmc.lmc1_DeleteEnt("curve");
                     Lmc.lmc1_DeleteEnt("curve1");
 

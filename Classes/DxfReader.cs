@@ -107,5 +107,10 @@ namespace MachineClassLibrary.Classes
         {
             throw new System.NotImplementedException();
         }
+
+        public void WriteCircleToFile(string filePath, Circle circle)
+        {
+            throw new System.NotImplementedException();
+        }
     }
 }
