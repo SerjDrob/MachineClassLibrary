@@ -297,6 +297,11 @@ namespace MachineClassLibrary.Machine.Machines
 
         public int GetVideoCapabilitiesCount() => _videoCapture.GetVideoCapabilitiesCount();
 
+        public Task<bool> PierceCircleAsync(double diameter)
+        {
+            return _markLaser.PierceCircleAsync(diameter);
+        }
+
         //public void StartVideoCapture(int ind, int capabilitiesInd = 0) => _videoCapture.StartCamera(ind, capabilitiesInd);
 
         //public void StopVideoCapture() => _videoCapture.StopCamera();

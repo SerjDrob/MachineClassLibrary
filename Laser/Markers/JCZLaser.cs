@@ -52,5 +52,12 @@ namespace MachineClassLibrary.Laser.Markers
         {
             Lmc.lmc1_SetDevCfg2(false, false);
         }
+        public async Task<bool> PierceCircleAsync(double diameter)
+        {
+            Lmc.lmc1_AddCircleToLib(0, 0, diameter / 2, "circle", 0);
+            Lmc.lmc1_MarkEntity("circle");
+            Lmc.lmc1_DeleteEnt("circle");
+            return true;
+        }
     }
 }

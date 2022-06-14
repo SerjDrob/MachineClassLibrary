@@ -104,7 +104,7 @@ namespace MachineClassLibrary.Laser.Entities
             var trCurve = _pCurve.PObject;
             var filePostfix = Guid.NewGuid().ToString();
             var fullPath = Path.Combine(_folder, $"curve{filePostfix}.dxf");
-            _dxfReader.WriteCurveToFile(fullPath, trCurve, _isClosed);
+            _dxfReader.WriteCurveToFile(fullPath, trCurve, _isClosed, MirrorX);
             return new DxfCurve(fullPath);
         }
 

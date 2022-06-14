@@ -83,7 +83,7 @@ namespace MachineClassLibrary.Classes
         {
             var index = 0;
             PDxfCurve pdxfCurve;
-            foreach (var polyline in _document.Entities.OfType<DxfLwPolyline>().Where(lw=>lw.Layer==fromLayer))
+            foreach (var polyline in _document.Entities.OfType<DxfLwPolyline>().Where(lw => lw.Layer == fromLayer))
             {
 
                 if (index + 1 < _tempDxfCurves.Count)
@@ -111,7 +111,7 @@ namespace MachineClassLibrary.Classes
                     var filePostfix = Guid.NewGuid().ToString();
                     var fullPath = Path.Combine(folder, $"{TEMP_FILE_NAME}{filePostfix}.dxf");
                     doc.Save(fullPath);
-                    pdxfCurve = new PDxfCurve(center.x,center.y,0, new DxfCurve(fullPath),polyline.Layer,polyline.Color.ToRGB());
+                    pdxfCurve = new PDxfCurve(center.x, center.y, 0, new DxfCurve(fullPath), polyline.Layer, polyline.Color.ToRGB());
                     _tempDxfCurves.Add(pdxfCurve);
                 }
 
@@ -123,8 +123,9 @@ namespace MachineClassLibrary.Classes
         public IEnumerable<PDxfCurve2> GetAllDxfCurves2(string folder, string fromLayer)
         {
             return _document.Entities.OfType<DxfLwPolyline>()
-                .Where(p=>p.Layer==fromLayer)
-                .Select(polyline => {
+                .Where(p => p.Layer == fromLayer)
+                .Select(polyline =>
+                {
                     var centerX = polyline.Vertices.GetPolylineCenter().x;
                     var centerY = polyline.Vertices.GetPolylineCenter().y;
                     return new PDxfCurve2(centerX, centerY, 0,
@@ -132,9 +133,9 @@ namespace MachineClassLibrary.Classes
                     polyline.Layer, polyline.Color.ToRGB(), polyline.IsClosed, this, folder);
                 });
         }
-        public void WriteCurveToFile(string filePath, Curve curve, bool isClosed)
+        public void WriteCurveToFile(string filePath, Curve curve, bool isClosed, bool mirror)
         {
-            var lw = new DxfLwPolyline(curve.Vertices.Select(v=>new DxfLwPolylineVertex{ X=v.X, Y=v.Y,Bulge=v.Bulge}));
+            var lw = new DxfLwPolyline(curve.Vertices.Select(v => new DxfLwPolylineVertex { X = v.X, Y = v.Y, Bulge = v.Bulge * (mirror ? -1 : 1) }));
             lw.ConstantWidth = 0.1d;
             lw.IsClosed = isClosed;
             var doc = new DxfFile();

@@ -98,7 +98,7 @@ namespace MachineClassLibrary.Classes
             throw new System.NotImplementedException();
         }
 
-        public void WriteCurveToFile(string filePath, Curve curve, bool isClosed)
+        public void WriteCurveToFile(string filePath, Curve curve, bool isClosed, bool mirror)
         {
             throw new System.NotImplementedException();
         }

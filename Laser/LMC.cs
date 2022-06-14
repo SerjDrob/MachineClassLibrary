@@ -8,7 +8,7 @@ using System.Xml.Serialization;
 
 namespace MachineClassLibrary.Laser
 {
-    internal class Lmc
+    /*internal*/public  class Lmc
     {
         public enum EzCad_Error_Code
         {
@@ -66,7 +66,7 @@ namespace MachineClassLibrary.Laser
 
         #region Marking functions
         [DllImport("MarkEzd.dll", EntryPoint = "lmc1_Mark", CharSet = CharSet.Unicode, CallingConvention = CallingConvention.Cdecl)]
-        public static extern int lmc1_Mark(int bFlyMark);
+        public static extern int lmc1_Mark(bool bFlyMark);
 
         [DllImport("MarkEzd.dll", EntryPoint = "lmc1_RedLightMark", CharSet = CharSet.Unicode, CallingConvention = CallingConvention.StdCall)]
         public static extern int lmc1_RedLightMark(); //显示一次红光对标
@@ -104,6 +104,8 @@ namespace MachineClassLibrary.Laser
         public const int HATCHATTRIB_BIDIR = 0x08; // reciprocating hatch
         public const int HATCHATTRIB_EDGE = 0x02; // re-mark the edge
         public const int HATCHATTRIB_LOOP = 0x10; // ring-like hatch 
+        public const int HATCHATTRIB_SNAKE_LINES = 0x28; 
+
         //        dHatchEdgeDist1 // hatch edge distance
         //         dHatchLineDist1 //hatch line distance
         //dHatchStartOffset1 //hatch start offset distance
@@ -157,7 +159,7 @@ namespace MachineClassLibrary.Laser
         public static int SetHatchParams(HatchParams hatchParams) => lmc1_SetHatchParam(hatchParams.bEnableContour,
             hatchParams.bEnableHatch,
             hatchParams.nPenNo,
-            HATCHATTRIB_LOOP,//48
+            HATCHATTRIB_LOOP,//40
             hatchParams.dHatchEdgeDist,
             hatchParams.dHatchLineDist,
             hatchParams.dHatchStartOffset,

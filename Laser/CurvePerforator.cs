@@ -1,5 +1,6 @@
 ﻿using MachineClassLibrary.Laser.Entities;
 using System;
+using System.IO;
 using System.Threading.Tasks;
 
 namespace MachineClassLibrary.Laser
@@ -61,22 +62,40 @@ namespace MachineClassLibrary.Laser
 
             var curve = _procObject.PObject;
             Lmc.SetPenParams(_markLaserParams.PenParams);
-            Lmc.SetHatchParams(_markLaserParams.HatchParams);
+            
+           
             Lmc.lmc1_AddFileToLib(curve.FilePath, "curve", 0, 0, 0, 0, 1, _markLaserParams.PenParams.nPenNo, false);
-            //Lmc.lmc1_MirrorEnt("curve", 0, 0, _procObject.MirrorX, false);
+            Lmc.SetHatchParams(_markLaserParams.HatchParams);
+            Lmc.lmc1_HatchEnt("curve", "curve");
+
+            var hatch90 = _markLaserParams.HatchParams with { dHatchRotateAngle = 90 };
+
+            Lmc.lmc1_AddFileToLib(curve.FilePath, "curve1", 0, 0, 0, 0, 1, _markLaserParams.PenParams.nPenNo, false);
+            Lmc.SetHatchParams(hatch90);
+            Lmc.lmc1_HatchEnt("curve1", "curve1");
+
             Lmc.lmc1_RotateEnt("curve", 0, 0, _curveAngle * 180 / Math.PI);
+            Lmc.lmc1_RotateEnt("curve1", 0, 0, _curveAngle * 180 / Math.PI);
+
+
+
 
             await Task.Run(() =>
             {
                 var result = Lmc.lmc1_MarkEntity("curve");
+                result += Lmc.lmc1_MarkEntity("curve1");
                 if (result != 0)
-                {
+                {                    
                     Lmc.lmc1_DeleteEnt("curve");
+                    Lmc.lmc1_DeleteEnt("curve1");
+
                     throw new Exception($"Marking failed with code {(Lmc.EzCad_Error_Code)result}");
                 }
             }
             );
+            Lmc.lmc1_SaveEntLibToFile("D:/testCurve.ezd");
             Lmc.lmc1_DeleteEnt("curve");
+            Lmc.lmc1_DeleteEnt("curve1");
         }
     }
 }
