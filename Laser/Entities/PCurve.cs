@@ -67,7 +67,7 @@ namespace MachineClassLibrary.Laser.Entities
             var points = _curve.Vertices.Select(vertex => new PointF((float)vertex.X, (float)vertex.Y)).ToArray();
             matrix.TransformPoints(points);
 
-            var result = points.Zip(_curve.Vertices, (p, v) => ((double)p.X, (double)p.Y, v.Bulge));
+            var result = points.Zip(_curve.Vertices, (p, v) => ((double)p.X, (double)p.Y, MirrorX ? -v.Bulge : v.Bulge));
             return new Curve { Vertices = result };
         }
         

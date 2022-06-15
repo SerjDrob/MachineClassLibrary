@@ -2,10 +2,11 @@
 using MachineClassLibrary.Laser.Entities;
 using System;
 using System.Collections.Generic;
+using System.Drawing;
+using System.Drawing.Drawing2D;
 using System.IO;
 using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
+using System.Numerics;
 
 namespace MachineClassLibrary.Laser
 {
@@ -13,24 +14,59 @@ namespace MachineClassLibrary.Laser
     {
         private readonly IDxfReader _dxfReader;
         private readonly string _folderPath;
-        /// <summary>
-        /// in radians
-        /// </summary>
-        private readonly double _entityAngle;
+        private double _angle;
+        private double _contourWidth;
+        private double _contourOffset;
 
-        public EntityPreparator(IDxfReader dxfReader, string folderPath, double entityAngle)
+        public EntityPreparator(IDxfReader dxfReader, string folderPath)
         {
             _dxfReader = dxfReader;
             _folderPath = folderPath;
-            _entityAngle = entityAngle;
         }
 
-        public EntityFileHandler GetPreparedEntityDxfHandler(IProcObject procObject, double contourOffset, double contourWidth)
+        public EntityPreparator SetEntityAngle(double angle)
+        {
+            _angle = angle;
+            return this;
+        }
+
+        public EntityPreparator SetEntityContourWidth(double width)
+        {
+            _contourWidth = width;
+            return this;
+        }
+
+        public EntityPreparator SetEntityContourOffset(double offset)
+        {
+            _contourOffset = offset;
+            return this;
+        }
+
+        public EntityFileHandler GetPreparedEntityDxfHandler(IProcObject procObject)
         {
             //TODO apply contourWidth, contourOffset and _entityAngle arithmetic before saving
-            return new EntityFileHandler(_dxfReader,_folderPath).SaveEntityToFile(procObject);
+
+            var obj = procObject switch
+            {
+                PCurve curve => (IProcObject)RotatePCurve(curve),
+                PCircle circle => (IProcObject)circle
+            };
+            return new EntityFileHandler(_dxfReader, _folderPath).SaveEntityToFile(procObject);
+
+            PCurve RotatePCurve(PCurve pCurve)
+            {
+                var vertices = new List<(double x,double y,double bulge)>(pCurve.PObject.Vertices);
+                var rotation = Matrix3x2.CreateRotation((float)_angle);
+                var matrix = new Matrix(rotation);
+                var points = vertices.Select(vertex => new PointF((float)vertex.x, (float)vertex.y)).ToArray();
+                matrix.TransformPoints(points);
+
+                pCurve.PObject.Vertices = points.Zip(vertices, (p, v) => ((double)p.X, (double)p.Y, v.bulge));
+                return pCurve;
+            }
+
         }
-               
+
     }
 
     public class EntityFileHandler : IDisposable
