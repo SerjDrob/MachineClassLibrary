@@ -66,13 +66,16 @@ namespace MachineClassLibrary.Classes
                      }, polyline.Layer, dxfLine.Color.ToRGB())
                  )).SelectMany(x => x);
         }
-        public IEnumerable<PCurve> GetAllCurves()
+        public IEnumerable<PCurve> GetAllCurves(string fromLayer = null)
         {
             return _document.Entities.OfType<DxfLwPolyline>()
-                .Select(polyline =>
-                new PCurve(polyline.Vertices.GetPolylineCenter().x, polyline.Vertices.GetPolylineCenter().y, 0,
-                new Curve { Vertices = polyline.Vertices.Select(vertex => (vertex.X, vertex.Y, vertex.Bulge)) },
-                polyline.Layer, polyline.Color.ToRGB()));
+                .Where(lw => fromLayer is null ? true : lw.Layer == fromLayer)
+                .Select(polyline => {
+                    var center = polyline.Vertices.GetPolylineCenter();
+                    return new PCurve(center.x, center.y, 0,
+                    new Curve { Vertices = polyline.Vertices.Select(vertex => (vertex.X - center.x, vertex.Y - center.y, vertex.Bulge)) },
+                    polyline.Layer, polyline.Color.ToRGB());
+                });
         }
         /// <summary>
         /// Get and save in .dxf file all curves from the file

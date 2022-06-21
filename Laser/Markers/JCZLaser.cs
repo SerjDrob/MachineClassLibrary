@@ -81,6 +81,8 @@ namespace MachineClassLibrary.Laser.Markers
 
         public void SetMarkParams(MarkLaserParams markLaserParams)
         {
+            _markLaserParams = markLaserParams;
+
             var result = Lmc.SetPenParams(markLaserParams.PenParams);
             if (result != 0)
             {

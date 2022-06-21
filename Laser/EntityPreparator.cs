@@ -97,15 +97,17 @@ namespace MachineClassLibrary.Laser
         private string WriteTransformCurve(Curve curve)
         {
             var filename = $"{CURVE_PREFIX}{Guid.NewGuid()}.dxf";
-            _dxfReader.WriteCurveToFile(Path.Combine(_folderPath, filename), curve, true);
-            return filename;
+            var filePath = Path.Combine(_folderPath, filename);
+            _dxfReader.WriteCurveToFile(filePath, curve, true);
+            return filePath;
         }
 
         private string WriteTransformCircle(Circle circle)
         {
             var filename = $"{CIRCLE_PREFIX}{Guid.NewGuid()}.dxf";
-            _dxfReader.WriteCircleToFile(Path.Combine(_folderPath, filename), circle);
-            return filename;
+            var filePath = Path.Combine(_folderPath, filename);
+            _dxfReader.WriteCircleToFile(filePath, circle);
+            return filePath;
         }
 
         public void Dispose()
