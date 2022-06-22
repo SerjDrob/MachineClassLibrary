@@ -20,7 +20,7 @@
             };
             var hatchParams = markLaserParams.HatchParams with
             {
-                HatchLineDist = _extendedParams.HatchLineDistance
+                HatchLineDist = _extendedParams.HatchLineDistance / 1000d
             };
 
             return new MarkLaserParams(penParams, hatchParams);

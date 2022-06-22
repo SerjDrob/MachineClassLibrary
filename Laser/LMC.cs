@@ -73,6 +73,7 @@ namespace MachineClassLibrary.Laser
         #endregion
 
         #region Hatch
+        //TODO make right types, see hungarian notation
         [DllImport("MarkEzd.dll", EntryPoint = "lmc1_SetHatchParam", CharSet = CharSet.Unicode, CallingConvention = CallingConvention.Cdecl)]
         public static extern int lmc1_SetHatchParam(bool bEnableContour,    //enable the contour of object to be marked
                                                             int bEnableHatch1, //enable hatch NO. 1

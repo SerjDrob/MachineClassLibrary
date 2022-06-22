@@ -47,8 +47,7 @@ namespace MachineClassLibrary.Laser.Markers
             Lmc.SetPenParams(_markLaserParams.PenParams);
             Lmc.SetHatchParams(_markLaserParams.HatchParams);
             Lmc.lmc1_AddFileToLib(filePath, "ProcEntity", 0, 0, 0, 0, 1, _markLaserParams.PenParams.PenNo, true);
-            
-
+            //Lmc.lmc1_SaveEntLibToFile("D:/TestFile.ezd");
             await Task.Run(() =>
             {
                 var result = Lmc.lmc1_MarkEntity("ProcEntity");
@@ -71,7 +70,8 @@ namespace MachineClassLibrary.Laser.Markers
 
         public void SetExtMarkParams(ExtParamsAdapter paramsAdapter)
         {
-            SetMarkParams(paramsAdapter.MixParams(_markLaserParams));
+            var resParams = paramsAdapter.MixParams(_markLaserParams);
+            SetMarkParams(resParams);
         }
 
         public void SetMarkDeviceParams()
