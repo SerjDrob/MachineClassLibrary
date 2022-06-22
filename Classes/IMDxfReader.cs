@@ -32,9 +32,10 @@ namespace MachineClassLibrary.Classes
             _fileName = fileName;
             _document = DxfFile.Load(_fileName);
         }
-        public IEnumerable<PCircle> GetCircles()
+        public IEnumerable<PCircle> GetCircles(string fromLayer = null)
         {
             return _document.Entities.OfType<DxfCircle>()
+                .Where(lw => fromLayer is null ? true : lw.Layer == fromLayer)
                 .Select(circle => new PCircle(circle.Center.X, circle.Center.Y, 0, new Circle() { Radius = circle.Radius }, circle.Layer, circle.Color.ToRGB()));
         }
 

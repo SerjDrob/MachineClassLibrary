@@ -9,7 +9,7 @@ using System.Numerics;
 
 namespace MachineClassLibrary.Laser.Entities
 {
-    public class LaserWafer<TObject> : IEnumerable<IProcObject<TObject>>, IDisposable where TObject:IShape
+    public class LaserWafer<TObject> : IEnumerable<IProcObject<TObject>>, IDisposable, ITransformable where TObject : IShape
     {
         private readonly (double x, double y) _size;
         private readonly IEnumerable<IProcObject<TObject>> _procObjects;
@@ -49,41 +49,35 @@ namespace MachineClassLibrary.Laser.Entities
         /// 
         /// </summary>
         /// <returns>LaserWafer<TObject></returns>
-        public LaserWafer<TObject> Turn90()
+        public void Turn90()
         {
             _turned90 ^= true;
-            return this;
         }
-        public LaserWafer<TObject> OffsetX(float offset)
+        public void OffsetX(float offset)
         {
             _offsetX = offset;
-            return this;
         }
-        public LaserWafer<TObject> OffsetY(float offset)
+        public void OffsetY(float offset)
         {
             _offsetY = offset;
-            return this;
         }
-        public LaserWafer<TObject> MirrorX()
+        public void MirrorX()
         {
             _mirroredX ^= true;
-            return this;
         }
-        public LaserWafer<TObject> MirrorY()
+        public void MirrorY()
         {
             _mirroredY ^= true;
-            return this;
         }
-        public LaserWafer<TObject> Scale(float scale)
+        public void Scale(float scale)
         {
             _scale *= scale;
-            return this;
         }
         public void SetEnumerationStyle(bool shuffle) => _shuffleEnumeration = shuffle;
         public IEnumerator<IProcObject<TObject>> GetEnumerator()
         {
             var transformation = Matrix3x2.Identity;
-                       
+
             if (_mirroredX)
             {
                 var mirror = Matrix3x2.CreateScale(-1, 1);

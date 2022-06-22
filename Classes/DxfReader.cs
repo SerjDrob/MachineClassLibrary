@@ -16,7 +16,7 @@ namespace MachineClassLibrary.Classes
             _fileName = fileName;
             Document = DxfDocument.Load(_fileName);
         }
-        public IEnumerable<PCircle> GetCircles()
+        public IEnumerable<PCircle> GetCircles(string fromLayer = null)
         {
             foreach (var circle in Document.Circles)
             {

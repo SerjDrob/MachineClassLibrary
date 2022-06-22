@@ -7,7 +7,7 @@ namespace MachineClassLibrary.Classes
     public interface IDxfReader
     {
         (double width, double height) GetSize();
-        IEnumerable<PCircle> GetCircles();
+        IEnumerable<PCircle> GetCircles(string fromLayer = null);
         IEnumerable<PLine> GetLines();
         IEnumerable<PPoint> GetPoints();
         /// <summary>
