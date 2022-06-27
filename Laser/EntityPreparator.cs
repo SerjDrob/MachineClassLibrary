@@ -48,21 +48,22 @@ namespace MachineClassLibrary.Laser
 
             var obj = procObject switch
             {
-                PCurve curve => (IProcObject)RotatePCurve(curve),
-                PCircle circle => (IProcObject)circle
+                PCurve curve => (IShape)RotatePCurve(curve),
+                PCircle circle => (IShape)circle.PObject
             };
-            return new EntityFileHandler(_dxfReader, _folderPath).SaveEntityToFile(procObject);
 
-            PCurve RotatePCurve(PCurve pCurve)
+            return new EntityFileHandler(_dxfReader, _folderPath).SaveEntityToFile(obj);
+
+            Curve RotatePCurve(PCurve pCurve)
             {
                 var vertices = new List<(double x,double y,double bulge)>(pCurve.PObject.Vertices);
                 var rotation = Matrix3x2.CreateRotation((float)_angle);
                 var matrix = new Matrix(rotation);
                 var points = vertices.Select(vertex => new PointF((float)vertex.x, (float)vertex.y)).ToArray();
                 matrix.TransformPoints(points);
-
-                pCurve.PObject.Vertices = points.Zip(vertices, (p, v) => ((double)p.X, (double)p.Y, v.bulge));
-                return pCurve;
+                var curve = new Curve();
+                curve.Vertices = points.Zip(vertices, (p, v) => ((double)p.X, (double)p.Y, v.bulge));
+                return curve;
             }
 
         }
@@ -83,13 +84,13 @@ namespace MachineClassLibrary.Laser
             _folderPath = folderPath;
         }
         ~EntityFileHandler() => Dispose();
-        public EntityFileHandler SaveEntityToFile(IProcObject procObject)
+        public EntityFileHandler SaveEntityToFile(IShape shape)
         {
-            _path = procObject switch
+            _path = shape switch
             {
-                PCurve curve => WriteTransformCurve(curve.PObject),
-                PCircle circle => WriteTransformCircle(circle.PObject),
-                _ => throw new ArgumentException($"I can not save this type '{procObject.GetType().Name}' of entity yet.")
+                Curve curve => WriteTransformCurve(curve),
+                Circle circle => WriteTransformCircle(circle),
+                _ => throw new ArgumentException($"I can not save this type '{shape.GetType().Name}' of entity yet.")
             };
             return this;
         }
