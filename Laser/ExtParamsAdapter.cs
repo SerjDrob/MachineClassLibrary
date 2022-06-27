@@ -1,4 +1,6 @@
-﻿namespace MachineClassLibrary.Laser
+﻿using MachineClassLibrary.Laser.Parameters;
+
+namespace MachineClassLibrary.Laser
 {
     public class ExtParamsAdapter
     {
@@ -16,7 +18,10 @@
                 MarkSpeed = _extendedParams.MarkSpeed,
                 PowerRatio = _extendedParams.PowerRatio,
                 Freq = _extendedParams.Freq,
-                QPulseWidth = _extendedParams.QPulseWidth
+                QPulseWidth = _extendedParams.QPulseWidth,
+                IsModulated = _extendedParams.EnablePWM,
+                ModFreq=_extendedParams.PWMFrequency,
+                ModDutyCycle=_extendedParams.PWMDutyCycle
             };
             var hatchParams = markLaserParams.HatchParams with
             {

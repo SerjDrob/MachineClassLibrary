@@ -1,4 +1,5 @@
 ﻿using MachineClassLibrary.Laser.Entities;
+using MachineClassLibrary.Laser.Parameters;
 using Microsoft.Toolkit.Diagnostics;
 using System;
 using System.Text;

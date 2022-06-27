@@ -1,7 +1,7 @@
-﻿namespace MachineClassLibrary.Laser
+﻿namespace MachineClassLibrary.Laser.Parameters
 {
     public record HatchParams
-    (         
+    (
          bool EnableContour, //enable the contour of object to be marked
          int ParamIndex, //hatch order number is 1,2,3
          int EnableHatch, //enable hatch
@@ -19,6 +19,6 @@
          int EdgeLoop, //ring count
          bool HatchLoopRev, //loop reverse
          bool HatchAutoRotate, //enable auto rotate angle or not
-         double HatchRotateAngle                                                
+         double HatchRotateAngle
     );
 }

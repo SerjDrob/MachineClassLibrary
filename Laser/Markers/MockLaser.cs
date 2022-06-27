@@ -4,6 +4,7 @@ using System.Diagnostics;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using MachineClassLibrary.Laser.Parameters;
 
 namespace MachineClassLibrary.Laser.Markers
 {
@@ -16,9 +17,10 @@ namespace MachineClassLibrary.Laser.Markers
             IsMarkDeviceInit = false;
         }
 
-        public void InitMarkDevice(string initDirPath)
+        public Task InitMarkDevice(string initDirPath)
         {
             IsMarkDeviceInit = true;
+            return Task.CompletedTask;
         }
 
         public Task<bool> PierceCircleAsync(double diameter)

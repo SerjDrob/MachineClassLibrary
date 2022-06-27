@@ -5,10 +5,12 @@ using System.Collections;
 using System.Collections.Generic;
 using System.Drawing;
 using System.Drawing.Drawing2D;
+using System.Linq;
 using System.Numerics;
 
 namespace MachineClassLibrary.Laser.Entities
 {
+    //TODO is it possible to get rid of TObject1?
     public class LaserWafer<TObject> : IEnumerable<IProcObject<TObject>>, IDisposable, ITransformable where TObject : IShape
     {
         private readonly (double x, double y) _size;
@@ -21,8 +23,10 @@ namespace MachineClassLibrary.Laser.Entities
         private float _offsetX = 0;
         private float _offsetY = 0;
         private bool _shuffleEnumeration;
+        private RectangleF _restrictingArea;
+        private bool _restricted = false;
 
-        public LaserWafer(IEnumerable<IProcObject<TObject>> procObjects, (double x, double y) size)// add scale here
+        public LaserWafer(IEnumerable<IProcObject<TObject>> procObjects, (double x, double y) size)//TODO add scale here
         {
             Guard.IsNotNull(procObjects, nameof(procObjects));
             Guard.IsGreaterThan(size.x, 0, nameof(size.x));
@@ -73,6 +77,11 @@ namespace MachineClassLibrary.Laser.Entities
         {
             _scale *= scale;
         }
+        public void SetRestrictingArea(double x, double y, double width, double height)
+        {
+            _restrictingArea = new RectangleF((float)x, (float)y, (float)width, (float)height);
+            _restricted = true;
+        }
         public void SetEnumerationStyle(bool shuffle) => _shuffleEnumeration = shuffle;
         public IEnumerator<IProcObject<TObject>> GetEnumerator()
         {
@@ -113,11 +122,14 @@ namespace MachineClassLibrary.Laser.Entities
             {
                 var points = new PointF[] { new((float)pobject.X, (float)pobject.Y) };
                 _matrix.TransformPoints(points);
-                var newObj = pobject.CloneWithPosition(points[0].X, points[0].Y);
-                newObj.Scale(_scale);
-                newObj.SetMirrorX(_mirroredX);
-                newObj.SetTurn90(_turned90);
-                yield return newObj;
+                if (!_restricted || _restrictingArea.Contains(points[0]))
+                {
+                    var newObj = pobject.CloneWithPosition(points[0].X, points[0].Y);
+                    newObj.Scale(_scale);
+                    newObj.SetMirrorX(_mirroredX);
+                    newObj.SetTurn90(_turned90);
+                    yield return newObj;
+                }               
             }
         }
         public IProcObject<TObject> this[int index]

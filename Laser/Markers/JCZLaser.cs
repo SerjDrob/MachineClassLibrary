@@ -1,4 +1,5 @@
 ﻿using MachineClassLibrary.Laser.Entities;
+using MachineClassLibrary.Laser.Parameters;
 using System;
 using System.IO;
 using System.Threading.Tasks;
@@ -11,6 +12,7 @@ namespace MachineClassLibrary.Laser.Markers
     {
         public bool IsMarkDeviceInit { get; private set; }
         private MarkLaserParams _markLaserParams;
+        private PWM _pwm;
         public void CloseMarkDevice()
         {
             var result = Lmc.lmc1_Close();
@@ -18,7 +20,7 @@ namespace MachineClassLibrary.Laser.Markers
             else IsMarkDeviceInit = false;
         }
 
-        public void InitMarkDevice(string initDirPath)
+        public async Task InitMarkDevice(string initDirPath)
         {
             IntPtr Handle = new WindowInteropHelper(new Window()).Handle;
             var result = Lmc.lmc1_Initial(initDirPath, 0, Handle);
@@ -26,6 +28,11 @@ namespace MachineClassLibrary.Laser.Markers
             if (result != 0)
             {
                 throw new Exception($"The device opening failed with error code {(Lmc.EzCad_Error_Code)result}");
+            }
+            _pwm = new PWM();
+            if (!await _pwm.FindOpen())
+            {
+                throw new Exception($"The device opening failed. Can't open PWM device");
             }
             else IsMarkDeviceInit = true;
         }
@@ -48,9 +55,25 @@ namespace MachineClassLibrary.Laser.Markers
             Lmc.SetHatchParams(_markLaserParams.HatchParams);
             Lmc.lmc1_AddFileToLib(filePath, "ProcEntity", 0, 0, 0, 0, 1, _markLaserParams.PenParams.PenNo, true);
             //Lmc.lmc1_SaveEntLibToFile("D:/TestFile.ezd");
-            await Task.Run(() =>
+            if (_markLaserParams.PenParams.IsModulated)
+            {
+                var freq = _markLaserParams.PenParams.Freq;
+                var dutyCycle = freq * _markLaserParams.PenParams.QPulseWidth * 1e-6 * 100;
+                var modFreq = _markLaserParams.PenParams.ModFreq;
+                var modDutyCycle = _markLaserParams.PenParams.ModDutyCycle;
+
+                if (!await _pwm.SetPWM(freq, (int)Math.Round(dutyCycle), modFreq, modDutyCycle))
+                {
+
+                }
+            }
+            await Task.Run(async () =>
             {
                 var result = Lmc.lmc1_MarkEntity("ProcEntity");
+                if (!await _pwm.StopPWM())
+                {
+
+                }
                 if (result != 0)
                 {
                     Lmc.lmc1_DeleteEnt("ProcEntity");
