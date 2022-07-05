@@ -1,6 +1,6 @@
 ﻿using System.ComponentModel;
 
-namespace MachineClassLibrary.Laser
+namespace MachineClassLibrary.Laser.Parameters
 {
     public class ExtendedParams
     {

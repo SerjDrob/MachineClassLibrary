@@ -1,4 +1,4 @@
-﻿namespace MachineClassLibrary.Laser
+﻿namespace MachineClassLibrary.Laser.Parameters
 {
     public class CurveParamsAdapter : IParamsAdapting
     {
@@ -12,5 +12,5 @@
         {
             return new double[] { 0.001, 0.001, 0.001 };
         }
-    }   
+    }
 }

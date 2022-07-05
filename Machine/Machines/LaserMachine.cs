@@ -1,5 +1,6 @@
 ﻿using MachineClassLibrary.Classes;
 using MachineClassLibrary.Laser;
+using MachineClassLibrary.Laser.Parameters;
 using MachineClassLibrary.Machine.MotionDevices;
 using MachineClassLibrary.VideoCapture;
 using Microsoft.Toolkit.Diagnostics;
@@ -262,9 +263,9 @@ namespace MachineClassLibrary.Machine.Machines
         //    _videoCapture.FreezeCameraImage();
         //}
 
-        public void InitMarkDevice(string initDirPath)
+        public async Task InitMarkDevice(string initDirPath)
         {
-            _markLaser.InitMarkDevice(initDirPath);
+            await _markLaser.InitMarkDevice(initDirPath);
         }
 
         public async Task<bool> PierceObjectAsync(IPerforating perforator)

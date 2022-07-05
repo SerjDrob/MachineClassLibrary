@@ -1,4 +1,6 @@
-﻿namespace MachineClassLibrary.Laser
+﻿using MachineClassLibrary.Laser.Parameters;
+
+namespace MachineClassLibrary.Laser
 {
     public class CircleParamsAdapter : IParamsAdapting
     {

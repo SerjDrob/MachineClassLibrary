@@ -1,4 +1,4 @@
-﻿namespace MachineClassLibrary.Laser
+﻿namespace MachineClassLibrary.Laser.Parameters
 {
     public interface IParamsAdapting
     {

@@ -5,10 +5,12 @@ using System.IO;
 using System.Linq;
 using System.Runtime.InteropServices; //For Marshal
 using System.Xml.Serialization;
+using MachineClassLibrary.Laser.Parameters;
 
 namespace MachineClassLibrary.Laser
 {
-    /*internal*/public  class Lmc
+    /*internal*/
+    public  class Lmc
     {
         public enum EzCad_Error_Code
         {

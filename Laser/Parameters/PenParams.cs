@@ -1,4 +1,4 @@
-﻿namespace MachineClassLibrary.Laser
+﻿namespace MachineClassLibrary.Laser.Parameters
 {
     public record PenParams
     (
@@ -9,6 +9,11 @@
         double Current,    //current of laser (A)
         int Freq,  // frequency of laser HZ
         int QPulseWidth,    //width of Q pulse (us)	
+
+        bool IsModulated,
+        int ModFreq,     //Hz
+        int ModDutyCycle,// %
+
         int StartTC,   // Start delay (us)
         int LaserOnTC,
         int LaserOffTC,        //delay before laser off (us)
