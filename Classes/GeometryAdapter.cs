@@ -14,8 +14,14 @@ namespace MachineClassLibrary.Classes
         {
             _dxfReader = dxfReader;
         }
-        public IEnumerable<Geometry> GetGeometies() => GetLineGeometry().Concat(GetEllipseGeometry()).Select(item => item.geometry);
-        public IEnumerable<AdaptedGeometry> GetGeometries() => GetLineGeometry().Concat(GetEllipseGeometry()).Concat(GetPointGeometry());
+        public IEnumerable<Geometry> GetGeometies() => GetLineGeometry()
+            .Concat(GetEllipseGeometry())
+            .Concat(GetPointGeometry())
+            .Select(item => item.geometry);
+        public IEnumerable<AdaptedGeometry> GetGeometries() => 
+            GetLineGeometry().
+            Concat(GetEllipseGeometry()).
+            Concat(GetPointGeometry());
         private IEnumerable<AdaptedGeometry> GetLineGeometry()
         {
             return _dxfReader.GetAllSegments()
@@ -42,10 +48,22 @@ namespace MachineClassLibrary.Classes
         }
         private IEnumerable<AdaptedGeometry> GetPointGeometry()
         {
+            Func<double,double,StreamGeometry> func = (x,y) =>
+            {
+                var scale = 100;//TODO the scale should be passed here from outside
+                var streamGeometry = new StreamGeometry();
+                using var strContext = streamGeometry.Open();
+                strContext.BeginFigure(new Point(x - 5 * scale, y), true, true);
+                strContext.LineTo(new Point(x, 5 * scale + y), true, false);
+                strContext.LineTo(new Point(5 * scale + x, y), true, false);
+                strContext.LineTo(new Point(x, y - 5 * scale), true, false);
+                streamGeometry.Freeze();
+                return streamGeometry;
+            };
             return _dxfReader.GetPoints()
                 .Select(
                     point=>new AdaptedGeometry(
-                        new EllipseGeometry(new Point((double)point.X,(double)point.Y), 0, 0),
+                        func.Invoke(point.X,point.Y),
                         point.LayerName,
                         GetColorFromArgb(_dxfReader.GetLayers()[point.LayerName]),
                         GetColorFromArgb(point.ARGBColor)
