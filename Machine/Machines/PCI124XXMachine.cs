@@ -610,7 +610,7 @@ namespace MachineClassLibrary.Machine.Machines
                 if (axisNum < _axes.Count())
                 {
                     var axis = _axes.Where(a => a.Value.AxisNum == axisNum).First().Key;
-                    _axes[axis].ActualPosition = state.actPos * _axes[axis].LineCoefficient;
+                    _axes[axis].ActualPosition = _axes[axis].LineCoefficient == 0 ? state.cmdPos : state.actPos * _axes[axis].LineCoefficient;
                     _axes[axis].CmdPosition = state.cmdPos;
                     _axes[axis].DIs = state.sensors;
                     _axes[axis].DOs = state.outs;
@@ -621,15 +621,10 @@ namespace MachineClassLibrary.Machine.Machines
                     _axes[axis].VHStart = state.vhStart;
                     _axes[axis].VHEnd = state.vhEnd;
 
-                    var position = _axes[axis].ActualPosition;
-                    if (_axes[axis].LineCoefficient == 0) position = state.cmdPos;
-
-                    //OnAxisMotionStateChanged?.Invoke(this, new AxisStateEventArgs(axis, position, state.cmdPos, state.nLmt, state.pLmt, state.motionDone, state.vhStart));
-
                     OnAxisMotionStateChanged?.Invoke(this,
                         new AxisStateEventArgs(
                         axis: axis,
-                        position: _axes[axis].LineCoefficient == 0 ? _axes[axis].CmdPosition : _axes[axis].ActualPosition,
+                        position: _axes[axis].ActualPosition,
                         cmdPosition: _axes[axis].CmdPosition,
                         nLmt: _axes[axis].LmtN,
                         pLmt: _axes[axis].LmtP,
