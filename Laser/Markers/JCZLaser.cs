@@ -39,7 +39,16 @@ namespace MachineClassLibrary.Laser.Markers
 
         public async Task<bool> PierceLineAsync(double x1, double y1, double x2, double y2)
         {
-            return await Task.FromResult(Lmc.lmc1_MarkLine(x1, y1, x2, y2, 0) == 0);
+            if (!await _pwm.SetPWM(40000,4, 1000, 50))
+            {
+
+            }
+            var result =  Lmc.lmc1_MarkLine(x1, y1, x2, y2, 0) == 0;
+            if (!await _pwm.StopPWM())
+            {
+
+            }
+            return await Task.FromResult(result);
         }
 
         public async Task<bool> PierceObjectAsync(IPerforating perforator)
@@ -53,7 +62,7 @@ namespace MachineClassLibrary.Laser.Markers
          
             Lmc.SetPenParams(_markLaserParams.PenParams);
             Lmc.SetHatchParams(_markLaserParams.HatchParams);
-            Lmc.lmc1_AddFileToLib(filePath, "ProcEntity", 0, 0, 0, 0, 1, _markLaserParams.PenParams.PenNo, true);
+            Lmc.lmc1_AddFileToLib(filePath, "ProcEntity", 0, 0, 0, 0, 1, _markLaserParams.PenParams.PenNo, _markLaserParams.HatchParams.EnableHatch == 1);
             //Lmc.lmc1_SaveEntLibToFile("D:/TestFile.ezd");
             if (_markLaserParams.PenParams.IsModulated)
             {

@@ -33,7 +33,7 @@ namespace MachineClassLibrary.Laser.Parameters
         /// </summary>
         [Category("Луч")]
         [DisplayName("Ширина импульса, мкс")]
-        public int QPulseWidth { get; set; }
+        public int QPulseWidth { get; set; } = 1;
         [Category("Модуляция ШИМ")]
         [DisplayName("Применить модуляцию")]
         public bool EnablePWM { get; set; }
