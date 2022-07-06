@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.IO.Ports;
 using System.Linq;
 using System.Text;
+using System.Threading;
 using System.Threading.Tasks;
 
 namespace MachineClassLibrary.Laser
@@ -22,7 +23,7 @@ namespace MachineClassLibrary.Laser
         private string _response;
         private bool _isResponded;
         private const string PASSED = "Heisenberg";
-        private const string PASSWORD = "Say my name";
+        private const string PASSWORD = "String:Say_my_name ";
 
         public async Task<bool> FindOpen()
         {
@@ -88,19 +89,24 @@ namespace MachineClassLibrary.Laser
             var bytesCount = _serialPort.BytesToRead;
             var message = new char[bytesCount];
             var count = _serialPort.Read(message, 0, bytesCount);
-
             _response = new String(message);
             _isResponded = true;
         }
 
         private async Task<bool> WaitCompareResponse(string assumedMessage, int waitingTime)
         {
-            var task = new Task(() =>
-            {
-                while (!_isResponded) ;
-            });
-            task.Start();
-            var answer = task.Wait(waitingTime) && assumedMessage.Equals(_response);
+            //var tokenSource = new CancellationTokenSource();
+
+            //var resp = Task.Run(asyn () =>
+            //{
+            //    while (true) { await Task.Delay(1); };
+            //    return true;
+            //}, tokenSource.Token);
+
+            //tokenSource.Cancel();
+            //var answer = await resp;
+            await Task.Delay(waitingTime);
+            var answer = assumedMessage.Equals(_response);
             _isResponded = false;
             _response = String.Empty;
             return answer;
