@@ -26,7 +26,7 @@ namespace MachineClassLibrary.Laser
             var hatchParams = markLaserParams.HatchParams with
             {
                 HatchLineDist = _extendedParams.HatchLineDistance / 1000d,
-                EnableHatch = _extendedParams.EnableHatch ? 1:0 //TODO fix it!!
+                EnableHatch = _extendedParams.EnableHatch
             };
 
             return new MarkLaserParams(penParams, hatchParams);

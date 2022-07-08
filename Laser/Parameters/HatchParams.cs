@@ -4,7 +4,7 @@
     (
          bool EnableContour, //enable the contour of object to be marked
          int ParamIndex, //hatch order number is 1,2,3
-         int EnableHatch, //enable hatch
+         bool EnableHatch, //enable hatch
          int PenNo, //hatch pen no
          int HatchType, // Hatch type:0 unidirectional, 1 bidirectional, 2 return, 3 bow, 4 bow not reverse
          bool HatchAllCalc, // compute all object or not

@@ -94,22 +94,20 @@ namespace MachineClassLibrary.Laser
         }
 
         private async Task<bool> WaitCompareResponse(string assumedMessage, int waitingTime)
-        {
-            //var tokenSource = new CancellationTokenSource();
+        {           
+            var token = new CancellationTokenSource(waitingTime).Token;
 
-            //var resp = Task.Run(asyn () =>
-            //{
-            //    while (true) { await Task.Delay(1); };
-            //    return true;
-            //}, tokenSource.Token);
+            var task = Task.Run(() =>
+            {
+                while (!_isResponded && !token.IsCancellationRequested) ;
+                return _isResponded;
+            },token);
 
-            //tokenSource.Cancel();
-            //var answer = await resp;
-            await Task.Delay(waitingTime);
-            var answer = assumedMessage.Equals(_response);
+            var answer = await task && assumedMessage.Equals(_response);
             _isResponded = false;
             _response = String.Empty;
             return answer;
+
         }
 
         public void ClosePort()

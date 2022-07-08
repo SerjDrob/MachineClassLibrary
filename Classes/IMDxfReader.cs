@@ -173,9 +173,9 @@ namespace MachineClassLibrary.Classes
 
         public (double width, double height) GetSize()
         {
-
-            var w = _document.GetBoundingBox().Size.X;
-            var h = _document.GetBoundingBox().Size.Y;
+            var boundingBox = _document.GetBoundingBox();
+            var w = boundingBox.Size.X;
+            var h = boundingBox.Size.Y;
             return (w, h);
         }
 

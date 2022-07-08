@@ -78,7 +78,7 @@ namespace MachineClassLibrary.Laser
         //TODO make right types, see hungarian notation
         [DllImport("MarkEzd.dll", EntryPoint = "lmc1_SetHatchParam", CharSet = CharSet.Unicode, CallingConvention = CallingConvention.Cdecl)]
         public static extern int lmc1_SetHatchParam(bool bEnableContour,    //enable the contour of object to be marked
-                                                            int bEnableHatch1, //enable hatch NO. 1
+                                                            bool bEnableHatch1, //enable hatch NO. 1
                                                             int nPenNo1, //set the pen of hatch NO. 1
                                                             int nHatchAttrib1, //set the attribute of hatch NO. 1
                                                             double dHatchEdgeDist1, //set the distance between hatch line and contour of hatch NO. 1
@@ -86,7 +86,7 @@ namespace MachineClassLibrary.Laser
                                                             double dHatchStartOffset1, //set the start offset of hatch NO. 1
                                                             double dHatchEndOffset1, //set the end offset of hatch NO. 1
                                                             double dHatchAngle1, //set the hatch angle of hatch NO. 1
-                                                            int bEnableHatch2, //enable hatch1 NO.2
+                                                            bool bEnableHatch2, //enable hatch1 NO.2
                                                             int nPenNo2,
                                                             int nHatchAttrib2,
                                                             double dHatchEdgeDist2,
@@ -119,7 +119,7 @@ namespace MachineClassLibrary.Laser
         public static extern int lmc1_SetHatchEntParam(string pHatchName, //name of hatch object
                                                         bool bEnableContour, //enable the contour of object to be marked
                                                         int nParamIndex, //hatch order number is 1,2,3
-                                                        int bEnableHatch, //enable hatch
+                                                        bool bEnableHatch, //enable hatch
                                                         int nPenNo, //hatch pen no
                                                         int nHatchType, // Hatch type:0 unidirectional, 1 bidirectional, 2 return, 3 bow, 4 bow not reverse
                                                         bool bHatchAllCalc, // compute all object or not
@@ -168,7 +168,7 @@ namespace MachineClassLibrary.Laser
             hatchParams.HatchStartOffset,
             hatchParams.HatchEndOffset,
             hatchParams.HatchRotateAngle,
-            0,
+            false,
             0,
             48,
             0,
