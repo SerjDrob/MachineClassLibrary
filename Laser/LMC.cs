@@ -330,5 +330,8 @@ namespace MachineClassLibrary.Laser
                                                 double dCenx,
                                                 double dCeny,
                                                 double dAngle);
+
+        [DllImport("MarkEzd.dll", EntryPoint = "lmc1_CancelMark", CharSet = CharSet.Unicode, CallingConvention = CallingConvention.Cdecl)]
+        public static extern int lmc1_CancelMark();	
     }
 }

@@ -318,7 +318,12 @@ namespace MachineClassLibrary.Machine.Machines
             return _markLaser.PierceDxfObjectAsync(filePath);
         }
 
-               
+        public void CancelMarking()
+        {
+            _markLaser?.CancelMarking();
+        }
+
+
         //public void StartVideoCapture(int ind, int capabilitiesInd = 0) => _videoCapture.StartCamera(ind, capabilitiesInd);
 
         //public void StopVideoCapture() => _videoCapture.StopCamera();

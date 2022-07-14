@@ -12,6 +12,11 @@ namespace MachineClassLibrary.Laser.Markers
     {
         public bool IsMarkDeviceInit { get; private set; }
 
+        public void CancelMarking()
+        {
+            throw new NotImplementedException();
+        }
+
         public void CloseMarkDevice()
         {
             IsMarkDeviceInit = false;

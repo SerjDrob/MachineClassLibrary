@@ -133,5 +133,11 @@ namespace MachineClassLibrary.Laser.Markers
             Lmc.lmc1_DeleteEnt("circle");
             return true;
         }
+
+        public void CancelMarking()
+        {
+            var result = Lmc.lmc1_CancelMark();
+            if (result != 0) throw new Exception($"Cancelling of marking failed with error code {(Lmc.EzCad_Error_Code)result}");
+        }
     }
 }
