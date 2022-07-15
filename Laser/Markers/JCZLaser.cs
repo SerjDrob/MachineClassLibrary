@@ -134,10 +134,11 @@ namespace MachineClassLibrary.Laser.Markers
             return true;
         }
 
-        public void CancelMarking()
+        public async Task<bool> CancelMarkingAsync()
         {
             var result = Lmc.lmc1_CancelMark();
-            if (result != 0) throw new Exception($"Cancelling of marking failed with error code {(Lmc.EzCad_Error_Code)result}");
+            return await _pwm.StopPWM();
+            //if (result != 0) throw new Exception($"Cancelling of marking failed with error code {(Lmc.EzCad_Error_Code)result}");
         }
     }
 }

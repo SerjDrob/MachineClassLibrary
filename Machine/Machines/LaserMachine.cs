@@ -318,9 +318,9 @@ namespace MachineClassLibrary.Machine.Machines
             return _markLaser.PierceDxfObjectAsync(filePath);
         }
 
-        public void CancelMarking()
+        public async Task<bool> CancelMarkingAsync()
         {
-            _markLaser?.CancelMarking();
+            return await _markLaser?.CancelMarkingAsync();
         }
 
 

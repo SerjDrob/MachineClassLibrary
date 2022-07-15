@@ -12,7 +12,7 @@ namespace MachineClassLibrary.Laser.Markers
     {
         public bool IsMarkDeviceInit { get; private set; }
 
-        public void CancelMarking()
+        public Task<bool> CancelMarkingAsync()
         {
             throw new NotImplementedException();
         }
