@@ -30,6 +30,12 @@ namespace MachineClassLibrary.Laser
             return this;
         }
 
+        public EntityPreparator AddEntityAngle(double angle)
+        {
+            _angle += angle;
+            return this;
+        }
+
         public EntityPreparator SetEntityContourWidth(double width)
         {
             _contourWidth = width;

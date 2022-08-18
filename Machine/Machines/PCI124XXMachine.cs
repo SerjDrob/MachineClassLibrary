@@ -30,8 +30,8 @@ namespace MachineClassLibrary.Machine.Machines
 
             _motionDevice = motionDevice;
             _exceptionsAgregator.RegisterMessager(_motionDevice);
-
-            if (_motionDevice.DevicesConnection())
+            IsMotionDeviceInit = _motionDevice.DevicesConnection();
+            if (IsMotionDeviceInit)
             {
                 _motionDevice.StartMonitoringAsync();
                 _motionDevice.TransmitAxState += MotionDevice_TransmitAxState;
@@ -40,7 +40,7 @@ namespace MachineClassLibrary.Machine.Machines
 
         public event EventHandler<AxisStateEventArgs> OnAxisMotionStateChanged;
         public Velocity VelocityRegime { get; set; }
-        public bool MachineInit { get; set; }
+        public bool IsMotionDeviceInit { get; set; }
 
         public IHasMotion AddGroup(Groups group, Ax[] axes)
         {
