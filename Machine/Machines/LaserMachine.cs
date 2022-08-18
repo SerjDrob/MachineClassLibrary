@@ -263,9 +263,9 @@ namespace MachineClassLibrary.Machine.Machines
         //    _videoCapture.FreezeCameraImage();
         //}
 
-        public async Task InitMarkDevice(string initDirPath)
+        public async Task<bool> InitMarkDevice(string initDirPath)
         {
-            await _markLaser.InitMarkDevice(initDirPath);
+            return await _markLaser.InitMarkDevice(initDirPath);
         }
 
         public async Task<bool> PierceObjectAsync(IPerforating perforator)

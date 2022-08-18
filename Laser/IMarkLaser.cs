@@ -8,7 +8,7 @@ namespace MachineClassLibrary.Laser
     public interface IMarkLaser
     {
         public bool IsMarkDeviceInit { get; }
-        public Task InitMarkDevice(string initDirPath);
+        public Task<bool> InitMarkDevice(string initDirPath);
         public void CloseMarkDevice();
         public void SetMarkDeviceParams();
 

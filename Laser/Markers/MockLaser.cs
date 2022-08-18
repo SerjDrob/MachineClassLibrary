@@ -22,10 +22,10 @@ namespace MachineClassLibrary.Laser.Markers
             IsMarkDeviceInit = false;
         }
 
-        public Task InitMarkDevice(string initDirPath)
+        public Task<bool> InitMarkDevice(string initDirPath)
         {
             IsMarkDeviceInit = true;
-            return Task.CompletedTask;
+            return Task.FromResult(IsMarkDeviceInit);
         }
 
         public Task<bool> PierceCircleAsync(double diameter)

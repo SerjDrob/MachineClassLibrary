@@ -17,7 +17,7 @@ namespace MachineClassLibrary.Machine
         public void ResetErrors(Ax axis);
 
         #endregion
-        public bool MachineInit { get; set; }
+        public bool IsMotionDeviceInit { get; set; }
         public Velocity VelocityRegime { get; set; }
 
         public event EventHandler<AxisStateEventArgs> OnAxisMotionStateChanged;

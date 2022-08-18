@@ -20,7 +20,7 @@ namespace MachineClassLibrary.Laser.Markers
             else IsMarkDeviceInit = false;
         }
 
-        public async Task InitMarkDevice(string initDirPath)
+        public async Task<bool> InitMarkDevice(string initDirPath)
         {
             IntPtr Handle = new WindowInteropHelper(new Window()).Handle;
             var result = Lmc.lmc1_Initial(initDirPath, 0, Handle);
@@ -35,6 +35,7 @@ namespace MachineClassLibrary.Laser.Markers
                 throw new Exception($"The device opening failed. Can't open PWM device");
             }
             else IsMarkDeviceInit = true;
+            return IsMarkDeviceInit;
         }
 
         public async Task<bool> PierceLineAsync(double x1, double y1, double x2, double y2)
