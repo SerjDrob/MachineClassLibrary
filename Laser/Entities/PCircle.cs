@@ -6,6 +6,8 @@ namespace MachineClassLibrary.Laser.Entities
     {
         public PCircle(double x, double y, double angle, Circle pObject, string layerName, int rgbColor)
         {
+            Id = Guid.NewGuid();
+
             X = x;
             Y = y;
             Angle = angle;
@@ -28,6 +30,9 @@ namespace MachineClassLibrary.Laser.Entities
         public bool Turn90 { get; private set; } = false;
         public bool IsBeingProcessed { get; set; } = false;
         public bool IsProcessed { get; set; } = false;
+        public bool ToProcess { get; set; } = true;
+
+        public Guid Id { get; }
 
         public void Scale(double scale)
         {
