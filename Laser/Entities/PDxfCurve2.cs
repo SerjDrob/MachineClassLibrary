@@ -8,7 +8,8 @@ namespace MachineClassLibrary.Laser.Entities
     {
         public PDxfCurve2(double x, double y, double angle, Curve pObject, 
             string layerName, int argBColor, bool isClosed, IDxfReader dxfReader, string folder)
-        {           
+        {
+            Id = Guid.NewGuid();
             _pCurve = new PCurve(x, y, angle, pObject, layerName, argBColor);
             _isClosed = isClosed;
             _dxfReader = dxfReader;
@@ -21,6 +22,7 @@ namespace MachineClassLibrary.Laser.Entities
         private readonly PCurve _pCurve;
         private readonly IDxfReader _dxfReader;
         private readonly bool _isClosed;
+        public Guid Id { get;}
         public DxfCurve PObject { get => GetDxfCurve(); init => throw new NotImplementedException(); }
         public int ARGBColor { get => _pCurve.ARGBColor; set => throw new NotImplementedException(); }
         public string LayerName { get => _pCurve.LayerName; set => throw new NotImplementedException(); }
@@ -29,7 +31,7 @@ namespace MachineClassLibrary.Laser.Entities
         public double Angle { get => _pCurve.Angle; init => throw new NotImplementedException(); }
         public bool IsBeingProcessed { get; set; } = false;
         public bool IsProcessed { get; set; } = false;
-
+        public bool ToProcess { get; set; } = true;
         public double Scaling => _pCurve.Scaling;
         public bool MirrorX => _pCurve.MirrorX;
         public bool Turn90 => _pCurve.Turn90;

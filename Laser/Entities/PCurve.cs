@@ -10,6 +10,7 @@ namespace MachineClassLibrary.Laser.Entities
     {
         public PCurve(double x, double y, double angle, Curve pObject, string layerName, int argBColor)
         {
+            Id = Guid.NewGuid();
             X = x;
             Y = y;
             Angle = angle;
@@ -17,7 +18,7 @@ namespace MachineClassLibrary.Laser.Entities
             LayerName = layerName;
             ARGBColor = argBColor;
         }
-
+        public Guid Id { get; }
         public double X { get; init; }
         public double Y { get; init; }
         public double Angle { get; init; }
@@ -32,6 +33,7 @@ namespace MachineClassLibrary.Laser.Entities
         public bool Turn90 { get; private set; } = false;
         public bool IsBeingProcessed { get; set; } = false;
         public bool IsProcessed { get; set; } = false;
+        public bool ToProcess { get; set; } = true;
         public void Scale(double scale)
         {
             Scaling = scale;

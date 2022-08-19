@@ -1,4 +1,6 @@
-﻿namespace MachineClassLibrary.Laser.Entities
+﻿using System;
+
+namespace MachineClassLibrary.Laser.Entities
 {
     public interface IProcObject<TObject> : IProcObject where TObject : IShape
     {
@@ -7,8 +9,10 @@
     }
     public interface IProcObject
     {
+        public Guid Id { get; }
         public bool IsBeingProcessed { get; set; }
         public bool IsProcessed { get; set; }
+        public bool ToProcess { get; set; }
         public int ARGBColor { get; set; }
         public string LayerName { get; set; }
         public double X { get; init; }
