@@ -32,7 +32,7 @@ namespace MachineClassLibrary.Laser.Entities
         public bool IsProcessed { get; set; } = false;
         public bool ToProcess { get; set; } = true;
 
-        public Guid Id { get; }
+        public Guid Id { get; private set; }
 
         public void Scale(double scale)
         {
@@ -48,7 +48,7 @@ namespace MachineClassLibrary.Laser.Entities
         {
             Turn90 = turn;
         }
-        public IProcObject<Circle> CloneWithPosition(double x, double y) => new PCircle(x, y, Angle, PObject, LayerName, ARGBColor);
+        public IProcObject<Circle> CloneWithPosition(double x, double y) => new PCircle(x, y, Angle, PObject, LayerName, ARGBColor) { Id=this.Id};
 
         private Circle GetTransformedCircle() 
         {

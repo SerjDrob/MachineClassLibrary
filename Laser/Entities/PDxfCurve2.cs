@@ -22,7 +22,7 @@ namespace MachineClassLibrary.Laser.Entities
         private readonly PCurve _pCurve;
         private readonly IDxfReader _dxfReader;
         private readonly bool _isClosed;
-        public Guid Id { get;}
+        public Guid Id { get; private set; }
         public DxfCurve PObject { get => GetDxfCurve(); init => throw new NotImplementedException(); }
         public int ARGBColor { get => _pCurve.ARGBColor; set => throw new NotImplementedException(); }
         public string LayerName { get => _pCurve.LayerName; set => throw new NotImplementedException(); }
@@ -45,7 +45,7 @@ namespace MachineClassLibrary.Laser.Entities
             return new DxfCurve(fullPath);
         }
 
-        public IProcObject<DxfCurve> CloneWithPosition(double x, double y) => new PDxfCurve2(x, y, Angle, _initCurve, LayerName, ARGBColor,_isClosed,_dxfReader,_folder);
+        public IProcObject<DxfCurve> CloneWithPosition(double x, double y) => new PDxfCurve2(x, y, Angle, _initCurve, LayerName, ARGBColor, _isClosed, _dxfReader, _folder) { Id = this.Id };
 
         public (double x, double y) GetSize()
         {

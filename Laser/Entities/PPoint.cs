@@ -14,7 +14,7 @@ namespace MachineClassLibrary.Laser.Entities
             LayerName = layerName;
             ARGBColor = aRGBColor;
         }
-        public Guid Id { get; }
+        public Guid Id { get; private set; }
 
         public int ARGBColor { get; set; }
         public string LayerName { get; set; }
@@ -45,7 +45,7 @@ namespace MachineClassLibrary.Laser.Entities
         {
             Turn90 = turn;
         }
-        public IProcObject<Point> CloneWithPosition(double x, double y) => new PPoint(x, y, Angle, PObject, LayerName, ARGBColor);
+        public IProcObject<Point> CloneWithPosition(double x, double y) => new PPoint(x, y, Angle, PObject, LayerName, ARGBColor) { Id = this.Id };
         
         public (double x, double y) GetSize()
         {
