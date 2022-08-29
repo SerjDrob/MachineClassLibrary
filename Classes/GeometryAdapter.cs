@@ -6,7 +6,8 @@ using System.Windows.Media;
 
 namespace MachineClassLibrary.Classes
 {
-    public class GeometryAdapter
+
+    public class GeometryAdapter : IGeometryAdapter
     {
         private readonly IDxfReader _dxfReader;
         public GeometryCollection Geometries { get => new GeometryCollection(GetGeometies()); }
@@ -18,7 +19,7 @@ namespace MachineClassLibrary.Classes
             .Concat(GetEllipseGeometry())
             .Concat(GetPointGeometry())
             .Select(item => item.geometry);
-        public IEnumerable<AdaptedGeometry> GetGeometries() => 
+        public IEnumerable<AdaptedGeometry> GetGeometries() =>
             GetLineGeometry().
             Concat(GetEllipseGeometry()).
             Concat(GetPointGeometry());
@@ -36,19 +37,19 @@ namespace MachineClassLibrary.Classes
         }
         private IEnumerable<AdaptedGeometry> GetEllipseGeometry()
         {
-           return  _dxfReader.GetCircles()
-                .Select(
-                    circle => new AdaptedGeometry(
-                        new EllipseGeometry(new Point(circle.X, circle.Y), circle.PObject.Radius, circle.PObject.Radius),
-                        circle.LayerName,
-                        GetColorFromArgb(_dxfReader.GetLayers()[circle.LayerName]),
-                        GetColorFromArgb(circle.ARGBColor)
-                    )
-                );
+            return _dxfReader.GetCircles()
+                 .Select(
+                     circle => new AdaptedGeometry(
+                         new EllipseGeometry(new Point(circle.X, circle.Y), circle.PObject.Radius, circle.PObject.Radius),
+                         circle.LayerName,
+                         GetColorFromArgb(_dxfReader.GetLayers()[circle.LayerName]),
+                         GetColorFromArgb(circle.ARGBColor)
+                     )
+                 );
         }
         private IEnumerable<AdaptedGeometry> GetPointGeometry()
         {
-            Func<double,double,StreamGeometry> func = (x,y) =>
+            Func<double, double, StreamGeometry> func = (x, y) =>
             {
                 var scale = 100;//TODO the scale should be passed here from outside
                 var streamGeometry = new StreamGeometry();
@@ -62,15 +63,15 @@ namespace MachineClassLibrary.Classes
             };
             return _dxfReader.GetPoints()
                 .Select(
-                    point=>new AdaptedGeometry(
-                        func.Invoke(point.X,point.Y),
+                    point => new AdaptedGeometry(
+                        func.Invoke(point.X, point.Y),
                         point.LayerName,
                         GetColorFromArgb(_dxfReader.GetLayers()[point.LayerName]),
                         GetColorFromArgb(point.ARGBColor)
                         )
                 );
         }
-       
+
         public static SolidColorBrush GetColorFromArgb(int argb)
         {
             var rgbValues = BitConverter.GetBytes(argb);
@@ -80,5 +81,6 @@ namespace MachineClassLibrary.Classes
             var b = rgbValues[0];
             return new SolidColorBrush(Color.FromRgb(r, g, b));
         }
+
     }
 }

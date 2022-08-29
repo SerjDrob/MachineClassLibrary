@@ -53,7 +53,7 @@ namespace MachineClassLibrary.Classes
             );
         }
         public IEnumerable<PLine> GetAllSegments()
-        {
+        {           
             return _document.Entities.OfType<DxfLwPolyline>()
                  .Select(
                      polyline => polyline.AsSimpleEntities()
@@ -69,6 +69,7 @@ namespace MachineClassLibrary.Classes
         }
         public IEnumerable<PCurve> GetAllCurves(string fromLayer = null)
         {
+            
             return _document.Entities.OfType<DxfLwPolyline>()
                 .Where(lw => fromLayer is null ? true : lw.Layer == fromLayer)
                 .Select(polyline => {
