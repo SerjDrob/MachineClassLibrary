@@ -46,7 +46,7 @@ namespace MachineClassLibrary.Laser.Entities
             Turn90 = turn;
         }
         public IProcObject<Point> CloneWithPosition(double x, double y) => new PPoint(x, y, Angle, PObject, LayerName, ARGBColor) { Id = this.Id };
-        
+        IProcObject IProcObject.CloneWithPosition(double x, double y) => CloneWithPosition(x, y);
         public (double x, double y) GetSize()
         {
             throw new NotImplementedException();

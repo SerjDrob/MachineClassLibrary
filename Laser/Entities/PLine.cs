@@ -50,7 +50,7 @@ namespace MachineClassLibrary.Laser.Entities
             Turn90 = turn;
         }
         public IProcObject<Line> CloneWithPosition(double x, double y) => new PLine(x, y, Angle, PObject, LayerName, ARGBColor) { Id = this.Id };
-
+        IProcObject IProcObject.CloneWithPosition(double x, double y) => CloneWithPosition(x, y);
         public (double x, double y) GetSize()
         {
             return (Math.Abs(PObject.X2 - PObject.X1), Math.Abs(PObject.Y2 - PObject.Y1));

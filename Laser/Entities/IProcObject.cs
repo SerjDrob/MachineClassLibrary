@@ -5,7 +5,7 @@ namespace MachineClassLibrary.Laser.Entities
     public interface IProcObject<TObject> : IProcObject where TObject : IShape
     {
         public TObject PObject { get; init; }
-        public IProcObject<TObject> CloneWithPosition(double x, double y);
+        public new IProcObject<TObject> CloneWithPosition(double x, double y);
     }
     public interface IProcObject
     {
@@ -25,5 +25,6 @@ namespace MachineClassLibrary.Laser.Entities
         void Scale(double scale);
         void SetMirrorX(bool mirror);
         void SetTurn90(bool turn);
+        public IProcObject CloneWithPosition(double x, double y);
     }   
 }

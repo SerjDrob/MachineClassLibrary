@@ -59,6 +59,8 @@ namespace MachineClassLibrary.Laser.Entities
         {
             throw new NotImplementedException();
         }
+
+        IProcObject IProcObject.CloneWithPosition(double x, double y) => CloneWithPosition(x, y);
         
     }
 }

@@ -44,7 +44,7 @@ namespace MachineClassLibrary.Laser.Entities
             Turn90 = turn;
         }
         public IProcObject<DxfCurve> CloneWithPosition(double x, double y) => new PDxfCurve(x, y, Angle, PObject, LayerName, ARGBColor) { Id = this.Id };
-
+        IProcObject IProcObject.CloneWithPosition(double x, double y) => CloneWithPosition(x, y);
         public (double x, double y) GetSize()
         {
             throw new NotImplementedException();

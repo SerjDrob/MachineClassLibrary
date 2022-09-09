@@ -10,11 +10,10 @@ using System.Numerics;
 
 namespace MachineClassLibrary.Laser.Entities
 {
-    //TODO is it possible to get rid of TObject1?
-    public class LaserWafer<TObject> : IEnumerable<IProcObject<TObject>>, IDisposable, ITransformable where TObject : IShape
+    public class LaserWafer : IEnumerable<IProcObject>, IDisposable, ITransformable
     {
         private readonly (double x, double y) _size;
-        private readonly IEnumerable<IProcObject<TObject>> _procObjects;
+        private readonly IEnumerable<IProcObject> _procObjects;
         private Matrix _matrix;
         private bool _turned90;
         private bool _mirroredX;
@@ -26,7 +25,7 @@ namespace MachineClassLibrary.Laser.Entities
         private RectangleF _restrictingArea;
         private bool _restricted = false;
 
-        public LaserWafer(IEnumerable<IProcObject<TObject>> procObjects, (double x, double y) size)//TODO add scale here
+        public LaserWafer(IEnumerable<IProcObject> procObjects, (double x, double y) size)//TODO add scale here
         {
             Guard.IsNotNull(procObjects, nameof(procObjects));
             Guard.IsGreaterThan(size.x, 0, nameof(size.x));
@@ -83,7 +82,7 @@ namespace MachineClassLibrary.Laser.Entities
             _restricted = true;
         }
         public void SetEnumerationStyle(bool shuffle) => _shuffleEnumeration = shuffle;
-        public IEnumerator<IProcObject<TObject>> GetEnumerator()
+        public IEnumerator<IProcObject> GetEnumerator()
         {
             var transformation = Matrix3x2.Identity;
 
@@ -132,7 +131,7 @@ namespace MachineClassLibrary.Laser.Entities
                 }               
             }
         }
-        public IProcObject<TObject> this[int index]
+        public IProcObject this[int index]
         {
             get
             {

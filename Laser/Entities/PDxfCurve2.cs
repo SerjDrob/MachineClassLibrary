@@ -46,7 +46,7 @@ namespace MachineClassLibrary.Laser.Entities
         }
 
         public IProcObject<DxfCurve> CloneWithPosition(double x, double y) => new PDxfCurve2(x, y, Angle, _initCurve, LayerName, ARGBColor, _isClosed, _dxfReader, _folder) { Id = this.Id };
-
+        IProcObject IProcObject.CloneWithPosition(double x, double y) => CloneWithPosition(x, y);
         public (double x, double y) GetSize()
         {
             throw new NotImplementedException();
