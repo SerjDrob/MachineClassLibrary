@@ -67,8 +67,9 @@ namespace MachineClassLibrary.Laser
                 var matrix = new Matrix(rotation);
                 var points = vertices.Select(vertex => new PointF((float)vertex.x, (float)vertex.y)).ToArray();
                 matrix.TransformPoints(points);
-                var curve = new Curve();
-                curve.Vertices = points.Zip(vertices, (p, v) => ((double)p.X, (double)p.Y, v.bulge));
+                var curve = new Curve(
+                        points.Zip(vertices, (p, v) => ((double)p.X, (double)p.Y, v.bulge)),
+                        pCurve.PObject.IsClosed);
                 return curve;
             }
 

@@ -44,8 +44,9 @@ namespace MachineClassLibrary.Classes
             {
                 X = v.X, 
                 Y = v.Y,
-                Bulge = v.Bulge
-            }));
+                Bulge = v.Bulge,
+            }))
+            { IsClosed = pCurve.PObject.IsClosed };
             return polylyne.ToGeometry();
         }
         public static Geometry ToGeometry(this PCircle pCircle)

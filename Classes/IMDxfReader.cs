@@ -75,7 +75,8 @@ namespace MachineClassLibrary.Classes
                 .Select(polyline => {
                     var center = polyline.Vertices.GetPolylineCenter();
                     return new PCurve(center.x, center.y, 0,
-                    new Curve { Vertices = polyline.Vertices.Select(vertex => (vertex.X - center.x, vertex.Y - center.y, vertex.Bulge)) },
+                    new Curve(polyline.Vertices.Select(vertex => (vertex.X - center.x, vertex.Y - center.y, vertex.Bulge)),
+                    polyline.IsClosed),
                     polyline.Layer, polyline.Color.ToRGB());
                 });
         }
@@ -134,7 +135,8 @@ namespace MachineClassLibrary.Classes
                     var centerX = polyline.Vertices.GetPolylineCenter().x;
                     var centerY = polyline.Vertices.GetPolylineCenter().y;
                     return new PDxfCurve2(centerX, centerY, 0,
-                    new Curve { Vertices = polyline.Vertices.Select(vertex => (vertex.X - centerX, vertex.Y - centerY, vertex.Bulge)) },
+                    new Curve(polyline.Vertices.Select(vertex => (vertex.X - centerX, vertex.Y - centerY, vertex.Bulge)),
+                    polyline.IsClosed),
                     polyline.Layer, polyline.Color.ToRGB(), polyline.IsClosed, this, folder);
                 });
         }

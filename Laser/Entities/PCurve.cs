@@ -68,7 +68,7 @@ namespace MachineClassLibrary.Laser.Entities
             matrix.TransformPoints(points);
 
             var result = points.Zip(_curve.Vertices, (p, v) => ((double)p.X, (double)p.Y, MirrorX ? -v.Bulge : v.Bulge));
-            return new Curve { Vertices = result };
+            return new Curve(result, _curve.IsClosed);
         }
         
     }
