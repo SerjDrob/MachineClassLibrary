@@ -372,8 +372,9 @@ namespace MachineClassLibrary.Machine.Machines
         }
         public async Task MoveAxRelativeAsync(Ax axis, double diffPosition, bool precisely = false)
         {
-            var initialPos = _axes[axis].ActualPosition;
-            await MoveAxInPosAsync(axis, initialPos + diffPosition, precisely);
+            var initialPos = precisely ? _axes[axis].ActualPosition : _axes[axis].CmdPosition; //TODO can it influence?
+            var pos = initialPos + diffPosition;
+            await MoveAxInPosAsync(axis, pos, precisely);
         }
         public async Task MoveGpRelativeAsync(Groups group, double[] offset, bool precisely = false)
         {
