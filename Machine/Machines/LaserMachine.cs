@@ -323,6 +323,8 @@ namespace MachineClassLibrary.Machine.Machines
             return await _markLaser?.CancelMarkingAsync();
         }
 
+        public async Task<bool> MarkTextAsync(string text, double textSize, double angle) => await _markLaser.MarkTextAsync(text, textSize, angle);
+        
 
         //public void StartVideoCapture(int ind, int capabilitiesInd = 0) => _videoCapture.StartCamera(ind, capabilitiesInd);
 

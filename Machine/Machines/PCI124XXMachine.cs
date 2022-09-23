@@ -33,11 +33,11 @@ namespace MachineClassLibrary.Machine.Machines
             IsMotionDeviceInit = _motionDevice.DevicesConnection();
             if (IsMotionDeviceInit)
             {
-                _motionDevice.StartMonitoringAsync();
+                _monitoringMachineState = _motionDevice.StartMonitoringAsync();
                 _motionDevice.TransmitAxState += MotionDevice_TransmitAxState;
             }
         }
-
+        private Task _monitoringMachineState;
         public event EventHandler<AxisStateEventArgs> OnAxisMotionStateChanged;
         public Velocity VelocityRegime { get; set; }
         public bool IsMotionDeviceInit { get; set; }

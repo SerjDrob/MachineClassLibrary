@@ -24,10 +24,13 @@ namespace MachineClassLibrary.Classes
     public class IMGeometryAdapter : IGeometryAdapter
     {
         private readonly DxfFile _document;
+        //private readonly IList<DxfEntity> _dxfEntities;
+
 
         public IMGeometryAdapter(string fileName)
         {
             _document = DxfFile.Load(fileName);
+            //_dxfEntities = _document.Entities.ToList();
         }
         public GeometryCollection Geometries { get => new GeometryCollection(GetGeometies()); }
 
@@ -39,7 +42,7 @@ namespace MachineClassLibrary.Classes
                 .Concat(
                     _document.Entities
                     .OfType<DxfCircle>()
-                    .Select(c=>c.ToGeometry())
+                    .Select(c => c.ToGeometry())
                 );
         }
 
@@ -48,12 +51,14 @@ namespace MachineClassLibrary.Classes
             var layers = _document.Layers.ToDictionary(l => l.Name);
                        
 
-            return _document.Entities.OfType<DxfLwPolyline>()
+            return _document.Entities.
+                 OfType<DxfLwPolyline>()
                 .Select(p => new AdaptedGeometry(p.ToGeometry(), p.Layer,
                 GetColorFromArgb(layers[p.Layer].Color.ToRGB()), 
                 GetColorFromArgb(p.Color.ToRGB())))
                 .Concat(
-                    _document.Entities.OfType<DxfCircle>()
+                    _document.Entities
+                    .OfType<DxfCircle>()
                       .Select(p => new AdaptedGeometry(p.ToGeometry(), p.Layer,
                       GetColorFromArgb(layers[p.Layer].Color.ToRGB()),
                       GetColorFromArgb(p.Color.ToRGB())))

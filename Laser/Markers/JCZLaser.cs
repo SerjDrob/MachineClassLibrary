@@ -107,6 +107,13 @@ namespace MachineClassLibrary.Laser.Markers
             SetMarkParams(resParams);
         }
 
+        public async Task<bool> MarkTextAsync(string text, double textSize, double angle)
+        {
+            if (Lmc.lmc1_AddTextToLib(text, "text", 0, 0, 0, 8, angle, 0, true) != 0)
+                return await Task.FromResult(false);
+            return await Task.FromResult(Lmc.lmc1_MarkEntity("text") +
+             Lmc.lmc1_DeleteEnt("text") == 0);
+        }
         public void SetMarkDeviceParams()
         {
             Lmc.lmc1_SetDevCfg2(false, false);

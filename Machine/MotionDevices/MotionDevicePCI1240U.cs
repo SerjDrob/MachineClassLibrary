@@ -2,6 +2,7 @@
 using MachineClassLibrary.Classes;
 using System;
 using System.Collections.Generic;
+using System.Drawing.Drawing2D;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
@@ -19,7 +20,7 @@ namespace MachineClassLibrary.Machine.MotionDevices
             DeviceHandle = OpenDevice(device);
         }
 
-        public int AxisCount { get; set; }
+        public int AxisCount { get; private set; }
         protected IntPtr[] _mAxishand;
         protected uint _result;
         protected Dictionary<PropertyID, uint> _errors = new Dictionary<PropertyID, uint>();
@@ -51,16 +52,11 @@ namespace MachineClassLibrary.Machine.MotionDevices
             var axisEnableEvent = new uint[AxisCount];
             var gpEnableEvent = new uint[1];
 
-            //uint result;
             _mAxishand = new IntPtr[AxisCount];
             for (var i = 0; i < axisEnableEvent.Length; i++)
             {
                 Motion.mAcm_AxOpen(DeviceHandle, (ushort)i, ref _mAxishand[i]).CheckResult(i);
-                //if (!Success(_result))
-                //{
-                //    throw new MotionException($"Open Axis Failed With Error Code: [0x{_result:X}]");
-                //}
-
+                
                 double cmdPosition = 0;
 
                 Motion.mAcm_AxResetError(_mAxishand[i]).CheckResult(i);
@@ -75,10 +71,6 @@ namespace MachineClassLibrary.Machine.MotionDevices
             }
 
             Motion.mAcm_EnableMotionEvent(DeviceHandle, axisEnableEvent, gpEnableEvent, (uint)AxisCount, 1).CheckResult();
-            //if (!Success(_result))
-            //{
-            //    throw new MotionException($"Enable motion events Failed With Error Code: [0x{_result:X}]");
-            //}
 
             return true;
         }
@@ -86,7 +78,9 @@ namespace MachineClassLibrary.Machine.MotionDevices
         {
             return DeviceStateMonitorAsync();
         }
-        private async Task DeviceStateMonitorAsync()
+
+#if NOTTEST
+private async Task DeviceStateMonitorAsync()
         {
             var axEvtStatusArray = new uint[4];
             var gpEvtStatusArray = new uint[1];
@@ -104,20 +98,16 @@ namespace MachineClassLibrary.Machine.MotionDevices
                     var axState = new AxisState();
                     IntPtr ax = _mAxishand[num];
                     Motion.mAcm_AxGetMotionIO(ax, ref ioStatus).CheckResult();
-                   // if (Success(_result))
-                    {
-                        axState.nLmt = (ioStatus & (uint)Ax_Motion_IO.AX_MOTION_IO_LMTN) > 0;
-                        axState.pLmt = (ioStatus & (uint)Ax_Motion_IO.AX_MOTION_IO_LMTP) > 0;
-                    }
+                    
+                    axState.nLmt = (ioStatus & (uint)Ax_Motion_IO.AX_MOTION_IO_LMTN) > 0;
+                    axState.pLmt = (ioStatus & (uint)Ax_Motion_IO.AX_MOTION_IO_LMTP) > 0;
 
                     for (var channel = 0; channel < 4; channel++)
                     {
                         Motion.mAcm_AxDiGetBit(ax, (ushort)channel, ref bitData).CheckResult();
-                        //if (Success(_result))
-                        {
-                            axState.sensors = bitData != 0 ? axState.sensors.SetBit(channel) : axState.sensors.ResetBit(channel);
-                        }
+                        axState.sensors = bitData != 0 ? axState.sensors.SetBit(channel) : axState.sensors.ResetBit(channel);
                     }
+
                     var bridge = 0;
                     if (_bridges != null && _bridges.Keys.Contains(num))
                     {
@@ -145,6 +135,84 @@ namespace MachineClassLibrary.Machine.MotionDevices
                     TransmitAxState?.Invoke(this, new AxNumEventArgs(num, axState));
                 }
                 await Task.Delay(1).ConfigureAwait(false);
+            }
+        }
+
+
+#endif
+        private async Task DeviceStateMonitorAsync()
+        {
+            var axEvtStatusArray = new uint[AxisCount];
+            var gpEvtStatusArray = new uint[1];
+            var eventResult = new uint();
+            var ioStatus = new uint();
+            var cmdPosition = 0d;
+            var actPosition = 0d;
+            var bitData = new byte();
+            var motionDone = false;
+            var homeDone = false;
+            var vhStart = false;
+            var vhEnd = false;
+            var nLmt = false;
+            var pLmt = false;
+
+            while (true)
+            {
+                eventResult = Motion.mAcm_CheckMotionEvent(DeviceHandle, axEvtStatusArray, gpEvtStatusArray, (uint)AxisCount, 0, 10);
+                for (int num = 0; num < _mAxishand.Length; num++)
+                {
+                    var axState = new AxisState();
+                    IntPtr ax = _mAxishand[num];
+                    Motion.mAcm_AxGetMotionIO(ax, ref ioStatus).CheckResult();
+                    
+                    nLmt = (ioStatus & (uint)Ax_Motion_IO.AX_MOTION_IO_LMTN) > 0;
+                    pLmt = (ioStatus & (uint)Ax_Motion_IO.AX_MOTION_IO_LMTP) > 0;
+
+                    var sensorsState = 0;
+
+                    for (var channel = 0; channel < 4; channel++)
+                    {
+                        Motion.mAcm_AxDiGetBit(ax, (ushort)channel, ref bitData).CheckResult();
+                        sensorsState = bitData != 0 ? sensorsState.SetBit(channel) : sensorsState.ResetBit(channel);
+                    }
+
+
+                    var bridge = 0;
+                    if (_bridges != null && _bridges.Keys.Contains(num))
+                    {
+                        bridge = _bridges[num];
+                    }
+                    sensorsState |= bridge;
+
+
+                    Motion.mAcm_AxDoGetByte(ax, 0, ref bitData).CheckResult(ax);
+                    Motion.mAcm_AxGetCmdPosition(ax, ref cmdPosition).CheckResult(ax);
+                    Motion.mAcm_AxGetActualPosition(ax, ref actPosition).CheckResult(ax);
+
+                    if (Success(eventResult))
+                    {
+                        motionDone = (axEvtStatusArray[num] & (uint)EventType.EVT_AX_MOTION_DONE) > 0;
+                        //axState.homeDone = (axEvtStatusArray[num] & (uint)EventType.EVT_AX_HOME_DONE) > 0;
+                        vhStart = (axEvtStatusArray[num] & (uint)EventType.EVT_AX_VH_START) > 0;
+                        vhEnd = (axEvtStatusArray[num] & (uint)EventType.EVT_AX_VH_END) > 0;
+                    }
+
+
+                    var st = new AxisState
+                    (
+                        cmdPosition,
+                        actPosition,
+                        sensorsState,
+                        bitData,
+                        pLmt,
+                        nLmt,
+                        motionDone,
+                        homeDone,
+                        vhStart,
+                        vhEnd
+                    );
+                    TransmitAxState?.Invoke(this, new AxNumEventArgs(num, axState));
+                }
             }
         }
 

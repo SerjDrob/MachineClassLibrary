@@ -23,5 +23,6 @@ namespace MachineClassLibrary.Laser
         Task<bool> PierceCircleAsync(double diameter);
         Task<bool> PierceDxfObjectAsync(string filePath);
         Task<bool> CancelMarkingAsync();
+        Task<bool> MarkTextAsync(string text, double textSize, double angle);
     }
 }

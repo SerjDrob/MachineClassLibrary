@@ -28,6 +28,11 @@ namespace MachineClassLibrary.Laser.Markers
             return Task.FromResult(IsMarkDeviceInit);
         }
 
+        public Task<bool> MarkTextAsync(string text, double textSize, double angle)
+        {
+            throw new NotImplementedException();
+        }
+
         public Task<bool> PierceCircleAsync(double diameter)
         {
             Debug.WriteLine($"Laser is piercing circle d = {diameter}");
