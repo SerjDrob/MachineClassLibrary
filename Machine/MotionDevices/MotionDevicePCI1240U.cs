@@ -10,7 +10,7 @@ using System.Threading.Tasks;
 namespace MachineClassLibrary.Machine.MotionDevices
 {
 
-    public class MotionDevicePCI1240U : IDisposable, IMessager
+    public class MotionDevicePCI1240U : /*IDisposable, IMessager,*/ IMotionDevicePCI1240U
     {
 
         public MotionDevicePCI1240U()
@@ -56,7 +56,7 @@ namespace MachineClassLibrary.Machine.MotionDevices
             for (var i = 0; i < axisEnableEvent.Length; i++)
             {
                 Motion.mAcm_AxOpen(DeviceHandle, (ushort)i, ref _mAxishand[i]).CheckResult(i);
-                
+
                 double cmdPosition = 0;
 
                 Motion.mAcm_AxResetError(_mAxishand[i]).CheckResult(i);
@@ -161,10 +161,10 @@ private async Task DeviceStateMonitorAsync()
                 eventResult = Motion.mAcm_CheckMotionEvent(DeviceHandle, axEvtStatusArray, gpEvtStatusArray, (uint)AxisCount, 0, 10);
                 for (int num = 0; num < _mAxishand.Length; num++)
                 {
-                    var axState = new AxisState();
+                    //var axState = new AxisState();
                     IntPtr ax = _mAxishand[num];
                     Motion.mAcm_AxGetMotionIO(ax, ref ioStatus).CheckResult();
-                    
+
                     nLmt = (ioStatus & (uint)Ax_Motion_IO.AX_MOTION_IO_LMTN) > 0;
                     pLmt = (ioStatus & (uint)Ax_Motion_IO.AX_MOTION_IO_LMTP) > 0;
 
@@ -198,7 +198,7 @@ private async Task DeviceStateMonitorAsync()
                     }
 
 
-                    var st = new AxisState
+                    var axState = new AxisState
                     (
                         cmdPosition,
                         actPosition,
@@ -218,7 +218,7 @@ private async Task DeviceStateMonitorAsync()
 
 
         public int FormAxesGroup(int[] axisNums)
-        {           
+        {
             if (_mGpHand == null)
             {
                 _mGpHand = new List<IntPtr>();
@@ -226,7 +226,7 @@ private async Task DeviceStateMonitorAsync()
             var hand = new IntPtr();
             for (int i = 0; i < axisNums.Length; i++)
             {
-                var result = Motion.mAcm_GpAddAxis(ref hand, _mAxishand[axisNums[i]]);                
+                var result = Motion.mAcm_GpAddAxis(ref hand, _mAxishand[axisNums[i]]);
                 if (!Success(result))
                 {
                     var sb = new StringBuilder();
@@ -239,7 +239,7 @@ private async Task DeviceStateMonitorAsync()
         }
         public void MoveAxisContiniouslyAsync(int axisNum, AxDir dir)
         {
-            Motion.mAcm_AxMoveVel(_mAxishand[axisNum], (ushort)dir);            
+            Motion.mAcm_AxMoveVel(_mAxishand[axisNum], (ushort)dir);
         }
 
         public void MoveAxesByCoorsAsync((int axisNum, double position)[] ax)
@@ -297,7 +297,7 @@ private async Task DeviceStateMonitorAsync()
             var velHigh = vel;
             var velLow = vel / 2;
 
-            Motion.mAcm_SetProperty(_mAxishand[axisNum], (uint)PropertyID.PAR_AxVelHigh, ref velHigh, 8).CheckResult(axisNum);            
+            Motion.mAcm_SetProperty(_mAxishand[axisNum], (uint)PropertyID.PAR_AxVelHigh, ref velHigh, 8).CheckResult(axisNum);
             Motion.mAcm_SetProperty(_mAxishand[axisNum], (uint)PropertyID.PAR_AxVelLow, ref velLow, 8).CheckResult(axisNum);
         }
         public void SetGroupVelocity(int groupNum)

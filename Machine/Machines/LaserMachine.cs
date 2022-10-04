@@ -22,7 +22,7 @@ namespace MachineClassLibrary.Machine.Machines
 
         public event EventHandler<VideoCaptureEventArgs> OnBitmapChanged;
 
-        public LaserMachine(ExceptionsAgregator exceptionsAgregator, MotionDevicePCI1240U motionDevice, IMarkLaser markLaser, IVideoCapture videoCapture) : base(exceptionsAgregator, motionDevice)
+        public LaserMachine(ExceptionsAgregator exceptionsAgregator, IMotionDevicePCI1240U motionDevice, IMarkLaser markLaser, IVideoCapture videoCapture) : base(exceptionsAgregator, motionDevice)
         {
             Guard.IsNotNull(markLaser, nameof(markLaser));
             Guard.IsNotNull(videoCapture, nameof(videoCapture));
