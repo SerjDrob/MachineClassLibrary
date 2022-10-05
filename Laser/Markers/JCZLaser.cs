@@ -12,7 +12,13 @@ namespace MachineClassLibrary.Laser.Markers
     {
         public bool IsMarkDeviceInit { get; private set; }
         private MarkLaserParams _markLaserParams;
-        private PWM _pwm;
+        private readonly IPWM _pwm;
+
+        public JCZLaser(IPWM pwm)
+        {
+            _pwm = pwm;
+        }
+
         public void CloseMarkDevice()
         {
             var result = Lmc.lmc1_Close();
@@ -29,7 +35,7 @@ namespace MachineClassLibrary.Laser.Markers
             {
                 throw new Exception($"The device opening failed with error code {(Lmc.EzCad_Error_Code)result}");
             }
-            _pwm = new PWM();
+            //_pwm = new PWM();
             if (!await _pwm.FindOpen())
             {
                 throw new Exception($"The device opening failed. Can't open PWM device");

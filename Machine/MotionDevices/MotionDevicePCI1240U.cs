@@ -59,7 +59,11 @@ namespace MachineClassLibrary.Machine.MotionDevices
                 
                 double cmdPosition = 0;
 
-                Motion.mAcm_AxResetError(_mAxishand[i]).CheckResult(i);
+                ushort state = 0;
+
+                Motion.mAcm_AxGetState(_mAxishand[i], ref state);
+
+                if(state == 3) Motion.mAcm_AxResetError(_mAxishand[i]).CheckResult(i);
 
                 Motion.mAcm_AxSetCmdPosition(_mAxishand[i], cmdPosition).CheckResult(i);
 
@@ -375,16 +379,19 @@ private async Task DeviceStateMonitorAsync()
         }
         public void ResetErrors(int axisNum = 888)
         {
+            ushort state = 1;
             if (axisNum == 888)
             {
                 foreach (var handle in _mAxishand)
                 {
-                    Motion.mAcm_AxResetError(handle).CheckResult();
+                    Motion.mAcm_AxGetState(handle, ref state);
+                    if(state == 3) Motion.mAcm_AxResetError(handle).CheckResult();
                 }
             }
             else
             {
-                Motion.mAcm_AxResetError(_mAxishand[axisNum]).CheckResult(axisNum);
+                Motion.mAcm_AxGetState(_mAxishand[axisNum], ref state);
+                if(state == 3) Motion.mAcm_AxResetError(_mAxishand[axisNum]).CheckResult(axisNum);
             }
 
         }
