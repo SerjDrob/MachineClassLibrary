@@ -74,9 +74,9 @@ namespace MachineClassLibrary.Machine.MotionDevices
 
             return true;
         }
-        public Task StartMonitoringAsync()
+        public async Task StartMonitoringAsync()
         {
-            return DeviceStateMonitorAsync();
+           await DeviceStateMonitorAsync();
         }
 
 #if NOTTEST
@@ -213,7 +213,9 @@ private async Task DeviceStateMonitorAsync()
                     );
                     TransmitAxState?.Invoke(this, new AxNumEventArgs(num, axState));
                 }
+                await Task.Delay(1).ConfigureAwait(false);
             }
+
         }
 
 

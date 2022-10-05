@@ -107,12 +107,41 @@ namespace MachineClassLibrary.Laser.Markers
             SetMarkParams(resParams);
         }
 
-        public async Task<bool> MarkTextAsync(string text, double textSize, double angle)
+        public async Task<bool> MarkTextAsync(string text, double textSize, double angle)//TODO return bool or info or through exception?
         {
-            if (Lmc.lmc1_AddTextToLib(text, "text", 0, 0, 0, 8, angle, 0, true) != 0)
-                return await Task.FromResult(false);
-            return await Task.FromResult(Lmc.lmc1_MarkEntity("text") +
-             Lmc.lmc1_DeleteEnt("text") == 0);
+            var penparams = _markLaserParams.PenParams with { MarkLoop = 1, MarkSpeed = 100 };//TODO move to settings 
+
+            var result = Lmc.lmc1_SetFontParam("Cambria", textSize, 0.625 * textSize, 0, 0, 0, false);
+            result += Lmc.SetPenParams(penparams);
+            result += Lmc.lmc1_AddTextToLib(text, "text", 0, 0, 0, 8, angle, 0, true);
+            if (result!= 0) return false;
+            if (_markLaserParams.PenParams.IsModulated)
+            {
+                var freq = _markLaserParams.PenParams.Freq;
+                var dutyCycle = freq * _markLaserParams.PenParams.QPulseWidth * 1e-6 * 100;
+                var modFreq = _markLaserParams.PenParams.ModFreq;
+                var modDutyCycle = _markLaserParams.PenParams.ModDutyCycle;
+
+                if (!await _pwm.SetPWM(freq, (int)Math.Round(dutyCycle), modFreq, modDutyCycle))
+                {
+
+                }
+            }
+            await Task.Run(async () =>
+            {
+                var result = Lmc.lmc1_MarkEntity("text");
+                if (!await _pwm.StopPWM())
+                {
+
+                }
+                if (result != 0)
+                {
+                    Lmc.lmc1_DeleteEnt("text");
+                    throw new Exception($"Marking failed with code {(Lmc.EzCad_Error_Code)result}");
+                }
+            });
+            Lmc.lmc1_DeleteEnt("text");
+            return true;
         }
         public void SetMarkDeviceParams()
         {

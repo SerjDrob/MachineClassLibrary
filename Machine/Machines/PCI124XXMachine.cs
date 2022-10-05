@@ -33,7 +33,7 @@ namespace MachineClassLibrary.Machine.Machines
             IsMotionDeviceInit = _motionDevice.DevicesConnection();
             if (IsMotionDeviceInit)
             {
-                _monitoringMachineState = _motionDevice.StartMonitoringAsync();
+                /*_monitoringMachineState = */_motionDevice.StartMonitoringAsync();
                 _motionDevice.TransmitAxState += MotionDevice_TransmitAxState;
             }
         }
