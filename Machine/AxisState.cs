@@ -15,6 +15,22 @@
         public bool vhEnd;
     }
 #endif
+
+    public struct MockAxisState
+    {
+        public double cmdPos { get; set; }
+        public double actPos { get; set; }
+        public int sensors { get; set; }
+        public int outs { get; set; }
+        public bool pLmt { get; set; }
+        public bool nLmt { get; set; }
+        public bool motionDone { get; set; }
+        public bool homeDone { get; set; }
+        public bool vhStart { get; set; }
+        public bool vhEnd { get; set; }
+        public AxisState GetAxisState => new AxisState(cmdPos, actPos, sensors, outs, pLmt, nLmt, motionDone, homeDone, vhStart,vhEnd);
+    }
+
     readonly public struct AxisState
     {
         public AxisState(double cmdPos, double actPos, int sensors, int outs, bool pLmt, bool nLmt, bool motionDone, bool homeDone, bool vhStart, bool vhEnd)

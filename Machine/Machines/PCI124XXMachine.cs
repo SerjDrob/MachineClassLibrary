@@ -11,7 +11,7 @@ namespace MachineClassLibrary.Machine.Machines
     public abstract class PCI124XXMachine : IHasMotion
     {
         protected readonly ExceptionsAgregator _exceptionsAgregator;
-        protected readonly MotionDevicePCI1240U _motionDevice;
+        protected readonly IMotionDevicePCI1240U _motionDevice;
 
         protected Dictionary<Ax, IAxis> _axes;
         private Dictionary<Groups, (int groupNum, Ax[] axes)> _axesGroups;
@@ -24,7 +24,7 @@ namespace MachineClassLibrary.Machine.Machines
         //private Dictionary<Sensors, (Ax axis, Di dIn, bool invertion, string name)> _sensors;
         //private Dictionary<Valves, (Ax axis, Do dOut)> _valves;
 
-        public PCI124XXMachine(ExceptionsAgregator exceptionsAgregator, MotionDevicePCI1240U motionDevice)
+        public PCI124XXMachine(ExceptionsAgregator exceptionsAgregator, IMotionDevicePCI1240U motionDevice)
         {
             _exceptionsAgregator = exceptionsAgregator;
 
@@ -33,7 +33,7 @@ namespace MachineClassLibrary.Machine.Machines
             IsMotionDeviceInit = _motionDevice.DevicesConnection();
             if (IsMotionDeviceInit)
             {
-                _monitoringMachineState = _motionDevice.StartMonitoringAsync();
+                /*_monitoringMachineState = */_motionDevice.StartMonitoringAsync();
                 _motionDevice.TransmitAxState += MotionDevice_TransmitAxState;
             }
         }
