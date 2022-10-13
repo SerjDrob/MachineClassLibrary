@@ -12,6 +12,7 @@ namespace MachineClassLibrary.Machine
         #region Settings
 
         public void SetConfigs((Ax axis, MotionDeviceConfigs configs)[] axesConfigs);
+        public void SetGroupConfig(int gpNum, MotionDeviceConfigs configs);
         public void SetVelocity(Velocity velocity);
         public void SetAxFeedSpeed(Ax axis, double feed);
         public void ResetErrors(Ax axis);

@@ -67,9 +67,9 @@ namespace MachineClassLibrary.Laser.Markers
         public async Task<bool> PierceDxfObjectAsync(string filePath)
         {
 
-            Lmc.SetPenParams(_markLaserParams.PenParams);
-            Lmc.SetHatchParams(_markLaserParams.HatchParams);
-            Lmc.lmc1_AddFileToLib(filePath, "ProcEntity", 0, 0, 0, 0, 1, _markLaserParams.PenParams.PenNo, _markLaserParams.HatchParams.EnableHatch);
+            var result = Lmc.SetPenParams(_markLaserParams.PenParams);
+            result = Lmc.SetHatchParams(_markLaserParams.HatchParams);
+            result = Lmc.lmc1_AddFileToLib(filePath, "ProcEntity", 0, 0, 0, 0, 1, _markLaserParams.PenParams.PenNo, _markLaserParams.HatchParams.EnableHatch);
             //Lmc.lmc1_SaveEntLibToFile("D:/TestFile.ezd");
             if (_markLaserParams.PenParams.IsModulated)
             {

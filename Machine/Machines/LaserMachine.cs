@@ -13,14 +13,16 @@ using System.Threading.Tasks;
 
 namespace MachineClassLibrary.Machine.Machines
 {
-    public class LaserMachine : PCI124XXMachine, IHasCamera, IMarkLaser, IHasPlaces<LMPlace>
+    public class LaserMachine : PCI124XXMachine, IHasCamera, IMarkLaser, IHasPlaces<LMPlace>, IHasValves
     {
         private readonly IMarkLaser _markLaser;
         private readonly IVideoCapture _videoCapture;
         private Dictionary<LMPlace, (Ax axis, double pos)[]> _places;
         private Dictionary<LMPlace, double> _singlePlaces;
+        private Dictionary<Valves, (Ax, Do)> _valves;
 
         public event EventHandler<VideoCaptureEventArgs> OnBitmapChanged;
+        public event EventHandler<ValveEventArgs> OnValveStateChanged;
 
         public LaserMachine(ExceptionsAgregator exceptionsAgregator, IMotionDevicePCI1240U motionDevice, IMarkLaser markLaser, IVideoCapture videoCapture) : base(exceptionsAgregator, motionDevice)
         {
@@ -324,7 +326,33 @@ namespace MachineClassLibrary.Machine.Machines
         }
 
         public async Task<bool> MarkTextAsync(string text, double textSize, double angle) => await _markLaser.MarkTextAsync(text, textSize, angle);
-        
+
+        public void ConfigureValves(Dictionary<Valves, (Ax, Do)> valves)
+        {
+            _valves = valves;
+        }
+
+        public void SwitchOnValve(Valves valve)
+        {
+            var axisNum = _axes[_valves[valve].Item1].AxisNum;
+            var dOut = _valves[valve].Item2;
+            
+            _motionDevice.SetAxisDout(axisNum, (ushort)dOut, true);
+        }
+
+        public void SwitchOffValve(Valves valve)
+        {
+            var axisNum = _axes[_valves[valve].Item1].AxisNum;
+            var dOut = _valves[valve].Item2;
+
+            _motionDevice.SetAxisDout(axisNum, (ushort)dOut, false);
+        }
+
+        public bool GetValveState(Valves valve)
+        {
+            throw new NotImplementedException();
+        }
+
 
         //public void StartVideoCapture(int ind, int capabilitiesInd = 0) => _videoCapture.StartCamera(ind, capabilitiesInd);
 

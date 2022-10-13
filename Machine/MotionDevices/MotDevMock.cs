@@ -58,7 +58,7 @@ namespace MachineClassLibrary.Machine.MotionDevices
             throw new NotImplementedException();
         }
 
-        public void HomeMovingAsync((AxDir direction, HomeRst homeRst, HmMode homeMode, double velocity, int axisNum)[] axs)
+        public Task HomeMovingAsync((AxDir direction, HomeRst homeRst, HmMode homeMode, double velocity, int axisNum)[] axs)
         {
             throw new NotImplementedException();
         }

@@ -5,6 +5,7 @@
         Blowing,
         Coolant,
         ChuckVacuum,
-        SpindleContact
+        SpindleContact,
+        Light
     }
 }

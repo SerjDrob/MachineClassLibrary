@@ -403,6 +403,10 @@ namespace MachineClassLibrary.Machine.Machines
                 _motionDevice.SetAxisConfig(_axes[ax].AxisNum, configs);
             }
         }
+        public void SetGroupConfig(int gpNum, MotionDeviceConfigs configs)
+        {
+            _motionDevice.SetGroupConfig(gpNum, configs);
+        }
 
         public void SetVelocity(Velocity velocity)
         {
@@ -535,17 +539,26 @@ namespace MachineClassLibrary.Machine.Machines
 
             _homingConfigs.Select(a => _axes[a.Key].SetMotionStarted()).ToList();
 
-            _motionDevice.HomeMovingAsync(par);
+            await _motionDevice.HomeMovingAsync(par);
 
-            var tasks = _homingConfigs.Select(async p =>
-            {
-                while (!_axes[p.Key].MotionDone) await Task.Delay(10).ConfigureAwait(false);
-                ResetErrors(p.Key);
-                await MoveAxInPosAsync(p.Key, p.Value.positionAfterHoming, true).ConfigureAwait(false);
-                _motionDevice.ResetAxisCounter(_axes[p.Key].AxisNum);
-            }).ToArray();
+            //var tasks = _homingConfigs.Select(async p =>
+            //{
+            //    while (!_axes[p.Key].MotionDone) ;// await Task.Delay(10).ConfigureAwait(false);
+            //    ResetErrors(p.Key);
+            //    await MoveAxInPosAsync(p.Key, p.Value.positionAfterHoming, true).ConfigureAwait(false);
+            //    _motionDevice.ResetAxisCounter(_axes[p.Key].AxisNum);
+            //}).ToArray();
 
-            await Task.WhenAll(tasks).ConfigureAwait(false);
+            //await Task.WhenAll(tasks).ConfigureAwait(false);
+
+            var tasks = _homingConfigs
+                .Select(p =>
+           
+                MoveAxInPosAsync(p.Key, p.Value.positionAfterHoming, true)
+            ).ToArray();
+
+            await Task.WhenAll(tasks);//.ConfigureAwait(false);
+
         }
 
         public IHomingBuilder ConfigureHomingForAxis(Ax axis)
@@ -646,6 +659,6 @@ namespace MachineClassLibrary.Machine.Machines
             _axes[axis].Busy = false;
         }
 
-
+        
     }
 }

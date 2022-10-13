@@ -14,7 +14,7 @@ namespace MachineClassLibrary.Machine.MotionDevices
         void Dispose();
         int FormAxesGroup(int[] axisNums);
         bool GetAxisDout(int axisNum, ushort dOut);
-        void HomeMovingAsync((AxDir direction, HomeRst homeRst, HmMode homeMode, double velocity, int axisNum)[] axs);
+        Task HomeMovingAsync((AxDir direction, HomeRst homeRst, HmMode homeMode, double velocity, int axisNum)[] axs);
         void HomeMovingAsync((int axisNum, double vel, uint mode)[] axVels);
         void MoveAxesByCoorsAsync((int axisNum, double position)[] ax);
         Task MoveAxesByCoorsPrecAsync((int axisNum, double position, double lineCoefficient)[] ax);
