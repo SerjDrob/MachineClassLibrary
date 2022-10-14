@@ -350,6 +350,11 @@ namespace MachineClassLibrary.Machine.Machines
 
         public int GetVideoCapabilitiesCount() => _videoCamera.GetVideoCapabilitiesCount();
 
+        public IGeometryBuilder<Place> ConfigureGeometryFor(Place place)
+        {
+            throw new NotImplementedException();
+        }
+
 
         //public void StartVideoCapture(int ind, int capabilitiesInd = 0)
         //{

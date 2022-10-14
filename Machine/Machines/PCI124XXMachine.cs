@@ -42,7 +42,7 @@ namespace MachineClassLibrary.Machine.Machines
         public Velocity VelocityRegime { get; set; }
         public bool IsMotionDeviceInit { get; set; }
 
-        public IHasMotion AddGroup(Groups group, Ax[] axes)
+        public IHasMotion AddGroup(Groups group, params Ax[] axes)
         {
             if (_axesGroups is null)
             {
@@ -60,15 +60,15 @@ namespace MachineClassLibrary.Machine.Machines
             return this;
         }
 
-        public void ConfigureAxes((Ax axis, double linecoefficient)[] ax)
-        {
-            if (ax.Length <= _motionDevice.AxisCount)
-            {
-                _axes = new Dictionary<Ax, IAxis>(ax.Length);
-                for (var axnum = 0; axnum < ax.Length; axnum++)
-                    _axes.Add(ax[axnum].axis, new Axis(ax[axnum].linecoefficient, axnum));
-            }
-        }
+        //public void ConfigureAxes((Ax axis, double linecoefficient)[] ax)
+        //{
+        //    if (ax.Length <= _motionDevice.AxisCount)
+        //    {
+        //        _axes = new Dictionary<Ax, IAxis>(ax.Length);
+        //        for (var axnum = 0; axnum < ax.Length; axnum++)
+        //            _axes.Add(ax[axnum].axis, new Axis(ax[axnum].linecoefficient, axnum));
+        //    }
+        //}
 
         //public void ConfigureGeometry(Dictionary<Place, (Ax, double)[]> places)
         //{
@@ -393,16 +393,24 @@ namespace MachineClassLibrary.Machine.Machines
                 _motionDevice.ResetErrors(_axes[axis].AxisNum);
         }
 
-        public void SetConfigs((Ax axis, MotionDeviceConfigs configs)[] axesConfigs)
-        {
-            var count = axesConfigs.Length <= 4 ? axesConfigs.Length : 4;
-            for (var i = 0; i < count; i++)
-            {
-                var ax = axesConfigs[i].axis;
-                var configs = axesConfigs[i].configs;
-                _motionDevice.SetAxisConfig(_axes[ax].AxisNum, configs);
-            }
-        }
+        //public void SetConfigs((Ax axis, MotionDeviceConfigs configs)[] axesConfigs)
+        //{
+        //    var count = axesConfigs.Length <= 4 ? axesConfigs.Length : 4;
+        //    for (var i = 0; i < count; i++)
+        //    {
+        //        var ax = axesConfigs[i].axis;
+        //        var configs = axesConfigs[i].configs;
+        //        _motionDevice.SetAxisConfig(_axes[ax].AxisNum, configs);
+        //    }
+        //}
+
+
+        //public IHasMotion SetConfigs(Ax axis, MotionDeviceConfigs configs)
+        //{
+        //    _motionDevice.SetAxisConfig(_axes[axis].AxisNum, configs);
+        //    return this;
+        //}
+
         public void SetGroupConfig(int gpNum, MotionDeviceConfigs configs)
         {
             _motionDevice.SetGroupConfig(gpNum, configs);
@@ -455,20 +463,19 @@ namespace MachineClassLibrary.Machine.Machines
         }
 
 
-
-        public void ConfigureVelRegimes(Dictionary<Ax, Dictionary<Velocity, double>> velRegimes)
-        {
-            _velRegimes = new Dictionary<Ax, Dictionary<Velocity, double>>(velRegimes);
-            foreach (var axis in _axes)
-                try
-                {
-                    axis.Value.VelRegimes = new Dictionary<Velocity, double>(_velRegimes[axis.Key]);
-                }
-                catch (KeyNotFoundException)
-                {
-                    throw new MotionException($"Для оси {axis.Key} не заданы скоростные режимы");
-                }
-        }
+        //public void ConfigureVelRegimes(Dictionary<Ax, Dictionary<Velocity, double>> velRegimes)
+        //{
+        //    _velRegimes = new Dictionary<Ax, Dictionary<Velocity, double>>(velRegimes);
+        //    foreach (var axis in _axes)
+        //        try
+        //        {
+        //            axis.Value.VelRegimes = new Dictionary<Velocity, double>(_velRegimes[axis.Key]);
+        //        }
+        //        catch (KeyNotFoundException)
+        //        {
+        //            throw new MotionException($"Для оси {axis.Key} не заданы скоростные режимы");
+        //        }
+        //}
         public async Task WaitUntilAxisStopAsync(Ax axis)
         {
             //var status = new uint();
@@ -613,8 +620,58 @@ namespace MachineClassLibrary.Machine.Machines
                 return this;
             }
         }
+        
 
+        public IAxisBuilder AddAxis(Ax ax, double lineCoefficient)
+        {
+            _axes ??= new();
+            if (_axes.Count == _motionDevice.AxisCount && !_axes.ContainsKey(ax))
+            {
+                throw new ArgumentException("The motion device is already equipted with maximum amount of axes", nameof(ax));
+            }
+            var num = _axes.Count;
+            IAxis axis  = new Axis(lineCoefficient,num);
+            _axes[ax] = axis;
+            _velRegimes ??= new();
+            return new AxisBuilder(ax, ref axis, num, in _motionDevice, ref _velRegimes);
+        }
 
+        public class AxisBuilder : IAxisBuilder
+        {
+            private readonly Ax _ax;
+            private readonly IAxis _axis;
+            private readonly int _axNum;
+            private readonly IMotionDevicePCI1240U _motionDevice;
+            private readonly Dictionary<Ax, Dictionary<Velocity, double>> _velRegimes;
+            private MotionDeviceConfigs _axMotDevConfigs;
+            private Dictionary<Velocity, double> _regimes = new();
+
+            public AxisBuilder(Ax ax, ref IAxis axis, int axNum, in IMotionDevicePCI1240U motionDevice,
+                ref Dictionary<Ax, Dictionary<Velocity, double>> velRegimes)
+            {
+                _ax = ax;
+                _axis = axis;
+                _axNum = axNum;
+                _motionDevice = motionDevice;
+                _velRegimes = velRegimes;
+            }
+            public AxisBuilder WithConfigs(MotionDeviceConfigs configs)
+            {
+                _axMotDevConfigs = configs;
+                return this;
+            }
+            public AxisBuilder WithVelRegime(Velocity velocity, double @value)
+            {
+                _regimes[velocity] = value;
+                return this;
+            }
+            public void Build()
+            {
+                _motionDevice.SetAxisConfig(_axNum, _axMotDevConfigs);
+                _velRegimes[_ax] = _regimes;
+                _axis.VelRegimes = _regimes;
+            }
+        }
         private void MotionDevice_TransmitAxState(object obj, AxNumEventArgs axNumEventArgs)
         {
             if (_axes is not null)

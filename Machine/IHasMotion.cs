@@ -11,7 +11,8 @@ namespace MachineClassLibrary.Machine
     {
         #region Settings
 
-        public void SetConfigs((Ax axis, MotionDeviceConfigs configs)[] axesConfigs);
+        //public void SetConfigs((Ax axis, MotionDeviceConfigs configs)[] axesConfigs);
+        //public IHasMotion SetConfigs(Ax axis, MotionDeviceConfigs configs);
         public void SetGroupConfig(int gpNum, MotionDeviceConfigs configs);
         public void SetVelocity(Velocity velocity);
         public void SetAxFeedSpeed(Ax axis, double feed);
@@ -44,13 +45,14 @@ namespace MachineClassLibrary.Machine
         public Task MoveAxInPosAsync(Ax axis, double position, bool precisely = false);
         public Task MoveAxRelativeAsync(Ax axis, double diffPosition, bool precisely = false);        
         public void EmgScenario( /*DIEventArgs eventArgs*/);
-        public void ConfigureAxes((Ax axis, double linecoefficient)[] ax);
-        public void ConfigureVelRegimes(Dictionary<Ax, Dictionary<Velocity, double>> velRegimes);
+        //public void ConfigureAxes((Ax axis, double linecoefficient)[] ax);
+        //public void ConfigureVelRegimes(Dictionary<Ax, Dictionary<Velocity, double>> velRegimes);
         public IHasMotion AddGroup(Groups group, Ax[] axes);        
         public void ConfigureAxesGroups(Dictionary<Groups, Ax[]> groups);
         public void ConfigureDoubleFeatures(Dictionary<MFeatures, double> doubleFeatures);
         public double GetFeature(MFeatures feature);
         Task GoHomeAsync();
         IHomingBuilder ConfigureHomingForAxis(Ax axis);
+        IAxisBuilder AddAxis(Ax ax, double lineCoefficient);
     }
 }

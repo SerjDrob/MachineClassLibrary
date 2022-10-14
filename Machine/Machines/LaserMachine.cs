@@ -353,6 +353,35 @@ namespace MachineClassLibrary.Machine.Machines
             throw new NotImplementedException();
         }
 
+        public IGeometryBuilder<LMPlace> ConfigureGeometryFor(LMPlace place)
+        {
+            _places ??= new();
+            return new GeometryBuilder<LMPlace>(place, ref _places);
+        }
+
+        public class GeometryBuilder<TPlace> : IGeometryBuilder<TPlace> where TPlace : Enum
+        {
+            private Dictionary<TPlace, (Ax axis, double pos)[]> _places;
+            private Dictionary<Ax, double> _positions = new();
+            private readonly TPlace _configuringPlace;
+            public GeometryBuilder(TPlace place, ref Dictionary<TPlace, (Ax axis, double pos)[]> places)
+            {
+                _places = places;
+                _configuringPlace = place;
+            }
+            public IGeometryBuilder<TPlace> SetCoordinateForPlace(Ax axis, double coordinate)
+            {
+                _positions[axis] = coordinate;
+                return this;
+            }
+            public void Build()
+            {
+                var ps = _positions.Select(p => (p.Key, p.Value)).ToArray();
+                _places[_configuringPlace] = ps;
+            }
+        }
+
+
 
         //public void StartVideoCapture(int ind, int capabilitiesInd = 0) => _videoCapture.StartCamera(ind, capabilitiesInd);
 
