@@ -1,6 +1,8 @@
 ﻿using MachineClassLibrary.Laser.Entities;
 using System.Collections.Generic;
 using System.Drawing;
+using System.IO;
+using System.Windows;
 
 namespace MachineClassLibrary.Classes
 {
@@ -22,9 +24,8 @@ namespace MachineClassLibrary.Classes
         /// <returns>Dictionary  where a layer's name is a Key and Value is a list of the layer's object names with their count on the layer.</returns>
         IDictionary<string, IEnumerable<(string objType, int count)>> GetLayersStructure();
         IEnumerable<PCurve> GetAllCurves(string fromLayer = null);
-        IEnumerable<PDxfCurve> GetAllDxfCurves(string folder, string fromLayer);
         void WriteCurveToFile(string filePath, Curve curve, bool isClosed);
-        IEnumerable<PDxfCurve2> GetAllDxfCurves2(string folder, string fromLayer);
         void WriteCircleToFile(string filePath, Circle circle);
+        IEnumerable<IProcObject> GetObjectsFromLayer<TObject>(string layerName) where TObject : IProcObject;
     }
 }

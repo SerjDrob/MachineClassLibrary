@@ -1,17 +1,14 @@
 ﻿using IxMilia.Dxf;
 using IxMilia.Dxf.Entities;
 using MachineClassLibrary.Laser.Entities;
-using System;
 using System.Collections.Generic;
-using System.IO;
 using System.Linq;
-
+using System.Windows;
 
 namespace MachineClassLibrary.Classes
 {
     static class IxMiliaExtensionHelper
     {
-
         public static (double x, double y) GetPolylineCenter(this IList<DxfLwPolylineVertex> vertices)
         {
             var xmax = vertices.Max(vertex => vertex.X);
@@ -19,6 +16,11 @@ namespace MachineClassLibrary.Classes
             var xmin = vertices.Min(vertex => vertex.X);
             var ymin = vertices.Min(vertex => vertex.Y);
             return ((xmax + xmin) / 2, (ymax + ymin) / 2);
+        }
+
+        public static Rect ToRect(this DxfBoundingBox? box)
+        {
+            return new Rect(box?.MinimumPoint.X ?? 0d, box?.MinimumPoint.Y ?? 0d, box?.Size.X ?? 0d, box?.Size.Y ?? 0d);
         }
     }
     public class IMDxfReader : IDxfReader
@@ -36,7 +38,95 @@ namespace MachineClassLibrary.Classes
         {
             return _document.Entities.OfType<DxfCircle>()
                 .Where(lw => fromLayer is null ? true : lw.Layer == fromLayer)
-                .Select(circle => new PCircle(circle.Center.X, circle.Center.Y, 0, new Circle() { Radius = circle.Radius }, circle.Layer, circle.Color.ToRGB()));
+                .Select(circle => new PCircle(circle.Center.X, circle.Center.Y, 0,
+                new Circle() { Bounds = circle.GetBoundingBox().ToRect(), Radius = circle.Radius }, circle.Layer, circle.Color.ToRGB()));
+        }
+        public IEnumerable<IProcObject> GetObjectsFromLayer<TObject>(string layerName) where TObject : IProcObject
+        {
+            if (typeof(TObject) == typeof(PCurve)) return GetAllCurves(layerName);
+            if (typeof(TObject) == typeof(PCircle)) return GetCircles(layerName);
+            return null;
+        }
+        public IEnumerable<IProcObject> GetSelectedObjectsFromLayer(Rect selection, string layerName)
+        {
+            var lines = _document.Entities.OfType<DxfLwPolyline>()
+                .Where(lw => lw.Layer == layerName && selection.Contains(lw.GetBoundingBox().ToRect()))
+                .ToArray()
+                .Select(l => (IProcObject)ConvertPolyline(l));
+
+            var circles = _document.Entities.OfType<DxfCircle>()
+                .Where(lw => lw.Layer == layerName && selection.Contains(lw.GetBoundingBox().ToRect()))
+                .ToArray()
+                .Select(c => (IProcObject)ConvertCircle(c));
+
+            var file = RemoveFromDocumentBySelection(selection, layerName);
+
+
+            return lines.Concat(circles);
+        }
+
+        //private IEnumerable<DxfLwPolyline> GetSelectedPolylinesFromLayer(Rect selection, string layerName)
+        //{
+        //    return _document.Entities.OfType<DxfLwPolyline>()
+        //        .Where(lw => lw.Layer == layerName && selection.Contains(lw.GetBoundingBox().ToRect()))
+        //        .ToArray();
+        //}
+        //private IEnumerable<DxfCircle> GetSelectedCirclesFromLayer(Rect selection, string layerName)
+        //{
+        //    return _document.Entities.OfType<DxfCircle>()
+        //        .Where(lw => lw.Layer == layerName && selection.Contains(lw.GetBoundingBox().ToRect()))
+        //        .ToArray();
+        //}
+        //private IEnumerable<DxfLwPolyline> GetUnSelectedPolylinesFromLayer(Rect selection, string layerName)
+        //{
+        //    return _document.Entities.OfType<DxfLwPolyline>()
+        //        .Where(lw => lw.Layer == layerName && !selection.Contains(lw.GetBoundingBox().ToRect()))
+        //        .ToArray();
+        //}
+        //private IEnumerable<DxfCircle> GetUnSelectedCirclesFromLayer(Rect selection, string layerName)
+        //{
+        //    return _document.Entities.OfType<DxfCircle>()
+        //        .Where(lw => lw.Layer == layerName && !selection.Contains(lw.GetBoundingBox().ToRect()))
+        //        .ToArray();
+        //}
+
+        private IEnumerable<DxfEntity> GetUnselectedEntitiesFromLayer(Rect selection, string layerName)
+        {
+            return _document.Entities
+                .Where(e => e.Layer == layerName && !selection.Contains(e.GetBoundingBox().ToRect()))
+                .ToArray();
+        }
+
+        private DxfFile RemoveFromDocumentBySelection(Rect selection, string layerName)
+        {
+            var file = new DxfFile();
+            foreach (var entity in _document.Entities.Where(e => e.Layer != layerName))
+            {
+                file.Entities.Add(entity);
+            }
+
+            foreach (var entity in GetUnselectedEntitiesFromLayer(selection, layerName))
+            {
+                file.Entities.Add(entity);
+            }
+
+            return file;
+        }
+
+
+        private PCircle ConvertCircle(DxfCircle circle)
+        {
+            return new PCircle(circle.Center.X, circle.Center.Y, 0,
+                new Circle() { Radius = circle.Radius }, circle.Layer, circle.Color.ToRGB());
+        }
+        private PCurve ConvertPolyline(DxfLwPolyline polyline)
+        {
+            var center = polyline.Vertices.GetPolylineCenter();
+
+            return new PCurve(center.x, center.y, 0,
+                    new Curve(polyline.Vertices.Select(vertex => (vertex.X - center.x, vertex.Y - center.y, vertex.Bulge)),
+                    polyline.IsClosed),
+                    polyline.Layer, polyline.Color.ToRGB());
         }
 
         public IEnumerable<PLine> GetLines()
@@ -45,6 +135,7 @@ namespace MachineClassLibrary.Classes
                 .Select(line =>
                 new PLine(line.P2.X - line.P1.X, line.P2.Y - line.P1.Y, 0, new Line()
                 {
+                    Bounds = line.GetBoundingBox().ToRect(),
                     X1 = line.P1.X,
                     Y1 = line.P1.Y,
                     X2 = line.P2.X,
@@ -53,13 +144,14 @@ namespace MachineClassLibrary.Classes
             );
         }
         public IEnumerable<PLine> GetAllSegments()
-        {           
+        {
             return _document.Entities.OfType<DxfLwPolyline>()
                  .Select(
                      polyline => polyline.AsSimpleEntities()
                      .OfType<DxfLine>().Select(dxfLine =>
                      new PLine(dxfLine.P2.X - dxfLine.P1.X, dxfLine.P2.Y - dxfLine.P1.Y, 0, new Line()
                      {
+                         Bounds = dxfLine.GetBoundingBox().ToRect(),
                          X1 = dxfLine.P1.X,
                          Y1 = dxfLine.P1.Y,
                          X2 = dxfLine.P2.X,
@@ -69,14 +161,16 @@ namespace MachineClassLibrary.Classes
         }
         public IEnumerable<PCurve> GetAllCurves(string fromLayer = null)
         {
-            
+
             return _document.Entities.OfType<DxfLwPolyline>()
                 .Where(lw => fromLayer is null ? true : lw.Layer == fromLayer)
-                .Select(polyline => {
+                .Select(polyline =>
+                {
                     var center = polyline.Vertices.GetPolylineCenter();
                     return new PCurve(center.x, center.y, 0,
                     new Curve(polyline.Vertices.Select(vertex => (vertex.X - center.x, vertex.Y - center.y, vertex.Bulge)),
-                    polyline.IsClosed),
+                    polyline.IsClosed)
+                    { Bounds = polyline.GetBoundingBox().ToRect() },
                     polyline.Layer, polyline.Color.ToRGB());
                 });
         }
@@ -85,61 +179,6 @@ namespace MachineClassLibrary.Classes
         /// </summary>
         /// <param name="folder">destination folder for curve file</param>
         /// <returns>DxfCurve containing filepath of the curve</returns>
-        public IEnumerable<PDxfCurve> GetAllDxfCurves(string folder, string fromLayer)
-        {
-            var index = 0;
-            PDxfCurve pdxfCurve;
-            foreach (var polyline in _document.Entities.OfType<DxfLwPolyline>().Where(lw => lw.Layer == fromLayer))
-            {
-
-                if (index + 1 < _tempDxfCurves.Count)
-                {
-                    pdxfCurve = _tempDxfCurves[index];
-                }
-                else
-                {
-                    var center = polyline.Vertices.GetPolylineCenter();
-                    var vertices = polyline.Vertices.Select(vertex =>
-                    {
-                        var x = vertex.X - center.x;
-                        var y = vertex.Y - center.y;
-                        var vert = vertex;
-                        vert.X = x;
-                        vert.Y = y;
-                        return vert;
-                    });
-
-                    var lw = new DxfLwPolyline(vertices);
-                    lw.IsClosed = polyline.IsClosed;
-                    var doc = new DxfFile();
-                    doc.Header.Version = DxfAcadVersion.R14;
-                    doc.Entities.Add(lw);
-                    var filePostfix = Guid.NewGuid().ToString();
-                    var fullPath = Path.Combine(folder, $"{TEMP_FILE_NAME}{filePostfix}.dxf");
-                    doc.Save(fullPath);
-                    pdxfCurve = new PDxfCurve(center.x, center.y, 0, new DxfCurve(fullPath), polyline.Layer, polyline.Color.ToRGB());
-                    _tempDxfCurves.Add(pdxfCurve);
-                }
-
-                index++;
-                yield return pdxfCurve;
-            }
-        }
-
-        public IEnumerable<PDxfCurve2> GetAllDxfCurves2(string folder, string fromLayer)
-        {
-            return _document.Entities.OfType<DxfLwPolyline>()
-                .Where(p => p.Layer == fromLayer)
-                .Select(polyline =>
-                {
-                    var centerX = polyline.Vertices.GetPolylineCenter().x;
-                    var centerY = polyline.Vertices.GetPolylineCenter().y;
-                    return new PDxfCurve2(centerX, centerY, 0,
-                    new Curve(polyline.Vertices.Select(vertex => (vertex.X - centerX, vertex.Y - centerY, vertex.Bulge)),
-                    polyline.IsClosed),
-                    polyline.Layer, polyline.Color.ToRGB(), polyline.IsClosed, this, folder);
-                });
-        }
         public void WriteCurveToFile(string filePath, Curve curve, bool isClosed)
         {
             //var lw = new DxfLwPolyline(curve.Vertices.Select(v => new DxfLwPolylineVertex { X = v.X, Y = v.Y, Bulge = v.Bulge * (mirror ? -1 : 1) }));
@@ -162,9 +201,7 @@ namespace MachineClassLibrary.Classes
             doc.Entities.Add(c);
             doc.Save(filePath);
         }
-
         public IDictionary<string, int> GetLayers() => _document.Layers.ToDictionary(layer => layer.Name, layer => layer.Color.ToRGB());
-
         public IDictionary<string, IEnumerable<(string objType, int count)>> GetLayersStructure()
         {
             return _document.Layers
@@ -173,7 +210,6 @@ namespace MachineClassLibrary.Classes
                     .GroupBy(ent => ent.EntityTypeString)
                     .Select(group => (group.Key, group.Count())));
         }
-
         public (double width, double height) GetSize()
         {
             var boundingBox = _document.GetBoundingBox();
@@ -181,17 +217,18 @@ namespace MachineClassLibrary.Classes
             var h = boundingBox.Size.Y;
             return (w, h);
         }
-
         public IEnumerable<PPoint> GetPoints()
         {
             return _document.Entities.OfType<DxfModelPoint>()
                  .Select(point =>
                  new PPoint(point.Location.X, point.Location.Y, 0, new Laser.Entities.Point
                  {
+                     Bounds = point.GetBoundingBox().ToRect(),
                      X = point.Location.X,
                      Y = point.Location.Y,
                  }, point.Layer, point.Color.ToRGB())
              );
         }
     }
+
 }

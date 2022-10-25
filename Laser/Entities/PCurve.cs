@@ -52,7 +52,7 @@ namespace MachineClassLibrary.Laser.Entities
         IProcObject IProcObject.CloneWithPosition(double x, double y) => CloneWithPosition(x, y);
         public (double x, double y) GetSize()
         {
-            throw new NotImplementedException();
+            return (PObject.Bounds.Width, PObject.Bounds.Height);
         }
 
         private Curve GetTransformedCurve()

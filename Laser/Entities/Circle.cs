@@ -1,8 +1,12 @@
-﻿namespace MachineClassLibrary.Laser.Entities
+﻿using System.Windows;
+
+namespace MachineClassLibrary.Laser.Entities
 {
     public class Circle:IShape
     {
         public double Radius { get; set; }
+
+        public Rect Bounds { get; init; }
 
         //public void Scale(double scale)
         //{

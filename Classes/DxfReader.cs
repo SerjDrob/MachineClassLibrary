@@ -2,7 +2,9 @@
 using netDxf;
 using System.Collections.Generic;
 using System.Drawing;
+using System.IO;
 using System.Linq;
+using System.Windows;
 
 namespace MachineClassLibrary.Classes
 {
@@ -93,22 +95,17 @@ namespace MachineClassLibrary.Classes
             throw new System.NotImplementedException();
         }
 
-        public IEnumerable<PDxfCurve> GetAllDxfCurves(string folder, string fromLayer)
-        {
-            throw new System.NotImplementedException();
-        }
-
         public void WriteCurveToFile(string filePath, Curve curve, bool isClosed)
         {
             throw new System.NotImplementedException();
         }
 
-        public IEnumerable<PDxfCurve2> GetAllDxfCurves2(string folder, string fromLayer)
+        public void WriteCircleToFile(string filePath, Circle circle)
         {
             throw new System.NotImplementedException();
         }
 
-        public void WriteCircleToFile(string filePath, Circle circle)
+        public IEnumerable<IProcObject> GetObjectsFromLayer<TObject>(string layerName) where TObject : IProcObject
         {
             throw new System.NotImplementedException();
         }

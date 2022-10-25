@@ -2,6 +2,7 @@
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using System.Windows;
 
 namespace MachineClassLibrary.Laser.Entities
 {
@@ -9,6 +10,9 @@ namespace MachineClassLibrary.Laser.Entities
     {
         private readonly string _fullPath;
         public string FilePath { get => _fullPath; }
+
+        public Rect Bounds { get; set; }    
+
         public DxfCurve(string fullPath)
         {
             _fullPath = fullPath;

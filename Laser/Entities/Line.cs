@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using System.Windows;
 
 namespace MachineClassLibrary.Laser.Entities
 {
@@ -12,6 +13,8 @@ namespace MachineClassLibrary.Laser.Entities
         public double X2 { get; set; }
         public double Y1 { get; set; }
         public double Y2 { get; set; }
+
+        public Rect Bounds { get; init; }
 
         //public void Scale(double scale)
         //{

@@ -57,7 +57,7 @@ namespace MachineClassLibrary.Laser.Entities
 
         public (double x, double y) GetSize()
         {
-            throw new NotImplementedException();
+            return (PObject.Bounds.Width, PObject.Bounds.Height);
         }
 
         IProcObject IProcObject.CloneWithPosition(double x, double y) => CloneWithPosition(x, y);

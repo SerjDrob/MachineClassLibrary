@@ -1,5 +1,6 @@
 ﻿using System.Collections.Generic;
 using System.Linq;
+using System.Windows;
 
 namespace MachineClassLibrary.Laser.Entities
 {
@@ -13,6 +14,8 @@ namespace MachineClassLibrary.Laser.Entities
 
         public IEnumerable<(double X, double Y, double Bulge)> Vertices { get; init; }
         public bool IsClosed { get; init; }
+
+        public Rect Bounds { get; init; }
 
         //public void Scale(double scale)
         //{

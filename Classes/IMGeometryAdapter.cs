@@ -2,6 +2,7 @@
 using IxMilia.Dxf.Entities;
 using System;
 using System.Collections.Generic;
+using System.IO;
 using System.Linq;
 using System.Runtime.CompilerServices;
 using System.Windows.Media;
@@ -32,6 +33,17 @@ namespace MachineClassLibrary.Classes
             _document = DxfFile.Load(fileName);
             //_dxfEntities = _document.Entities.ToList();
         }
+        public IMGeometryAdapter(Stream stream)
+        {
+            stream.Seek(0, SeekOrigin.Begin);
+            _document = DxfFile.Load(stream);
+        }
+       
+        public IMGeometryAdapter(DxfFile document)
+        {
+            _document = document;
+        }
+
         public GeometryCollection Geometries { get => new GeometryCollection(GetGeometies()); }
 
         public IEnumerable<Geometry> GetGeometies()
