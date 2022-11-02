@@ -17,19 +17,19 @@ namespace MachineClassLibrary.Classes
         public IEnumerable<PCurve> GetAllCurves(string fromLayer = null)
         {
             return _dxfReader.GetAllCurves(fromLayer)
-                .Where(Satisfy);
+                .Where(DissatisfySelection);
         }
 
         public IEnumerable<PLine> GetAllSegments()
         {
             return _dxfReader.GetAllSegments()
-                .Where(Satisfy);
+                .Where(DissatisfySelection);
         }
 
         public IEnumerable<PCircle> GetCircles(string fromLayer = null)
         {
             return _dxfReader.GetCircles(fromLayer)
-                .Where(Satisfy);
+                .Where(DissatisfySelection);
         }
 
         public IDictionary<string, int> GetLayers()
@@ -45,17 +45,17 @@ namespace MachineClassLibrary.Classes
         public IEnumerable<PLine> GetLines()
         {
             return _dxfReader.GetLines()
-                .Where(Satisfy);
+                .Where(DissatisfySelection);
         }
 
         public IEnumerable<IProcObject> GetObjectsFromLayer<TObject>(string layerName) where TObject : IProcObject
         {
-            return _dxfReader.GetObjectsFromLayer<TObject>(layerName).Where(Satisfy);
+            return _dxfReader.GetObjectsFromLayer<TObject>(layerName).Where(DissatisfySelection);
         }
 
         public IEnumerable<PPoint> GetPoints()
         {
-            return _dxfReader.GetPoints().Where(Satisfy);
+            return _dxfReader.GetPoints().Where(DissatisfySelection);
         }
 
         public (double width, double height) GetSize()
@@ -76,7 +76,7 @@ namespace MachineClassLibrary.Classes
 
         //-------------------------------
 
-        private bool Satisfy(IProcObject procObject)
+        private bool DissatisfySelection(IProcObject procObject)
         {
             return !_erasedObjects?.Where(e => e.selection.Contains(procObject.GetBoundingBox()))
                 .Where(e => e.layers.Any(l => l == procObject.LayerName))
@@ -84,6 +84,7 @@ namespace MachineClassLibrary.Classes
         }
 
         private Stack<(string[] layers, Rect selection)> _erasedObjects;
+
         public void RemoveBySelection(string layerName, Rect selection)
         {
             _erasedObjects.Push((new[] { layerName }, selection));
