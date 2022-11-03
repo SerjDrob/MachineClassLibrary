@@ -7,13 +7,17 @@ using System.Drawing;
 using System.Drawing.Drawing2D;
 using System.Linq;
 using System.Numerics;
+using System.Xml.Linq;
 
 namespace MachineClassLibrary.Laser.Entities
 {
-    public class LaserWafer : IEnumerable<IProcObject>, IDisposable, ITransformable
+    public class LaserWafer : IEnumerable<IProcObject>, 
+        IDisposable, 
+        ITransformable,
+        ICollection<IProcObject>
     {
         private readonly (double x, double y) _size;
-        private readonly IEnumerable<IProcObject> _procObjects;
+        private readonly List<IProcObject> _procObjects;
         private Matrix _matrix;
         private bool _turned90;
         private bool _mirroredX;
@@ -25,19 +29,41 @@ namespace MachineClassLibrary.Laser.Entities
         private RectangleF _restrictingArea;
         private bool _restricted = false;
 
+        public int Count => _procObjects.Count();
+
+        public bool IsReadOnly => throw new NotImplementedException();
+
         public LaserWafer(IEnumerable<IProcObject> procObjects, (double x, double y) size)//TODO add scale here
         {
             Guard.IsNotNull(procObjects, nameof(procObjects));
             Guard.IsGreaterThan(size.x, 0, nameof(size.x));
             Guard.IsGreaterThan(size.y, 0, nameof(size.y));
 
-            _procObjects = procObjects;
+            _procObjects = procObjects.ToList();
             _size = size;
             _matrix = new Matrix();
             _turned90 = false;
             _mirroredX = false;
             _mirroredY = false;
         }
+
+        /// <summary>
+        /// Create empty wafer
+        /// </summary>
+        /// <param name="size">size of the wafer</param>
+        public LaserWafer((double x, double y) size)
+        {
+            Guard.IsGreaterThan(size.x, 0, nameof(size.x));
+            Guard.IsGreaterThan(size.y, 0, nameof(size.y));
+
+            _procObjects = new();
+            _size = size;
+            _matrix = new Matrix();
+            _turned90 = false;
+            _mirroredX = false;
+            _mirroredY = false;
+        }
+
         /// <summary>
         /// ^
         /// |____.
@@ -84,6 +110,52 @@ namespace MachineClassLibrary.Laser.Entities
         public void SetEnumerationStyle(bool shuffle) => _shuffleEnumeration = shuffle;
         public IEnumerator<IProcObject> GetEnumerator()
         {
+            _matrix = GetCurrentTransformation();
+
+            var objects = _shuffleEnumeration ? _procObjects.Shuffle() : _procObjects;
+
+            foreach (var pobject in objects)
+            {
+                var points = new PointF[] { new((float)pobject.X, (float)pobject.Y) };
+                _matrix.TransformPoints(points);
+                if (!_restricted || _restrictingArea.Contains(points[0]))
+                {
+                    var newObj = pobject.CloneWithPosition(points[0].X, points[0].Y);
+                    newObj.Scale(_scale);
+                    newObj.SetMirrorX(_mirroredX);
+                    newObj.SetTurn90(_turned90);
+                    yield return newObj;
+                }
+            }
+        }
+
+        public IProcObject GetProcObjectToWafer(IProcObject procObject)
+        {
+            var matrix = GetCurrentTransformation();
+            var points = new PointF[] { new((float)procObject.X, (float)procObject.Y) };
+            matrix.TransformPoints(points);
+            
+            var newObj = procObject.CloneWithPosition(points[0].X, points[0].Y);
+            newObj.Scale(_scale);
+            newObj.SetMirrorX(_mirroredX);
+            newObj.SetTurn90(_turned90);
+            return newObj;
+        }
+
+
+        public PointF GetPointFromWafer(PointF point)
+        {
+            var matrix = GetCurrentTransformation();
+            matrix.Invert();
+            var points = new PointF[] { point };
+            matrix.TransformPoints(points);
+
+            return points[0];
+        }
+
+
+        private Matrix GetCurrentTransformation()
+        {
             var transformation = Matrix3x2.Identity;
 
             if (_mirroredX)
@@ -113,24 +185,9 @@ namespace MachineClassLibrary.Laser.Entities
                 transformation *= translating;
             }
 
-            _matrix = new Matrix(transformation);
-
-            var objects = _shuffleEnumeration ? _procObjects.Shuffle() : _procObjects;
-
-            foreach (var pobject in objects)
-            {
-                var points = new PointF[] { new((float)pobject.X, (float)pobject.Y) };
-                _matrix.TransformPoints(points);
-                if (!_restricted || _restrictingArea.Contains(points[0]))
-                {
-                    var newObj = pobject.CloneWithPosition(points[0].X, points[0].Y);
-                    newObj.Scale(_scale);
-                    newObj.SetMirrorX(_mirroredX);
-                    newObj.SetTurn90(_turned90);
-                    yield return newObj;
-                }               
-            }
+            return new Matrix(transformation);
         }
+
         public IProcObject this[int index]
         {
             get
@@ -160,6 +217,31 @@ namespace MachineClassLibrary.Laser.Entities
                     _matrix = null;
                 }
             }
+        }
+
+        public void Add(IProcObject item)
+        {
+            _procObjects.Add(item);
+        }
+
+        public void Clear()
+        {
+            _procObjects.Clear();
+        }
+
+        public bool Contains(IProcObject item)
+        {
+            return _procObjects.Contains(item);
+        }
+
+        public void CopyTo(IProcObject[] array, int arrayIndex)
+        {
+            _procObjects.CopyTo(array, arrayIndex);
+        }
+
+        public bool Remove(IProcObject item)
+        {
+            return _procObjects.Remove(item);
         }
     }
 }
