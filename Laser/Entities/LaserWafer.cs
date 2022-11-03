@@ -142,6 +142,14 @@ namespace MachineClassLibrary.Laser.Entities
             return newObj;
         }
 
+        public PointF GetPointToWafer(PointF point)
+        {
+            var matrix = GetCurrentTransformation();
+            var points = new PointF[] { point };
+            matrix.TransformPoints(points);
+
+            return points[0];
+        }
 
         public PointF GetPointFromWafer(PointF point)
         {
@@ -236,8 +244,12 @@ namespace MachineClassLibrary.Laser.Entities
 
         public void CopyTo(IProcObject[] array, int arrayIndex)
         {
-            _procObjects.CopyTo(array, arrayIndex);
+            for (int i = 0; i < array.Length; i++)
+            {
+                array[i] = this[arrayIndex++];
+            }
         }
+
 
         public bool Remove(IProcObject item)
         {
