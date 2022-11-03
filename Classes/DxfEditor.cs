@@ -97,7 +97,7 @@ namespace MachineClassLibrary.Classes
 
         public void Undo()
         {
-            _erasedObjects.TryPop(out var values);
+            _erasedObjects?.TryPop(out var values);
         }
         public void Reset()
         {
