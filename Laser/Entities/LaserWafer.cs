@@ -202,7 +202,8 @@ namespace MachineClassLibrary.Laser.Entities
             {
                 var enumerator = GetEnumerator();
                 var current = -1;
-                while (enumerator.MoveNext() & current != index) current++;
+                do current++;
+                while (enumerator.MoveNext() & current != index);
                 return enumerator.Current;
             }
         }

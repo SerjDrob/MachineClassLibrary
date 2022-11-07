@@ -7,7 +7,16 @@ namespace MachineClassLibrary.Laser.Entities
         public PCircle(double x, double y, double angle, Circle pObject, string layerName, int rgbColor)
         {
             Id = Guid.NewGuid();
-
+            X = x;
+            Y = y;
+            Angle = angle;
+            PObject = pObject;
+            LayerName = layerName;
+            ARGBColor = rgbColor;
+        }
+        private PCircle(double x, double y, double angle, Circle pObject, string layerName, int rgbColor, Guid id)
+        {
+            Id = id;
             X = x;
             Y = y;
             Angle = angle;
@@ -18,8 +27,8 @@ namespace MachineClassLibrary.Laser.Entities
         public double X { get; init; }
         public double Y { get; init; }
         public double Angle { get; init; }
-        private readonly Circle _circle;
-        public Circle PObject { get=>GetTransformedCircle(); init { _circle = value; } }
+        private readonly Circle _pobject;
+        public Circle PObject { get => GetTransformedCircle(); init { _pobject = value; } }
         public string LayerName { get; set; }
         public int ARGBColor { get; set; }
 
@@ -32,7 +41,7 @@ namespace MachineClassLibrary.Laser.Entities
         public bool IsProcessed { get; set; } = false;
         public bool ToProcess { get; set; } = true;
 
-        public Guid Id { get; private set; }
+        public Guid Id { get; init; }
 
         public void Scale(double scale)
         {
@@ -48,11 +57,11 @@ namespace MachineClassLibrary.Laser.Entities
         {
             Turn90 = turn;
         }
-        public IProcObject<Circle> CloneWithPosition(double x, double y) => new PCircle(x, y, Angle, PObject, LayerName, ARGBColor) { Id=this.Id};
-
+        public IProcObject<Circle> CloneWithPosition(double x, double y) => new PCircle(x, y, Angle, _pobject, LayerName, ARGBColor, Id);
+        public override string ToString() => $"{GetType().Name} X:{X}, Y:{Y} Id = {Id}";
         private Circle GetTransformedCircle() 
         {
-            return new Circle { Radius = _circle.Radius * Scaling };
+            return new Circle { Radius = _pobject.Radius * Scaling };
         }
 
         public (double x, double y) GetSize()

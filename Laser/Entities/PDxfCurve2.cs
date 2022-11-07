@@ -17,12 +17,23 @@ namespace MachineClassLibrary.Laser.Entities
             _initCurve = pObject;
         }
 
+        private PDxfCurve2(double x, double y, double angle, Curve pObject,
+            string layerName, int argBColor, bool isClosed, IDxfReader dxfReader, string folder, Guid id)
+        {
+            Id = id;
+            _pCurve = new PCurve(x, y, angle, pObject, layerName, argBColor);
+            _isClosed = isClosed;
+            _dxfReader = dxfReader;
+            _folder = folder;
+            _initCurve = pObject;
+        }
+
         private readonly Curve _initCurve;
         private readonly string _folder;
         private readonly PCurve _pCurve;
         private readonly IDxfReader _dxfReader;
         private readonly bool _isClosed;
-        public Guid Id { get; private set; }
+        public Guid Id { get; init; }
         public DxfCurve PObject { get => GetDxfCurve(); init => throw new NotImplementedException(); }
         public int ARGBColor { get => _pCurve.ARGBColor; set => throw new NotImplementedException(); }
         public string LayerName { get => _pCurve.LayerName; set => throw new NotImplementedException(); }
@@ -45,8 +56,12 @@ namespace MachineClassLibrary.Laser.Entities
             return new DxfCurve(fullPath);
         }
 
-        public IProcObject<DxfCurve> CloneWithPosition(double x, double y) => new PDxfCurve2(x, y, Angle, _initCurve, LayerName, ARGBColor, _isClosed, _dxfReader, _folder) { Id = this.Id };
+        public IProcObject<DxfCurve> CloneWithPosition(double x, double y) => new PDxfCurve2(x, y, Angle, _initCurve, LayerName, ARGBColor, _isClosed, _dxfReader, _folder, Id);
+
         IProcObject IProcObject.CloneWithPosition(double x, double y) => CloneWithPosition(x, y);
+        public override string ToString() => $"{GetType().Name} X:{X}, Y:{Y} Id = {Id}";
+
+
         public (double x, double y) GetSize()
         {
             throw new NotImplementedException();

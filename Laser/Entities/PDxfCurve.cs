@@ -14,7 +14,17 @@ namespace MachineClassLibrary.Laser.Entities
             LayerName = layerName;
             ARGBColor = rgbColor;
         }
-        public Guid Id { get; private set; }
+        private PDxfCurve(double x, double y, double angle, DxfCurve pObject, string layerName, int rgbColor, Guid id)
+        {
+            Id = id;
+            X = x;
+            Y = y;
+            Angle = angle;
+            PObject = pObject;
+            LayerName = layerName;
+            ARGBColor = rgbColor;
+        }
+        public Guid Id { get; init; }
         public int ARGBColor { get; set; }
         public string LayerName { get; set; }
         public double X { get; init; }
@@ -43,7 +53,9 @@ namespace MachineClassLibrary.Laser.Entities
         {
             Turn90 = turn;
         }
-        public IProcObject<DxfCurve> CloneWithPosition(double x, double y) => new PDxfCurve(x, y, Angle, PObject, LayerName, ARGBColor) { Id = this.Id };
+        public IProcObject<DxfCurve> CloneWithPosition(double x, double y) => new PDxfCurve(x, y, Angle, PObject, LayerName, ARGBColor, Id);
+        public override string ToString() => $"{GetType().Name}  X:{X}, Y:{Y} Id = {Id}";
+
         IProcObject IProcObject.CloneWithPosition(double x, double y) => CloneWithPosition(x, y);
         public (double x, double y) GetSize()
         {

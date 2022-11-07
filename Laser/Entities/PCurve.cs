@@ -18,7 +18,17 @@ namespace MachineClassLibrary.Laser.Entities
             LayerName = layerName;
             ARGBColor = argBColor;
         }
-        public Guid Id { get; private set; }
+        private PCurve(double x, double y, double angle, Curve pObject, string layerName, int argBColor, Guid id)
+        {
+            Id = id;
+            X = x;
+            Y = y;
+            Angle = angle;
+            PObject = pObject;
+            LayerName = layerName;
+            ARGBColor = argBColor;
+        }
+        public Guid Id { get; init; }
         public double X { get; init; }
         public double Y { get; init; }
         public double Angle { get; init; }
@@ -48,7 +58,9 @@ namespace MachineClassLibrary.Laser.Entities
         {
             Turn90 = turn;
         }
-        public IProcObject<Curve> CloneWithPosition(double x, double y) => new PCurve(x, y, Angle, PObject, LayerName, ARGBColor) { Id = this.Id };
+        public IProcObject<Curve> CloneWithPosition(double x, double y) => new PCurve(x, y, Angle, PObject, LayerName, ARGBColor, Id);
+        public override string ToString() => $"{GetType().Name} X:{X}, Y:{Y} Id = {Id}";
+
         IProcObject IProcObject.CloneWithPosition(double x, double y) => CloneWithPosition(x, y);
         public (double x, double y) GetSize()
         {
