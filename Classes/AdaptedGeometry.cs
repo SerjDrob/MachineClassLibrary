@@ -5,7 +5,7 @@ namespace MachineClassLibrary.Classes
 {
     public record AdaptedGeometry
     (
-        Geometry geometry,
+        System.Windows.Media.Geometry geometry,
         string LayerName,
         Brush LayerColor,
         Brush GeometryColor

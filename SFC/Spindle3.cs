@@ -7,7 +7,7 @@ using Modbus.Device;
 
 namespace MachineClassLibrary.SFC
 {
-    internal class Spindle3 : ISpindle, IDisposable
+    public class Spindle3 : ISpindle, IDisposable
     {
         /// <summary>
         ///     300 Hz = 18000 rpm

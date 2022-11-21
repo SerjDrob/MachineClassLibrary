@@ -7,6 +7,7 @@
         Step,
         Service,
         Stop,
-        Work
+        Work,
+        Micro
     }
 }
