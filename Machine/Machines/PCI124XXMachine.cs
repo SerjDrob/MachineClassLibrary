@@ -629,7 +629,7 @@ namespace MachineClassLibrary.Machine.Machines
             {
                 throw new ArgumentException("The motion device is already equipted with maximum amount of axes", nameof(ax));
             }
-            var num = _axes.Count;
+            var num = _axes.ContainsKey(ax) ? _axes.Keys.FindIndex(axis=>axis == ax) : _axes.Count;
             IAxis axis  = new Axis(lineCoefficient,num);
             _axes[ax] = axis;
             _velRegimes ??= new();

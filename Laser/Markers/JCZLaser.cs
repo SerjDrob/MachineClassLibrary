@@ -14,6 +14,9 @@ namespace MachineClassLibrary.Laser.Markers
         private MarkLaserParams _markLaserParams;
         private readonly IPWM _pwm;
 
+
+        //private MarkLaserParams _defaultLaserParams = new()
+
         public JCZLaser(IPWM pwm)
         {
             _pwm = pwm;
@@ -46,16 +49,23 @@ namespace MachineClassLibrary.Laser.Markers
 
         public async Task<bool> PierceLineAsync(double x1, double y1, double x2, double y2)
         {
-            if (!await _pwm.SetPWM(40000,4, 1000, 50))
-            {
+            //if (!await _pwm.SetPWM(40000,4, 1000, 50))
+            //{
 
-            }
-            var result =  Lmc.lmc1_MarkLine(x1, y1, x2, y2, 0) == 0;
-            if (!await _pwm.StopPWM())
-            {
+            //}
 
+            var result = Lmc.SetPenParams(_markLaserParams.PenParams) == 0;
+
+            if (await _pwm.SetPWM(50000, 5, 1000, 50))
+            {
+                result = Lmc.lmc1_MarkLine(x1, y1, x2, y2, 0) == 0;
+                if (!await _pwm.StopPWM())
+                {
+
+                }
+                return result;
             }
-            return await Task.FromResult(result);
+            return false;
         }
 
         public async Task<bool> PierceObjectAsync(IPerforating perforator)
@@ -78,7 +88,7 @@ namespace MachineClassLibrary.Laser.Markers
                 var modFreq = _markLaserParams.PenParams.ModFreq;
                 var modDutyCycle = _markLaserParams.PenParams.ModDutyCycle;
 
-                if (!await _pwm.SetPWM(freq, (int)Math.Round(dutyCycle), modFreq, modDutyCycle))
+                if (await _pwm.SetPWM(freq, (int)Math.Round(dutyCycle), modFreq, modDutyCycle))
                 {
 
                 }
