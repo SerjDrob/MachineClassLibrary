@@ -22,10 +22,12 @@
   </PropertyGroup>
 
   <ItemGroup>
+    <Compile Remove="GeometryUtility\FirstCoorSystem.cs" />
     <Compile Remove="Laser\Machine.cs" />
   </ItemGroup>
 
   <ItemGroup>
+    <None Include="GeometryUtility\FirstCoorSystem.cs" />
     <None Include="Laser\Machine.cs" />
   </ItemGroup>
 

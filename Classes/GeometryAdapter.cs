@@ -15,7 +15,7 @@ namespace MachineClassLibrary.Classes
         {
             _dxfReader = dxfReader;
         }
-        public IEnumerable<Geometry> GetGeometies() => GetLineGeometry()
+        public IEnumerable<System.Windows.Media.Geometry> GetGeometies() => GetLineGeometry()
             .Concat(GetEllipseGeometry())
             .Concat(GetPointGeometry())
             .Select(item => item.geometry);
