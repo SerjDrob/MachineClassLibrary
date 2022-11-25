@@ -5,6 +5,7 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Runtime.CompilerServices;
+using System.Windows;
 using System.Windows.Media;
 
 namespace MachineClassLibrary.Classes
@@ -21,6 +22,11 @@ namespace MachineClassLibrary.Classes
                 Layer = dxfCircle.Layer
             };
         }
+
+        public static Point ToPoint(this DxfPoint dxfPoint) => new Point(dxfPoint.X, dxfPoint.Y);
+
+        public static EllipseGeometry ToEllipseGeometry(this DxfCircle dxfCircle) => 
+            new EllipseGeometry(dxfCircle.Center.ToPoint(), dxfCircle.Radius, dxfCircle.Radius);
     }
     public class IMGeometryAdapter : IGeometryAdapter
     {
@@ -71,7 +77,7 @@ namespace MachineClassLibrary.Classes
                 .Concat(
                     _document.Entities
                     .OfType<DxfCircle>()
-                      .Select(p => new AdaptedGeometry(p.ToGeometry(), p.Layer,
+                      .Select(p => new AdaptedGeometry(p.ToEllipseGeometry()/*.ToGeometry()*/, p.Layer,
                       GetColorFromArgb(layers[p.Layer].Color.ToRGB()),
                       GetColorFromArgb(p.Color.ToRGB())))
                 );

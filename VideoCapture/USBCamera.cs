@@ -1,7 +1,6 @@
 ﻿using AForge.Imaging.Filters;
 using AForge.Video;
 using AForge.Video.DirectShow;
-using MachineClassLibrary.VideoCapture;
 using Microsoft.Toolkit.Diagnostics;
 using System;
 using System.Collections.Generic;
@@ -13,7 +12,7 @@ using System.Threading.Tasks;
 using System.Windows.Media.Imaging;
 
 
-namespace DicingBlade.Classes
+namespace MachineClassLibrary.VideoCapture
 {
     public class USBCamera : IVideoCapture
     {

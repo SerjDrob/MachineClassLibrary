@@ -74,7 +74,7 @@ namespace MachineClassLibrary.Laser.Markers
 
         public void SetMarkParams(MarkLaserParams markLaserParams)
         {
-            throw new NotImplementedException();
+            //throw new NotImplementedException();
         }
     }
 }
