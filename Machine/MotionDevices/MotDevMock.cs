@@ -63,7 +63,7 @@ namespace MachineClassLibrary.Machine.MotionDevices
             throw new NotImplementedException();
         }
 
-        public void HomeMovingAsync((int axisNum, double vel, uint mode)[] axVels)
+        public Task HomeMovingAsync((int axisNum, double vel, uint mode)[] axVels)
         {
             throw new NotImplementedException();
         }

@@ -96,16 +96,8 @@ namespace MachineClassLibrary.Machine.Machines
                     (_axes[Ax.Z].AxisNum, _velRegimes[Ax.Z][Velocity.Service], 1)
                 };
                 var axArr = new[] { Ax.X, Ax.Z };
-                _motionDevice.HomeMovingAsync(arr);
-                foreach (var axis in axArr)
-                    Task.Run(() =>
-                    {
-                        while (!_axes[axis].LmtN) Task.Delay(10).Wait();
-                        ResetErrors(axis);
-                        _motionDevice.ResetAxisCounter(_axes[axis].AxisNum);
-                        MoveAxInPosAsync(axis, 1, true);
-                    });
-
+                await _motionDevice.HomeMovingAsync(arr).ConfigureAwait(false);
+                foreach (var axis in axArr) _motionDevice.ResetAxisCounter(_axes[axis].AxisNum);
                 _motionDevice.ResetAxisCounter(_axes[Ax.U].AxisNum);
             }
         }

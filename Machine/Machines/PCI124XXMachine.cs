@@ -339,33 +339,43 @@ namespace MachineClassLibrary.Machine.Machines
                 };
                 _motionDevice.SetGroupVelocity(_axesGroups[group].groupNum, v);
 
-                if (precisely)
-                {
-                    var gpNum = _axesGroups[group].groupNum;
+                //if (precisely)
+                //{
+                //    var gpNum = _axesGroups[group].groupNum;
 
-                    var axesNums = _axes.Where(a => _axesGroups[group].axes.Contains(a.Key))
+                //    var axesNums = _axes.Where(a => _axesGroups[group].axes.Contains(a.Key))
+                //                        .Select(n => n.Value.AxisNum);
+
+                //    var lineCoeffs = _axes.Where(a => _axesGroups[group].axes.Contains(a.Key))
+                //                          .Select(n => n.Value.LineCoefficient);
+
+                //    var gpAxes = axesNums.Zip(lineCoeffs, (a, b) => new ValueTuple<int, double>(a, b)).ToArray();
+
+                //    var n = _axesGroups[group].axes.FindIndex(a => a == Ax.Y);
+
+                //    positions[n] -= 0.03;
+
+                //    await _motionDevice.MoveGroupPreciselyAsync(gpNum, positions, gpAxes);
+
+                //    positions[n] += 0.03;
+
+                //    await _motionDevice.MoveAxisPreciselyAsync(_axes[Ax.Y].AxisNum, _axes[Ax.Y].LineCoefficient,
+                //        positions[n]);
+                //}
+                //else
+                //{
+                //    await _motionDevice.MoveGroupAsync(_axesGroups[group].groupNum, positions);
+                //}
+                var axesNums = _axes.Where(a => _axesGroups[group].axes.Contains(a.Key))
                                         .Select(n => n.Value.AxisNum);
 
-                    var lineCoeffs = _axes.Where(a => _axesGroups[group].axes.Contains(a.Key))
-                                          .Select(n => n.Value.LineCoefficient);
+                var lineCoeffs = _axes.Where(a => _axesGroups[group].axes.Contains(a.Key))
+                                      .Select(n => n.Value.LineCoefficient);
 
-                    var gpAxes = axesNums.Zip(lineCoeffs, (a, b) => new ValueTuple<int, double>(a, b)).ToArray();
+                var gpAxes = axesNums.Zip(lineCoeffs, (a, b) => new ValueTuple<int, double>(a, b)).ToArray();
 
-                    var n = _axesGroups[group].axes.FindIndex(a => a == Ax.Y);
+                await _motionDevice.MoveGroupPreciselyAsync(_axesGroups[group].groupNum, positions, gpAxes);
 
-                    positions[n] -= 0.03;
-
-                    await _motionDevice.MoveGroupPreciselyAsync(gpNum, positions, gpAxes);
-
-                    positions[n] += 0.03;
-
-                    await _motionDevice.MoveAxisPreciselyAsync(_axes[Ax.Y].AxisNum, _axes[Ax.Y].LineCoefficient,
-                        positions[n]);
-                }
-                else
-                {
-                    await _motionDevice.MoveGroupAsync(_axesGroups[group].groupNum, positions);
-                }
                 motionDones.Select(ax => _axes[ax.ax].SetMotionDone())
                 .ToList();
             }
@@ -548,15 +558,7 @@ namespace MachineClassLibrary.Machine.Machines
 
             await _motionDevice.HomeMovingAsync(par);
 
-            //var tasks = _homingConfigs.Select(async p =>
-            //{
-            //    while (!_axes[p.Key].MotionDone) ;// await Task.Delay(10).ConfigureAwait(false);
-            //    ResetErrors(p.Key);
-            //    await MoveAxInPosAsync(p.Key, p.Value.positionAfterHoming, true).ConfigureAwait(false);
-            //    _motionDevice.ResetAxisCounter(_axes[p.Key].AxisNum);
-            //}).ToArray();
-
-            //await Task.WhenAll(tasks).ConfigureAwait(false);
+            
 
             var tasks = _homingConfigs
                 .Select(p =>
