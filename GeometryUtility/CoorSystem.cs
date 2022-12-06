@@ -264,16 +264,13 @@ namespace MachineClassLibrary.GeometryUtility
                 _parentSystem.SetRelatedSystem(place, _mainMatrix.ConvertMatrix());
             }
         }
-
         public CoorSystem<TPlaceEnum> WithAxes(bool negX, bool negY)
         {
             _axisXNeg = negX;
             _axisYNeg = negY;
             return this;
         }
-
         public ICoorSystem<TPlaceEnum> ExtractSubSystem(TPlaceEnum from) => (CoorSystem<TPlaceEnum>)_subSystems[from].Clone();
-
         public object Clone()
         {
             var copy = new CoorSystem<TPlaceEnum>(_workTransformation);
