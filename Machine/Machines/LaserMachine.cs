@@ -92,23 +92,9 @@ namespace MachineClassLibrary.Machine.Machines
                     (_axes[Ax.Z].AxisNum, _velRegimes[Ax.Z][Velocity.Service], 1)
                 };
                 
-                _motionDevice.HomeMovingAsync(arr);// maybe make it awaitable with returning info about success?
+                await _motionDevice.HomeMovingAsync(arr).ConfigureAwait(false);
 
-                var tasks = new List<Task>(arr.Length);
-                foreach (var axis in _axes.Keys)
-                {
-
-                    var task = Task.Run(async () =>
-                        {
-                        while (!_axes[axis].MotionDone) await Task.Delay(10);
-                                                         //return Task.CompletedTask;
-                                                         ResetErrors(axis);
-                                                         //await MoveAxInPosAsync(axis, 1, true);
-                                                         _motionDevice.ResetAxisCounter(_axes[axis].AxisNum);
-                            });
-                    tasks.Add(task);
-                }
-                await Task.WhenAll(tasks).ConfigureAwait(false);
+                foreach (var axis in _axes.Keys) _motionDevice.ResetAxisCounter(_axes[axis].AxisNum);                
                 
             }
         }
@@ -350,7 +336,9 @@ namespace MachineClassLibrary.Machine.Machines
 
         public bool GetValveState(Valves valve)
         {
-            throw new NotImplementedException();
+            var axisNum = _axes[_valves[valve].Item1].AxisNum;
+            var dOut = _valves[valve].Item2;
+            return _motionDevice.GetAxisDout(axisNum, (ushort)dOut);
         }
 
         public IGeometryBuilder<LMPlace> ConfigureGeometryFor(LMPlace place)

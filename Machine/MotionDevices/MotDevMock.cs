@@ -63,7 +63,7 @@ namespace MachineClassLibrary.Machine.MotionDevices
             throw new NotImplementedException();
         }
 
-        public void HomeMovingAsync((int axisNum, double vel, uint mode)[] axVels)
+        public Task HomeMovingAsync((int axisNum, double vel, uint mode)[] axVels)
         {
             throw new NotImplementedException();
         }
@@ -166,7 +166,7 @@ namespace MachineClassLibrary.Machine.MotionDevices
 
         public void SetAxisDout(int axisNum, ushort dOut, bool val)
         {
-            throw new NotImplementedException();
+            //throw new NotImplementedException();
         }
 
         public void SetAxisVelocity(int axisNum, double vel)
@@ -176,7 +176,7 @@ namespace MachineClassLibrary.Machine.MotionDevices
 
         public void SetBridgeOnAxisDin(int axisNum, int bitNum, bool setReset)
         {
-            throw new NotImplementedException();
+           // throw new NotImplementedException();
         }
 
         public void SetGroupConfig(int gpNum, MotionDeviceConfigs configs)

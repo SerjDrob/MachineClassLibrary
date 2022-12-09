@@ -1,8 +1,9 @@
-﻿using System.ComponentModel;
+﻿using System;
+using System.ComponentModel;
 
 namespace MachineClassLibrary.Laser.Parameters
 {
-    public class ExtendedParams
+    public class ExtendedParams:ICloneable
     {
         /// <summary>
         /// mark times
@@ -64,5 +65,10 @@ namespace MachineClassLibrary.Laser.Parameters
         [Category("Штриховка, мкм")]
         [DisplayName("Шаг")]
         public int HatchLineDistance { get; set; }
+
+        public object Clone()
+        {
+            return this.MemberwiseClone();
+        }
     }
 }

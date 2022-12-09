@@ -18,7 +18,7 @@ namespace MachineClassLibrary.Machine.Machines
         private Dictionary<Sensors, (Ax axis, Di dIn, bool invertion, string name)> _sensors;
         private Dictionary<Place, (Ax axis, double pos)[]> _places;
         private Dictionary<Place, double> _singlePlaces;
-        public DicingBladeMachine(ExceptionsAgregator exceptionsAgregator, MotionDevicePCI1240U motionDevice, IVideoCapture usbVideoCamera, ISpindle spindle) : base(exceptionsAgregator, motionDevice)
+        public DicingBladeMachine(ExceptionsAgregator exceptionsAgregator, IMotionDevicePCI1240U motionDevice, IVideoCapture usbVideoCamera, ISpindle spindle) : base(exceptionsAgregator, motionDevice)
         {
             _videoCamera = usbVideoCamera;
             _videoCamera.OnBitmapChanged += _videoCamera_OnBitmapChanged;
@@ -96,16 +96,8 @@ namespace MachineClassLibrary.Machine.Machines
                     (_axes[Ax.Z].AxisNum, _velRegimes[Ax.Z][Velocity.Service], 1)
                 };
                 var axArr = new[] { Ax.X, Ax.Z };
-                _motionDevice.HomeMovingAsync(arr);
-                foreach (var axis in axArr)
-                    Task.Run(() =>
-                    {
-                        while (!_axes[axis].LmtN) Task.Delay(10).Wait();
-                        ResetErrors(axis);
-                        _motionDevice.ResetAxisCounter(_axes[axis].AxisNum);
-                        MoveAxInPosAsync(axis, 1, true);
-                    });
-
+                await _motionDevice.HomeMovingAsync(arr).ConfigureAwait(false);
+                foreach (var axis in axArr) _motionDevice.ResetAxisCounter(_axes[axis].AxisNum);
                 _motionDevice.ResetAxisCounter(_axes[Ax.U].AxisNum);
             }
         }
@@ -352,7 +344,30 @@ namespace MachineClassLibrary.Machine.Machines
 
         public IGeometryBuilder<Place> ConfigureGeometryFor(Place place)
         {
-            throw new NotImplementedException();
+            _places ??= new();
+            return new GeometryBuilder<Place>(place, ref _places);
+        }
+
+        public class GeometryBuilder<TPlace> : IGeometryBuilder<TPlace> where TPlace : Enum
+        {
+            private Dictionary<TPlace, (Ax axis, double pos)[]> _places;
+            private Dictionary<Ax, double> _positions = new();
+            private readonly TPlace _configuringPlace;
+            public GeometryBuilder(TPlace place, ref Dictionary<TPlace, (Ax axis, double pos)[]> places)
+            {
+                _places = places;
+                _configuringPlace = place;
+            }
+            public IGeometryBuilder<TPlace> SetCoordinateForPlace(Ax axis, double coordinate)
+            {
+                _positions[axis] = coordinate;
+                return this;
+            }
+            public void Build()
+            {
+                var ps = _positions.Select(p => (p.Key, p.Value)).ToArray();
+                _places[_configuringPlace] = ps;
+            }
         }
 
 
