@@ -1,8 +1,11 @@
 ﻿using System;
 using System.Threading.Tasks;
+using MachineClassLibrary.Classes;
 
 namespace MachineClassLibrary.Machine.MotionDevices
 {
+
+
     public interface IMotionDevicePCI1240U:IDisposable,IMessager
     {
         int AxisCount { get; }

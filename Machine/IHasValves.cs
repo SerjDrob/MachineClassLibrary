@@ -1,4 +1,5 @@
-﻿using System;
+﻿using MachineClassLibrary.Classes;
+using System;
 using System.Collections.Generic;
 
 namespace MachineClassLibrary.Machine

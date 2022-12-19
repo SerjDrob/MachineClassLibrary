@@ -4,6 +4,7 @@ using System.Text;
 
 namespace MachineClassLibrary.Machine.MotionDevices
 {
+
     internal static class ExtensionMethods
     {
         public static void CheckResult(this uint result, int axisNum = -1)
