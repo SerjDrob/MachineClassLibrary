@@ -8,6 +8,7 @@ namespace MachineClassLibrary.Machine.MotionDevices
     {
         public override void SetAxisConfig(int axisNum, MotionDeviceConfigs configs)
         {
+            base.SetAxisConfig(axisNum, configs);
             double homeVelLow = configs.homeVelLow;
             double homeVelHigh = configs.homeVelHigh;
             _errors = new();
@@ -15,7 +16,7 @@ namespace MachineClassLibrary.Machine.MotionDevices
             _result = Motion.mAcm_SetProperty(_mAxishand[axisNum], (uint)PropertyID.PAR_AxHomeVelLow, ref homeVelLow, 8); _errors.Add(PropertyID.PAR_AxHomeVelLow, _result);
             _result = Motion.mAcm_SetProperty(_mAxishand[axisNum], (uint)PropertyID.PAR_AxHomeVelHigh, ref homeVelHigh, 8); _errors.Add(PropertyID.PAR_AxHomeVelHigh, _result);
             _initErrorsDictionaryInBaseClass = false;
-            base.SetAxisConfig(axisNum, configs);
+            
             _initErrorsDictionaryInBaseClass = true;
         }
 

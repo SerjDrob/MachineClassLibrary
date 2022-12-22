@@ -31,6 +31,9 @@ namespace MachineClassLibrary.VideoCapture
         private List<VideoCaptureDevice> _videoCaptureDevices;
         private const string queryString = "SELECT * FROM Win32_DeviceChangeEvent WHERE EventType = 2";
         private object _eventLocker = new object();
+        private bool _freezeImage;
+        private BitmapImage _bitmap;
+
         public USBCamera()
         {
             _videoCaptureDevices = GetVideoCaptureDevices();
@@ -81,10 +84,13 @@ namespace MachineClassLibrary.VideoCapture
         public void FreezeCameraImage()
         {
             _localCamera.SignalToStop();
+            _localCamera.NewFrame -= HandleNewFrame;
+            _freezeImage = true;
         }
 
         public void StartCamera(int ind, int capabilitiesInd = 0)
         {
+            _freezeImage = false;
             _isStarted = true;
             _localCameraIndex = ind;
             _localCameraCapabilities = capabilitiesInd;
@@ -151,21 +157,24 @@ namespace MachineClassLibrary.VideoCapture
         {
             try
             {
-                var filter = new Mirror(false, false);
-                using var img = (Bitmap)eventArgs.Frame.Clone();
-                filter.ApplyInPlace(img);
+                if (!_freezeImage)
+                {
+                    var filter = new Mirror(false, false);
+                    using var img = (Bitmap)eventArgs.Frame.Clone();
+                    filter.ApplyInPlace(img);
 
-                var ms = new MemoryStream();
-                img.Save(ms, ImageFormat.Bmp);
+                    var ms = new MemoryStream();
+                    img.Save(ms, ImageFormat.Bmp);
 
-                ms.Seek(0, SeekOrigin.Begin);
+                    ms.Seek(0, SeekOrigin.Begin);
 
-                var bitmap = new BitmapImage();
-                bitmap.BeginInit();
-                bitmap.StreamSource = ms;
-                bitmap.EndInit();
-                bitmap.Freeze();
-                OnBitmapChanged?.Invoke(this, new VideoCaptureEventArgs(bitmap, _errorMessage));
+                    _bitmap = new BitmapImage();
+                    _bitmap.BeginInit();
+                    _bitmap.StreamSource = ms;
+                    _bitmap.EndInit();
+                    _bitmap.Freeze();
+                }
+                if(_bitmap is not null) OnBitmapChanged?.Invoke(this, new VideoCaptureEventArgs(_bitmap, _errorMessage));
             }
             catch (Exception ex)
             {
