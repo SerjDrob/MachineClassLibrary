@@ -59,20 +59,33 @@ namespace MachineClassLibrary.Laser
             };
 
 
-            //Func<IProcObject,IShape> obj = procObject =>
-            //{
-            //    if (procObject is PCircle circle)
-            //    {
-            //        if (circle.PObject.Radius + _contourOffset > 0) 
-            //        {
-            //            var r1 = circle.PObject.Radius + _contourOffset;
-            //            var r2 = r1 + _contourWidth;
-            //            return new Ring { Radius1 = r1, Radius2 = r2};
-            //        }
-            //    }
-            //};
+            Func<IProcObject, IShape> foo = procObject =>
+            {
+                if (procObject is PCircle circle)
+                {
+                    if (circle.PObject.Radius + _contourOffset > 0)
+                    {
+                        var r1 = circle.PObject.Radius + _contourOffset;
+                        var r2 = r1 + _contourWidth;
+                        return new Ring { Radius1 = r1, Radius2 = r2 };
+                    }
+                    else
+                    {
+                        return (IShape)circle.PObject;
+                    }
+                }
 
-            return new EntityFileHandler(_dxfReader, _folderPath).SaveEntityToFile(obj/*.Invoke(procObject)*/);
+                if (procObject is PCurve curve)
+                {
+                    return (IShape)RotatePCurve(curve);
+                }
+                return null;
+            };
+
+            //return new EntityFileHandler(_dxfReader, _folderPath).SaveEntityToFile(obj/*.Invoke(procObject)*/);
+
+
+            return new EntityFileHandler(_dxfReader,_folderPath).SaveEntityToFile(foo.Invoke(procObject));
 
             Curve RotatePCurve(PCurve pCurve)
             {
