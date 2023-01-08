@@ -76,7 +76,6 @@ namespace MachineClassLibrary.Laser.Markers
 
         public async Task<bool> PierceDxfObjectAsync(string filePath)
         {
-
             var result = Lmc.SetPenParams(_markLaserParams.PenParams);
             result = Lmc.SetHatchParams(_markLaserParams.HatchParams);
             result = Lmc.lmc1_AddFileToLib(filePath, "ProcEntity", 0, 0, 0, 0, 1, _markLaserParams.PenParams.PenNo, _markLaserParams.HatchParams.EnableHatch);

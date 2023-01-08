@@ -52,18 +52,18 @@ namespace MachineClassLibrary.Laser
         {
             //TODO apply contourWidth, contourOffset and _entityAngle arithmetic before saving
 
-            var obj = procObject switch
-            {
-                PCurve curve => (IShape)RotatePCurve(curve),
-                PCircle circle => (IShape)circle.PObject
-            };
+            //var obj = procObject switch
+            //{
+            //    PCurve curve => (IShape)RotatePCurve(curve),
+            //    PCircle circle => (IShape)circle.PObject
+            //};
 
 
             Func<IProcObject, IShape> foo = procObject =>
             {
                 if (procObject is PCircle circle)
                 {
-                    if (circle.PObject.Radius + _contourOffset > 0)
+                    if (circle.PObject.Radius + _contourOffset > 0 || _contourWidth != 0)
                     {
                         var r1 = circle.PObject.Radius + _contourOffset;
                         var r2 = r1 + _contourWidth;
