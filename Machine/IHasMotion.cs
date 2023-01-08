@@ -44,6 +44,7 @@ namespace MachineClassLibrary.Machine
         public void Stop(Ax axis);
         public Task WaitUntilAxisStopAsync(Ax axis);
         public void GoWhile(Ax axis, AxDir direction);
+        public double GetAxActual(Ax axis);
         public void EmgStop();
         public Task MoveGpInPosAsync(Groups group, double[] position, bool precisely = false);
         public Task MoveGpRelativeAsync(Groups group, double[] offset, bool precisely = false);

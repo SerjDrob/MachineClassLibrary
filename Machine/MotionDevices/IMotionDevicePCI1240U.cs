@@ -12,7 +12,7 @@ namespace MachineClassLibrary.Machine.MotionDevices
 
         event Action<string, int> ThrowMessage;
         event EventHandler<AxNumEventArgs> TransmitAxState;
-
+        double GetAxActual(int axNum);
         bool DevicesConnection();
         void Dispose();
         int FormAxesGroup(int[] axisNums);
