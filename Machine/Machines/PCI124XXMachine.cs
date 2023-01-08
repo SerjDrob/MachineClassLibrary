@@ -725,6 +725,9 @@ namespace MachineClassLibrary.Machine.Machines
             _axes[axis].Busy = false;
         }
 
-        
+        public double GetAxActual(Ax axis)
+        {
+            return _motionDevice.GetAxActual(_axes[axis].AxisNum) * _axes[axis].LineCoefficient;
+        }
     }
 }

@@ -234,5 +234,10 @@ namespace MachineClassLibrary.Machine.MotionDevices
                 }
             });
         }
+
+        public double GetAxActual(int axNum)
+        {
+            throw new NotImplementedException();
+        }
     }
 }

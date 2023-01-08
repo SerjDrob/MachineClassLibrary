@@ -734,6 +734,13 @@ private async Task DeviceStateMonitorAsync()
             ReleaseUnmanagedResources();
             GC.SuppressFinalize(this);
         }
+
+        public double GetAxActual(int axNum)
+        {
+            var pos = 0d;
+            Motion.mAcm_AxGetActualPosition(_mAxishand[axNum], ref pos).CheckResult(axNum);
+            return pos;
+        }
         //public int MoveInPos(Vector3 position, int recurcy)
         //{
         //    Task task;
