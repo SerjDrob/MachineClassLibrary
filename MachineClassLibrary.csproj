@@ -22,11 +22,13 @@
   </PropertyGroup>
 
   <ItemGroup>
+    <Compile Remove="GeometryUtility\CoorSystem1.cs" />
     <Compile Remove="GeometryUtility\FirstCoorSystem.cs" />
     <Compile Remove="Laser\Machine.cs" />
   </ItemGroup>
 
   <ItemGroup>
+    <None Include="GeometryUtility\CoorSystem1.cs" />
     <None Include="GeometryUtility\FirstCoorSystem.cs" />
     <None Include="Laser\Machine.cs" />
   </ItemGroup>
@@ -38,7 +40,10 @@
     <PackageReference Include="AForge.Video.DirectShow" Version="2.2.5" />
     <PackageReference Include="EasyModbusTCP" Version="5.6.0" />
     <PackageReference Include="FluentModbus" Version="5.0.0" />
+    <PackageReference Include="Humanizer.Core" Version="2.14.1" />
     <PackageReference Include="IxMilia.Dxf" Version="0.8.3" />
+    <PackageReference Include="MathNet.Numerics" Version="5.0.0" />
+    <PackageReference Include="Microsoft.Maui.Graphics" Version="7.0.52" />
     <PackageReference Include="Microsoft.NETFramework.ReferenceAssemblies.net45" Version="1.0.3">
       <PrivateAssets>all</PrivateAssets>
       <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>

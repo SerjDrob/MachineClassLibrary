@@ -181,9 +181,7 @@ namespace MachineClassLibrary.Classes
         /// <returns>DxfCurve containing filepath of the curve</returns>
         public void WriteCurveToFile(string filePath, Curve curve, bool isClosed)
         {
-            //var lw = new DxfLwPolyline(curve.Vertices.Select(v => new DxfLwPolylineVertex { X = v.X, Y = v.Y, Bulge = v.Bulge * (mirror ? -1 : 1) }));
             var lw = new DxfLwPolyline(curve.Vertices.Select(v => new DxfLwPolylineVertex { X = v.X, Y = v.Y, Bulge = v.Bulge }));
-
             lw.ConstantWidth = 0.1d;
             lw.IsClosed = isClosed;
             var doc = new DxfFile();
@@ -201,6 +199,23 @@ namespace MachineClassLibrary.Classes
             doc.Entities.Add(c);
             doc.Save(filePath);
         }
+
+        public void WriteShapesToFile(string filePath, params IShape[] shapes)
+        {
+            var doc = new DxfFile();
+            doc.Header.Version = DxfAcadVersion.Max;
+            foreach (var shape in shapes)
+            {
+                var ent = shape switch
+                {
+                    Circle circle =>(DxfEntity) new DxfCircle(new DxfPoint(0, 0, 0), circle.Radius),
+                    Curve curve => (DxfEntity) new DxfLwPolyline(curve.Vertices.Select(v => new DxfLwPolylineVertex { X = v.X, Y = v.Y, Bulge = v.Bulge })){ IsClosed = true, ConstantWidth = 0.1d }
+                };
+                doc.Entities.Add(ent);
+            }
+            doc.Save(filePath);
+        }
+
         public IDictionary<string, int> GetLayers() => _document.Layers.ToDictionary(layer => layer.Name, layer => layer.Color.ToRGB());
         public IDictionary<string, IEnumerable<(string objType, int count)>> GetLayersStructure()
         {
@@ -229,6 +244,8 @@ namespace MachineClassLibrary.Classes
                  }, point.Layer, point.Color.ToRGB())
              );
         }
+
+        
     }
 
 }

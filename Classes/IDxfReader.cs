@@ -26,6 +26,7 @@ namespace MachineClassLibrary.Classes
         IEnumerable<PCurve> GetAllCurves(string fromLayer = null);
         void WriteCurveToFile(string filePath, Curve curve, bool isClosed);
         void WriteCircleToFile(string filePath, Circle circle);
+        void WriteShapesToFile(string filePath, params IShape[] shapes);
         IEnumerable<IProcObject> GetObjectsFromLayer<TObject>(string layerName) where TObject : IProcObject;
     }
 }

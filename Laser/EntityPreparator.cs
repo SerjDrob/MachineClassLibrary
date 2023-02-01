@@ -52,27 +52,40 @@ namespace MachineClassLibrary.Laser
         {
             //TODO apply contourWidth, contourOffset and _entityAngle arithmetic before saving
 
-            var obj = procObject switch
-            {
-                PCurve curve => (IShape)RotatePCurve(curve),
-                PCircle circle => (IShape)circle.PObject
-            };
-
-
-            //Func<IProcObject,IShape> obj = procObject =>
+            //var obj = procObject switch
             //{
-            //    if (procObject is PCircle circle)
-            //    {
-            //        if (circle.PObject.Radius + _contourOffset > 0) 
-            //        {
-            //            var r1 = circle.PObject.Radius + _contourOffset;
-            //            var r2 = r1 + _contourWidth;
-            //            return new Ring { Radius1 = r1, Radius2 = r2};
-            //        }
-            //    }
+            //    PCurve curve => (IShape)RotatePCurve(curve),
+            //    PCircle circle => (IShape)circle.PObject
             //};
 
-            return new EntityFileHandler(_dxfReader, _folderPath).SaveEntityToFile(obj/*.Invoke(procObject)*/);
+
+            Func<IProcObject, IShape> foo = procObject =>
+            {
+                if (procObject is PCircle circle)
+                {
+                    if (circle.PObject.Radius + _contourOffset > 0 || _contourWidth != 0)
+                    {
+                        var r1 = circle.PObject.Radius + _contourOffset;
+                        var r2 = r1 + _contourWidth;
+                        return new Ring { Radius1 = r1, Radius2 = r2 };
+                    }
+                    else
+                    {
+                        return (IShape)circle.PObject;
+                    }
+                }
+
+                if (procObject is PCurve curve)
+                {
+                    return (IShape)RotatePCurve(curve);
+                }
+                return null;
+            };
+
+            //return new EntityFileHandler(_dxfReader, _folderPath).SaveEntityToFile(obj/*.Invoke(procObject)*/);
+
+
+            return new EntityFileHandler(_dxfReader,_folderPath).SaveEntityToFile(foo.Invoke(procObject));
 
             Curve RotatePCurve(PCurve pCurve)
             {

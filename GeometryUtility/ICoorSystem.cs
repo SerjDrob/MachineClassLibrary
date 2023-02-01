@@ -12,9 +12,10 @@ namespace MachineClassLibrary.GeometryUtility
         void SetRelatedSystem(TPlaceEnum name, Matrix3x2 matrix);
         double[] ToSub(TPlaceEnum to, double x, double y);
         ICoorSystem<TPlaceEnum> ExtractSubSystem(TPlaceEnum from);
+        ICoorSystem<TPlaceEnum> WithAxes(bool negX, bool negY);
     }
 
-    public interface ICoorSystem
+    public interface ICoorSystem: ICloneable
     {
         double[] FromGlobal(double x, double y);
         float[] GetMainMatrixElements();
