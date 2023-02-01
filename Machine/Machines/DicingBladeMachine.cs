@@ -365,6 +365,11 @@ namespace MachineClassLibrary.Machine.Machines
             }
         }
 
+        public void InvokeSettinds()
+        {
+            throw new NotImplementedException();
+        }
+
         public class GeometryBuilder<TPlace> : IGeometryBuilder<TPlace> where TPlace : Enum
         {
             private Dictionary<TPlace, (Ax axis, double pos)[]> _places;

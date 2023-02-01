@@ -371,7 +371,8 @@ private async Task DeviceStateMonitorAsync()
         }
         public void StopAxis(int axisNum)
         {
-            Motion.mAcm_AxStopEmg(_mAxishand[axisNum]);
+            //Motion.mAcm_AxStopEmg(_mAxishand[axisNum]);
+            Motion.mAcm_AxStopDec(_mAxishand[axisNum]);
         }
         public void ResetErrors(int axisNum = 888)
         {

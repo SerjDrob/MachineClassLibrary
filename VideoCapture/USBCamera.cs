@@ -117,9 +117,11 @@ namespace MachineClassLibrary.VideoCapture
             if (!_localCamera.IsRunning)
             {
                 _localCamera.VideoResolution = _localCamera.VideoCapabilities[capabilitiesInd];
+                //_localCamera.SetCameraProperty(CameraControlProperty.Exposure,100, CameraControlFlags.Manual);
                 _localCamera.PlayingFinished += _localCamera_PlayingFinished;
                 _localCamera.NewFrame += HandleNewFrame;
                 _localCamera.Start();
+                
                 IsVideoCaptureConnected = true;
                 _errorMessage = string.Empty;
                 _localCameraIndex = ind;
@@ -155,14 +157,14 @@ namespace MachineClassLibrary.VideoCapture
 
         private async void HandleNewFrame(object sender, NewFrameEventArgs eventArgs)
         {
+            var filter = new ContrastCorrection();
             try
             {
                 if (!_freezeImage)
                 {
-                    var filter = new Mirror(false, false);
+                  
                     using var img = (Bitmap)eventArgs.Frame.Clone();
                     filter.ApplyInPlace(img);
-
                     var ms = new MemoryStream();
                     img.Save(ms, ImageFormat.Bmp);
 
@@ -183,5 +185,9 @@ namespace MachineClassLibrary.VideoCapture
             await Task.Delay(40).ConfigureAwait(false);
         }
 
+        public void InvokeSettinds()
+        {
+            _localCamera.DisplayPropertyPage(IntPtr.Zero);
+        }
     }
 }

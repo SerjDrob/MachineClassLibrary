@@ -23,8 +23,8 @@ namespace MachineClassLibrary.VideoCapture
         void FreezeCameraImage();
         void StopCamera();
         int GetVideoCaptureDevicesCount();
-        int GetVideoCapabilitiesCount();       
-
+        int GetVideoCapabilitiesCount();
+        void InvokeSettinds();
         event EventHandler<VideoCaptureEventArgs> OnBitmapChanged;
 
     }
