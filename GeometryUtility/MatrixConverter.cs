@@ -3,7 +3,7 @@ using System.Numerics;
 
 namespace MachineClassLibrary.GeometryUtility
 {
-    internal static class MatrixConverter
+    public static class MatrixConverter
     {
         public static Matrix3 ConvertMatrix(this Matrix3x2 initMatrix)
         {
