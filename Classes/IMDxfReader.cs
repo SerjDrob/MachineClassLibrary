@@ -4,9 +4,21 @@ using MachineClassLibrary.Laser.Entities;
 using System.Collections.Generic;
 using System.Linq;
 using System.Windows;
+using System;
 
 namespace MachineClassLibrary.Classes
 {
+
+    [Serializable]
+    public class DxfReaderException : Exception
+    {
+        public DxfReaderException() { }
+        public DxfReaderException(string message) : base(message) { }
+        public DxfReaderException(string message, Exception inner) : base(message, inner) { }
+        protected DxfReaderException(
+          System.Runtime.Serialization.SerializationInfo info,
+          System.Runtime.Serialization.StreamingContext context) : base(info, context) { }
+    }
     static class IxMiliaExtensionHelper
     {
         public static (double x, double y) GetPolylineCenter(this IList<DxfLwPolylineVertex> vertices)
@@ -32,7 +44,14 @@ namespace MachineClassLibrary.Classes
         public IMDxfReader(string fileName)
         {
             _fileName = fileName;
-            _document = DxfFile.Load(_fileName);
+            try
+            {
+                _document = DxfFile.Load(_fileName);
+            }
+            catch (DxfReadException ex)
+            {
+                throw new DxfReaderException("Ошибка чтения файла",ex);
+            }
         }
         public IEnumerable<PCircle> GetCircles(string fromLayer = null)
         {

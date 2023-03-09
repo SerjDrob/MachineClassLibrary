@@ -35,13 +35,13 @@ namespace MachineClassLibrary.GeometryUtility
             }
             public TwoPointCoorSystemBuilder FormWorkMatrix(double xScaleMul, double yScaleMul)
             {
-                var point0 = _workTransformation * (new netDxf.Vector3(_firstPair.originPoint.X, _firstPair.originPoint.Y, 1));
-                var point1 = _workTransformation * (new netDxf.Vector3(_secondPair.originPoint.X, _secondPair.originPoint.Y, 1));
+                var point0 = _workTransformation * new netDxf.Vector3(_firstPair.originPoint.X, _firstPair.originPoint.Y, 1);
+                var point1 = _workTransformation * new netDxf.Vector3(_secondPair.originPoint.X, _secondPair.originPoint.Y, 1);
 
-                var derivativeLength = Math.Sqrt(Math.Pow(point1.X - point0.X,2) + Math.Pow(point1.Y - point0.Y,2));
-                var originLength = Math.Sqrt(Math.Pow(_secondPair.originPoint.X - _firstPair.originPoint.X, 2) + Math.Pow(_secondPair.originPoint.Y - _firstPair.originPoint.Y, 2));
+                //var derivativeLength = Math.Sqrt(Math.Pow(point1.X - point0.X,2) + Math.Pow(point1.Y - point0.Y,2));
+                //var originLength = Math.Sqrt(Math.Pow(_secondPair.originPoint.X - _firstPair.originPoint.X, 2) + Math.Pow(_secondPair.originPoint.Y - _firstPair.originPoint.Y, 2));
 
-                var scale = derivativeLength / originLength;
+                //var scale = derivativeLength / originLength;
                 
                 var S = new Matrix3(m11: xScaleMul/*scale*/, m12: 0, m13: 0,
                                            m21: 0, m22: yScaleMul/*scale*/, m23: 0,
@@ -68,7 +68,7 @@ namespace MachineClassLibrary.GeometryUtility
 
                 
 
-                var p1 = m1 * (new netDxf.Vector3(_firstPair.originPoint.X, _firstPair.originPoint.Y, 1));
+                var p1 = m1 * new netDxf.Vector3(_firstPair.originPoint.X, _firstPair.originPoint.Y, 1);
                 var deltaX = _firstPair.derivativePoint.X - p1.X;
                 var deltaY = _firstPair.derivativePoint.Y - p1.Y;
 
