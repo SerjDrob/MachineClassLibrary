@@ -1,4 +1,5 @@
-﻿using MachineClassLibrary.Machine.MotionDevices;
+﻿using MachineClassLibrary.Classes;
+using MachineClassLibrary.Machine.MotionDevices;
 
 namespace MachineClassLibrary.Machine
 {

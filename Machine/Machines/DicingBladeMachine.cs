@@ -40,10 +40,7 @@ namespace MachineClassLibrary.Machine.Machines
         }
 
         public event EventHandler<ValveEventArgs> OnValveStateChanged;
-
-
         public event EventHandler<SensorsEventArgs> OnSensorStateChanged;
-
         public event EventHandler<SpindleEventArgs> OnSpindleStateChanging;
         public event EventHandler<VideoCaptureEventArgs> OnBitmapChanged;
 
@@ -346,6 +343,31 @@ namespace MachineClassLibrary.Machine.Machines
         {
             _places ??= new();
             return new GeometryBuilder<Place>(place, ref _places);
+        }
+
+        protected override void GetAxOutNIn(Ax ax, int outs, int ins)
+        {
+            if (_valves is null) return;
+            foreach (var valve in _valves)
+            {
+                if (valve.Value.axis == ax)
+                {
+                    OnValveStateChanged?.Invoke(this, new(valve.Key, (outs & (1 << (int)valve.Value.dOut)) != 0));
+                }
+            }
+            if (_sensors is null) return;
+            foreach (var sensor in _sensors)
+            {
+                if (sensor.Value.axis == ax)
+                {
+                    OnSensorStateChanged?.Invoke(this, new(sensor.Key, sensor.Value.invertion ^ (ins & (1 << (int)sensor.Value.dIn)) != 0));
+                }
+            }
+        }
+
+        public void InvokeSettinds()
+        {
+            throw new NotImplementedException();
         }
 
         public class GeometryBuilder<TPlace> : IGeometryBuilder<TPlace> where TPlace : Enum

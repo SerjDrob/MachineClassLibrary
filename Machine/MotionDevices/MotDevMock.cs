@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Threading;
 using System.Threading.Tasks;
+using MachineClassLibrary.Classes;
 
 namespace MachineClassLibrary.Machine.MotionDevices
 {
@@ -78,7 +79,7 @@ namespace MachineClassLibrary.Machine.MotionDevices
             throw new NotImplementedException();
         }
 
-        public async void MoveAxisAsync(int axisNum, double position)
+        public async Task MoveAxisAsync(int axisNum, double position)
         {
             _axisFeatures[axisNum].PositionTarget = position;
             _axisFeatures[axisNum].IsPosTargetSet = true;
@@ -118,7 +119,7 @@ namespace MachineClassLibrary.Machine.MotionDevices
                        {
                            var act = _axisStates[axisNum].actPos + dirSign * MOVE_RESOLUTION;
                            var coef = _axisFeatures[axisNum].DevConfig.ppu / 1000d;
-                           _axisStates[axisNum] = _axisStates[axisNum] with { cmdPos = act * coef, actPos = act };
+                           _axisStates[axisNum] = _axisStates[axisNum]/* with { cmdPos = act * coef, actPos = act }*/;
                            if (Math.Abs(act - diff) >= alterResolution)
                            {
                                await Task.Delay(TimeSpan.FromMilliseconds(delay));
@@ -232,6 +233,11 @@ namespace MachineClassLibrary.Machine.MotionDevices
                     if (num == AxisCount) num = 0;
                 }
             });
+        }
+
+        public double GetAxActual(int axNum)
+        {
+            throw new NotImplementedException();
         }
     }
 }

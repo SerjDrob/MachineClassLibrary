@@ -103,6 +103,11 @@ namespace MachineClassLibrary.Classes
         {
             _erasedObjects?.Clear();
         }
+
+        public void WriteShapesToFile(string filePath, params IShape[] shapes)
+        {
+            _dxfReader?.WriteShapesToFile(filePath, shapes);
+        }
     }
 
 }

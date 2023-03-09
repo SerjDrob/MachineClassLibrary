@@ -76,7 +76,6 @@ namespace MachineClassLibrary.Laser.Markers
 
         public async Task<bool> PierceDxfObjectAsync(string filePath)
         {
-
             var result = Lmc.SetPenParams(_markLaserParams.PenParams);
             result = Lmc.SetHatchParams(_markLaserParams.HatchParams);
             result = Lmc.lmc1_AddFileToLib(filePath, "ProcEntity", 0, 0, 0, 0, 1, _markLaserParams.PenParams.PenNo, _markLaserParams.HatchParams.EnableHatch);
@@ -125,7 +124,7 @@ namespace MachineClassLibrary.Laser.Markers
 
         public async Task<bool> MarkTextAsync(string text, double textSize, double angle)//TODO return bool or info or through exception?
         {
-            var penparams = _markLaserParams.PenParams with { MarkLoop = 1, MarkSpeed = 100 };//TODO move to settings 
+            var penparams = _markLaserParams.PenParams with { MarkLoop = 1, MarkSpeed = 500 };//TODO move to settings 
 
             var result = Lmc.lmc1_SetFontParam("Cambria", textSize, 0.625 * textSize, 0, 0, 0, false);
             result += Lmc.SetPenParams(penparams);

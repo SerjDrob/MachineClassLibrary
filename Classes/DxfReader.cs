@@ -109,5 +109,10 @@ namespace MachineClassLibrary.Classes
         {
             throw new System.NotImplementedException();
         }
+
+        public void WriteShapesToFile(string filePath, params IShape[] shapes)
+        {
+            throw new System.NotImplementedException();
+        }
     }
 }

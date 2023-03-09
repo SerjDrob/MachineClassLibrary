@@ -1,4 +1,5 @@
-﻿using System;
+﻿using MachineClassLibrary.Classes;
+using System;
 
 namespace MachineClassLibrary.Machine.Machines
 {

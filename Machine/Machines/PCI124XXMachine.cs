@@ -39,6 +39,7 @@ namespace MachineClassLibrary.Machine.Machines
         }
         private Task _monitoringMachineState;
         public event EventHandler<AxisStateEventArgs> OnAxisMotionStateChanged;
+
         public Velocity VelocityRegime { get; set; }
         public bool IsMotionDeviceInit { get; set; }
 
@@ -282,21 +283,14 @@ namespace MachineClassLibrary.Machine.Machines
             if (!_axes[axis].Busy)
             {
                 SetAxisBusy(axis);
-                //if (_axes[axis].CmdPosition - position != 0)
-                //{
-                //    _axes[axis].SetMotionStarted();
-                //}
+               
                 if (precisely)
                 {
                     await _motionDevice.MoveAxisPreciselyAsync(_axes[axis].AxisNum, _axes[axis].LineCoefficient, position).ConfigureAwait(false);
                 }
                 else
                 {
-                    await Task.Run(() =>
-                    {
-                        _motionDevice.MoveAxisAsync(_axes[axis].AxisNum, position);
-                        while (!_axes[axis].MotionDone) ;
-                    }).ConfigureAwait(false);
+                    await _motionDevice.MoveAxisAsync(_axes[axis].AxisNum, position).ConfigureAwait(false);
                 }
                 ResetAxisBusy(axis);
             }
@@ -426,24 +420,33 @@ namespace MachineClassLibrary.Machine.Machines
             _motionDevice.SetGroupConfig(gpNum, configs);
         }
 
-        public void SetVelocity(Velocity velocity)
+        public Velocity SetVelocity(Velocity velocity)
         {
-            VelocityRegime = velocity;
+            var oldVelocity = VelocityRegime;
+            
             foreach (var axis in _axes)
+            {
                 if (axis.Value.VelRegimes != null)
                 {
                     double vel = default;
                     if (axis.Value.VelRegimes.TryGetValue(velocity, out vel))
                     {
                         _motionDevice.SetAxisVelocity(axis.Value.AxisNum, axis.Value.VelRegimes[velocity]);
+                        VelocityRegime = velocity;
+
                     }
                 }
                 else
-                    throw new MotionException($"Не настроенны скоростные режимы оси {axis.Key.ToString()}");
-            foreach (var group in _axesGroups.Values)
-            {
-                //   MotionDevice.SetGroupVelocity(group.groupNum);
+                {
+                    throw new MotionException($"Не настроенны скоростные режимы оси {axis.Key}");
+                }
             }
+
+            return oldVelocity;
+            //foreach (var group in _axesGroups.Values)
+            //{
+            //    //   MotionDevice.SetGroupVelocity(group.groupNum);
+            //}
         }
 
         public void SetAxFeedSpeed(Ax axis, double feed)
@@ -704,9 +707,13 @@ namespace MachineClassLibrary.Machine.Machines
                         motionDone: _axes[axis].MotionDone,
                         motionStart: _axes[axis].VHStart));
 
+                    GetAxOutNIn(axis, state.outs, state.sensors);
                 }
             }
         }
+
+        protected virtual void GetAxOutNIn(Ax ax, int outs, int ins) { }
+
 
         private void SetAxisBusy(Ax axis)
         {
@@ -718,6 +725,9 @@ namespace MachineClassLibrary.Machine.Machines
             _axes[axis].Busy = false;
         }
 
-        
+        public double GetAxActual(Ax axis)
+        {
+            return _motionDevice.GetAxActual(_axes[axis].AxisNum) * _axes[axis].LineCoefficient;
+        }
     }
 }

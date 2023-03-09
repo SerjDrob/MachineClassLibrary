@@ -1,15 +1,18 @@
 ﻿using System;
 using System.Threading.Tasks;
+using MachineClassLibrary.Classes;
 
 namespace MachineClassLibrary.Machine.MotionDevices
 {
+
+
     public interface IMotionDevicePCI1240U:IDisposable,IMessager
     {
         int AxisCount { get; }
 
         event Action<string, int> ThrowMessage;
         event EventHandler<AxNumEventArgs> TransmitAxState;
-
+        double GetAxActual(int axNum);
         bool DevicesConnection();
         void Dispose();
         int FormAxesGroup(int[] axisNums);
@@ -18,7 +21,7 @@ namespace MachineClassLibrary.Machine.MotionDevices
         Task HomeMovingAsync((int axisNum, double vel, uint mode)[] axVels);
         void MoveAxesByCoorsAsync((int axisNum, double position)[] ax);
         Task MoveAxesByCoorsPrecAsync((int axisNum, double position, double lineCoefficient)[] ax);
-        void MoveAxisAsync(int axisNum, double position);
+        Task MoveAxisAsync(int axisNum, double position);
         void MoveAxisContiniouslyAsync(int axisNum, AxDir dir);
         Task MoveAxisPreciselyAsync(int axisNum, double lineCoefficient, double position, int rec = 0);
         Task MoveGroupAsync(int groupNum, double[] position);

@@ -14,7 +14,12 @@ namespace MachineClassLibrary.Machine
         //public void SetConfigs((Ax axis, MotionDeviceConfigs configs)[] axesConfigs);
         //public IHasMotion SetConfigs(Ax axis, MotionDeviceConfigs configs);
         public void SetGroupConfig(int gpNum, MotionDeviceConfigs configs);
-        public void SetVelocity(Velocity velocity);
+        /// <summary>
+        /// Set new velocity regime for the device
+        /// </summary>
+        /// <param name="velocity"></param>
+        /// <returns>The old velocity regime</returns>
+        public Velocity SetVelocity(Velocity velocity);
         public void SetAxFeedSpeed(Ax axis, double feed);
         public void ResetErrors(Ax axis);
 
@@ -39,6 +44,7 @@ namespace MachineClassLibrary.Machine
         public void Stop(Ax axis);
         public Task WaitUntilAxisStopAsync(Ax axis);
         public void GoWhile(Ax axis, AxDir direction);
+        public double GetAxActual(Ax axis);
         public void EmgStop();
         public Task MoveGpInPosAsync(Groups group, double[] position, bool precisely = false);
         public Task MoveGpRelativeAsync(Groups group, double[] offset, bool precisely = false);

@@ -347,6 +347,11 @@ namespace MachineClassLibrary.Machine.Machines
             return new GeometryBuilder<LMPlace>(place, ref _places);
         }
 
+        public void InvokeSettinds()
+        {
+            _videoCapture?.InvokeSettinds();
+        }
+
         public class GeometryBuilder<TPlace> : IGeometryBuilder<TPlace> where TPlace : Enum
         {
             private Dictionary<TPlace, (Ax axis, double pos)[]> _places;

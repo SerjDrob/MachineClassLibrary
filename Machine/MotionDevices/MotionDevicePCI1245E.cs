@@ -8,6 +8,7 @@ namespace MachineClassLibrary.Machine.MotionDevices
     {
         public override void SetAxisConfig(int axisNum, MotionDeviceConfigs configs)
         {
+            base.SetAxisConfig(axisNum, configs);
             double homeVelLow = configs.homeVelLow;
             double homeVelHigh = configs.homeVelHigh;
             _errors = new();
@@ -15,7 +16,7 @@ namespace MachineClassLibrary.Machine.MotionDevices
             _result = Motion.mAcm_SetProperty(_mAxishand[axisNum], (uint)PropertyID.PAR_AxHomeVelLow, ref homeVelLow, 8); _errors.Add(PropertyID.PAR_AxHomeVelLow, _result);
             _result = Motion.mAcm_SetProperty(_mAxishand[axisNum], (uint)PropertyID.PAR_AxHomeVelHigh, ref homeVelHigh, 8); _errors.Add(PropertyID.PAR_AxHomeVelHigh, _result);
             _initErrorsDictionaryInBaseClass = false;
-            base.SetAxisConfig(axisNum, configs);
+            
             _initErrorsDictionaryInBaseClass = true;
         }
 
@@ -43,7 +44,7 @@ namespace MachineClassLibrary.Machine.MotionDevices
             uint bufLength = 4;
             uint ppu = 0;
             //uint res = 0;
-            var tolerance = 0.003;
+            var tolerance = 0.001;
 
             ushort direction = 0;
 
@@ -63,9 +64,11 @@ namespace MachineClassLibrary.Machine.MotionDevices
                     Motion.mAcm_SetProperty(_mAxishand[axisNum], (uint)PropertyID.CFG_AxSwPelReact, ref buf, 4).CheckResult(axisNum);
                     Motion.mAcm_SetProperty(_mAxishand[axisNum], (uint)PropertyID.CFG_AxSwMelReact, ref buf, 4).CheckResult(axisNum);
                     var tol = 0;
+                    uint react = 0;
                     switch (Math.Sign(diff))
                     {
                         case 1:
+                            Motion.mAcm_SetProperty(_mAxishand[axisNum], (uint)PropertyID.CFG_AxSwPelReact, ref react, 4).CheckResult(axisNum);
                             Motion.mAcm_SetF64Property(_mAxishand[axisNum], (uint)PropertyID.CFG_AxSwPelValue, pos).CheckResult(axisNum);
                             buf = (uint)SwLmtEnable.SLMT_EN;
                             Motion.mAcm_SetProperty(_mAxishand[axisNum], (uint)PropertyID.CFG_AxSwPelEnable, ref buf, 4).CheckResult(axisNum);
@@ -76,6 +79,7 @@ namespace MachineClassLibrary.Machine.MotionDevices
                             break;
 
                         case -1:
+                            Motion.mAcm_SetProperty(_mAxishand[axisNum], (uint)PropertyID.CFG_AxSwMelReact, ref react, 4).CheckResult(axisNum);
                             Motion.mAcm_SetF64Property(_mAxishand[axisNum], (uint)PropertyID.CFG_AxSwMelValue, pos).CheckResult(axisNum);
                             buf = (uint)SwLmtEnable.SLMT_EN;
                             Motion.mAcm_SetProperty(_mAxishand[axisNum], (uint)PropertyID.CFG_AxSwMelEnable, ref buf, 4).CheckResult(axisNum);
