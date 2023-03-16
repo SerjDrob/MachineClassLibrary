@@ -94,15 +94,15 @@ namespace MachineClassLibrary.Laser.Markers
             }
             await Task.Run(async () =>
             {
-                var result = Lmc.lmc1_MarkEntity("ProcEntity");
+                var result = (Lmc.EzCad_Error_Code)Lmc.lmc1_MarkEntity("ProcEntity");
                 if (!await _pwm.StopPWM())
                 {
 
                 }
-                if (result != 0)
+                if (!result.HasFlag(Lmc.EzCad_Error_Code.LMC1_ERR_SUCCESS) & !result.HasFlag(Lmc.EzCad_Error_Code.LMC1_ERR_USERSTOP))
                 {
                     Lmc.lmc1_DeleteEnt("ProcEntity");
-                    throw new Exception($"Marking failed with code {(Lmc.EzCad_Error_Code)result}");
+                    throw new OperationCanceledException($"Marking failed with code {(Lmc.EzCad_Error_Code)result}");
                 }
             }
             );

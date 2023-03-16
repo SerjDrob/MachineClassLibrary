@@ -178,8 +178,9 @@ private async Task DeviceStateMonitorAsync()
                         Motion.mAcm_AxDiGetBit(ax, (ushort)channel, ref bitData).CheckResult();
                         sensorsState = bitData != 0 ? sensorsState.SetBit(channel) : sensorsState.ResetBit(channel);
                     }
+#if PCI1245
                     Motion.mAcm_AxDoGetByte(ax, 0, ref bitData).CheckResult();
-
+#endif
                     var bridge = 0;
                     if (_bridges != null && _bridges.Keys.Contains(num))
                     {

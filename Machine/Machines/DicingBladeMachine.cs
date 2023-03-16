@@ -365,7 +365,7 @@ namespace MachineClassLibrary.Machine.Machines
             }
         }
 
-        public void InvokeSettinds()
+        public void InvokeSettings()
         {
             throw new NotImplementedException();
         }

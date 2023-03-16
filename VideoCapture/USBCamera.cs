@@ -185,7 +185,7 @@ namespace MachineClassLibrary.VideoCapture
             await Task.Delay(40).ConfigureAwait(false);
         }
 
-        public void InvokeSettinds()
+        public void InvokeSettings()
         {
             _localCamera.DisplayPropertyPage(IntPtr.Zero);
         }

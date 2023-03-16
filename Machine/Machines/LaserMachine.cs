@@ -347,9 +347,9 @@ namespace MachineClassLibrary.Machine.Machines
             return new GeometryBuilder<LMPlace>(place, ref _places);
         }
 
-        public void InvokeSettinds()
+        public void InvokeSettings()
         {
-            _videoCapture?.InvokeSettinds();
+            _videoCapture?.InvokeSettings();
         }
 
         public class GeometryBuilder<TPlace> : IGeometryBuilder<TPlace> where TPlace : Enum
