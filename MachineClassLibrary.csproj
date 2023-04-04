@@ -67,15 +67,6 @@
     <Reference Include="AdvMotAPI">
       <HintPath>AdvMotAPI.dll</HintPath>
     </Reference>
-    <!--<Reference Include="PresentationCore">
-      <HintPath>..\..\..\..\..\Program Files\dotnet\shared\Microsoft.WindowsDesktop.App\5.0.9\PresentationCore.dll</HintPath>
-    </Reference>
-    <Reference Include="PresentationFramework">
-      <HintPath>..\..\..\..\..\Program Files\dotnet\shared\Microsoft.WindowsDesktop.App\5.0.9\PresentationFramework.dll</HintPath>
-    </Reference>
-    <Reference Include="WindowsBase">
-      <HintPath>..\..\..\..\..\Program Files\dotnet\shared\Microsoft.WindowsDesktop.App\5.0.9\WindowsBase.dll</HintPath>
-    </Reference>-->
   </ItemGroup>
 
 </Project>
