@@ -305,6 +305,14 @@ namespace MachineClassLibrary.Machine.Machines
 
         public string VideoCaptureMessage => _videoCamera.VideoCaptureMessage;
 
+        public bool AdjustWidthToHeight
+        {
+            get => _videoCamera.AdjustWidthToHeight;
+            set
+            {
+                _videoCamera.AdjustWidthToHeight = value;
+            }
+        }
         public void StopSpindle()
         {
             _spindle.Stop();
@@ -352,7 +360,8 @@ namespace MachineClassLibrary.Machine.Machines
             {
                 if (valve.Value.axis == ax)
                 {
-                    OnValveStateChanged?.Invoke(this, new(valve.Key, (outs & (1 << (int)valve.Value.dOut)) != 0));
+                    var state = (outs & (1 << (int)valve.Value.dOut)) != 0;
+                    OnValveStateChanged?.Invoke(this, new(valve.Key, state));
                 }
             }
             if (_sensors is null) return;

@@ -1,4 +1,6 @@
 ﻿
+using Advantech.Motion;
+
 namespace MachineClassLibrary.Machine.MotionDevices
 {
     public struct MotionDeviceConfigs
@@ -12,6 +14,7 @@ namespace MachineClassLibrary.Machine.MotionDevices
         public int plsInSrc; // (int)PulseInSource.NOT_SUPPORT;
         public int plsOutMde; // (int)PulseOutMode.OUT_DIR;
         public int reset; // (int)HomeReset.HOME_RESET_EN;
+        public uint hLmtLogic;// (uint) HLmtLogic.HLMT_ACT_LOW
         public double acc;
         public double dec;
         public int jerk;

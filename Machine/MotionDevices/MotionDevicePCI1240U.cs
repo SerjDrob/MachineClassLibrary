@@ -172,6 +172,7 @@ private async Task DeviceStateMonitorAsync()
                     pLmt = (ioStatus & (uint)Ax_Motion_IO.AX_MOTION_IO_LMTP) > 0;
 
                     var sensorsState = 0;
+                    var outState = 0;
 
                     for (var channel = 0; channel < 4; channel++)
                     {
@@ -189,7 +190,13 @@ private async Task DeviceStateMonitorAsync()
                     sensorsState |= bridge;
 
 #if PCI1245
-                    Motion.mAcm_AxDoGetByte(ax, 0, ref bitData).CheckResult(ax);
+                    Motion.mAcm_AxDoGetByte(ax, 0, ref bitData).CheckResult(ax);//TODO fix it
+#else
+                    for (var channel = 4; channel < 8; channel++)
+                    {
+                        Motion.mAcm_AxDoGetBit(ax, (ushort)channel, ref bitData).CheckResult();
+                        outState = bitData != 0 ? outState.SetBit(channel) : outState.ResetBit(channel);
+                    }
 #endif
                     Motion.mAcm_AxGetCmdPosition(ax, ref cmdPosition).CheckResult(ax);
                     Motion.mAcm_AxGetActualPosition(ax, ref actPosition).CheckResult(ax);
@@ -208,7 +215,7 @@ private async Task DeviceStateMonitorAsync()
                         cmdPosition,
                         actPosition,
                         sensorsState,
-                        bitData,
+                        outState,
                         pLmt,
                         nLmt,
                         motionDone,
@@ -443,6 +450,9 @@ private async Task DeviceStateMonitorAsync()
             // result = Motion.mAcm_SetProperty(_mAxishand[axisNum], (uint)PropertyID.PAR_AxHomeVelHigh, ref homeVelHigh, 8); errors.Add(PropertyID.PAR_AxHomeVelHigh, result);
             _result = Motion.mAcm_SetProperty(_mAxishand[axisNum], (uint)PropertyID.CFG_AxSwPelEnable, ref buf, 4); _errors.Add(PropertyID.CFG_AxSwPelEnable, _result);
 
+            //uint l = 1;
+            _result = Motion.mAcm_SetProperty(_mAxishand[axisNum], (uint)PropertyID.CFG_AxElLogic, ref configs.hLmtLogic, 4); _errors.Add(PropertyID.CFG_AxElLogic, _result);
+            //_result = Motion.mAcm_SetProperty(_mAxishand[axisNum], (uint)PropertyID.CFG_AxInpLogic, ref l, 4); _errors.Add(PropertyID.CFG_AxInpLogic, _result);
 
 
             var errorText = new string("");

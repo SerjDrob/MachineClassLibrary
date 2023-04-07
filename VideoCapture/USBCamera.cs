@@ -154,16 +154,29 @@ namespace MachineClassLibrary.VideoCapture
         {
             return new FilterInfoCollection(FilterCategory.VideoInputDevice).Count;
         }
+       
+        public bool AdjustWidthToHeight { get; set; }
 
         private async void HandleNewFrame(object sender, NewFrameEventArgs eventArgs)
         {
+            
             var filter = new ContrastCorrection();
+            
+            Bitmap ApplyAdjustWidthIfEnable(Bitmap bitmap)
+            {
+                if (!AdjustWidthToHeight) return bitmap;
+                var width = eventArgs.Frame.Width;
+                var height = eventArgs.Frame.Height;
+                var x1 = (width - height) / 2;
+                var crop = new Crop(new Rectangle(x1, 0, height, height));
+                return crop.Apply(bitmap);
+            }
+
             try
             {
                 if (!_freezeImage)
                 {
-                  
-                    using var img = (Bitmap)eventArgs.Frame.Clone();
+                    using var img = ApplyAdjustWidthIfEnable((Bitmap)eventArgs.Frame.Clone());
                     filter.ApplyInPlace(img);
                     var ms = new MemoryStream();
                     img.Save(ms, ImageFormat.Bmp);

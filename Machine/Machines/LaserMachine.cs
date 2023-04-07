@@ -239,6 +239,15 @@ namespace MachineClassLibrary.Machine.Machines
 
         public string VideoCaptureMessage => _videoCapture.VideoCaptureMessage;
 
+        public bool AdjustWidthToHeight
+        {
+            get => _videoCapture.AdjustWidthToHeight;
+            set
+            {
+                _videoCapture.AdjustWidthToHeight = value;
+            }
+        }
+
         //public event EventHandler<BitmapEventArgs> OnVideoSourceBmpChanged;
 
         public void CloseMarkDevice()
