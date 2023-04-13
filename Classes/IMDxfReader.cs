@@ -4,37 +4,9 @@ using MachineClassLibrary.Laser.Entities;
 using System.Collections.Generic;
 using System.Linq;
 using System.Windows;
-using System;
 
 namespace MachineClassLibrary.Classes
 {
-
-    [Serializable]
-    public class DxfReaderException : Exception
-    {
-        public DxfReaderException() { }
-        public DxfReaderException(string message) : base(message) { }
-        public DxfReaderException(string message, Exception inner) : base(message, inner) { }
-        protected DxfReaderException(
-          System.Runtime.Serialization.SerializationInfo info,
-          System.Runtime.Serialization.StreamingContext context) : base(info, context) { }
-    }
-    static class IxMiliaExtensionHelper
-    {
-        public static (double x, double y) GetPolylineCenter(this IList<DxfLwPolylineVertex> vertices)
-        {
-            var xmax = vertices.Max(vertex => vertex.X);
-            var ymax = vertices.Max(vertex => vertex.Y);
-            var xmin = vertices.Min(vertex => vertex.X);
-            var ymin = vertices.Min(vertex => vertex.Y);
-            return ((xmax + xmin) / 2, (ymax + ymin) / 2);
-        }
-
-        public static Rect ToRect(this DxfBoundingBox? box)
-        {
-            return new Rect(box?.MinimumPoint.X ?? 0d, box?.MinimumPoint.Y ?? 0d, box?.Size.X ?? 0d, box?.Size.Y ?? 0d);
-        }
-    }
     public class IMDxfReader : IDxfReader
     {
         private const string TEMP_FILE_NAME = "tempcurve";
@@ -84,31 +56,6 @@ namespace MachineClassLibrary.Classes
             return lines.Concat(circles);
         }
 
-        //private IEnumerable<DxfLwPolyline> GetSelectedPolylinesFromLayer(Rect selection, string layerName)
-        //{
-        //    return _document.Entities.OfType<DxfLwPolyline>()
-        //        .Where(lw => lw.Layer == layerName && selection.Contains(lw.GetBoundingBox().ToRect()))
-        //        .ToArray();
-        //}
-        //private IEnumerable<DxfCircle> GetSelectedCirclesFromLayer(Rect selection, string layerName)
-        //{
-        //    return _document.Entities.OfType<DxfCircle>()
-        //        .Where(lw => lw.Layer == layerName && selection.Contains(lw.GetBoundingBox().ToRect()))
-        //        .ToArray();
-        //}
-        //private IEnumerable<DxfLwPolyline> GetUnSelectedPolylinesFromLayer(Rect selection, string layerName)
-        //{
-        //    return _document.Entities.OfType<DxfLwPolyline>()
-        //        .Where(lw => lw.Layer == layerName && !selection.Contains(lw.GetBoundingBox().ToRect()))
-        //        .ToArray();
-        //}
-        //private IEnumerable<DxfCircle> GetUnSelectedCirclesFromLayer(Rect selection, string layerName)
-        //{
-        //    return _document.Entities.OfType<DxfCircle>()
-        //        .Where(lw => lw.Layer == layerName && !selection.Contains(lw.GetBoundingBox().ToRect()))
-        //        .ToArray();
-        //}
-
         private IEnumerable<DxfEntity> GetUnselectedEntitiesFromLayer(Rect selection, string layerName)
         {
             return _document.Entities
@@ -132,7 +79,6 @@ namespace MachineClassLibrary.Classes
             return file;
         }
 
-
         private PCircle ConvertCircle(DxfCircle circle)
         {
             return new PCircle(circle.Center.X, circle.Center.Y, 0,
@@ -140,6 +86,10 @@ namespace MachineClassLibrary.Classes
         }
         private PCurve ConvertPolyline(DxfLwPolyline polyline)
         {
+            
+
+
+
             var center = polyline.Vertices.GetPolylineCenter();
 
             return new PCurve(center.x, center.y, 0,

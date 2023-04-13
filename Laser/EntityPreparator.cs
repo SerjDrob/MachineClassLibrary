@@ -63,7 +63,7 @@ namespace MachineClassLibrary.Laser
             {
                 if (procObject is PCircle circle)
                 {
-                    if (circle.PObject.Radius + _contourOffset > 0 || _contourWidth != 0)
+                    if (circle.PObject.Radius + _contourOffset > 0 || _contourWidth > 0)
                     {
                         var r1 = circle.PObject.Radius + _contourOffset;
                         var r2 = r1 + _contourWidth;
@@ -71,15 +71,26 @@ namespace MachineClassLibrary.Laser
                     }
                     else
                     {
-                        return (IShape)circle.PObject;
+                        return circle.PObject;
                     }
                 }
 
                 if (procObject is PCurve curve)
                 {
-                    return (IShape)RotatePCurve(curve);
+                    var initialCurve =  RotatePCurve(curve);
+                    if (_contourOffset != 0 || _contourWidth > 0)
+                    {
+                        var outerCurves = initialCurve.InflateCurve(_contourOffset);
+                        var innerCurves = outerCurves.SelectMany(curve=>curve.InflateCurve(-_contourWidth)); 
+                        var resultCurves = outerCurves.Concat(innerCurves).ToList();
+                        return new ContourRing { Curves = resultCurves };
+                    }
+                    else
+                    {
+                        return initialCurve;
+                    }
                 }
-                return null;
+                throw new ArgumentException($"The preparator can not to process {procObject.GetType().Name} entity"); 
             };
 
             //return new EntityFileHandler(_dxfReader, _folderPath).SaveEntityToFile(obj/*.Invoke(procObject)*/);
