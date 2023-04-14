@@ -4,34 +4,36 @@ using Clipper2Lib;
 using MachineClassLibrary.Laser.Entities;
 using netDxf.Entities;
 
-namespace MachineClassLibrary.Classes;
-internal static class CurveExtensions
+namespace MachineClassLibrary.Classes
 {
-    static IEnumerable<IEnumerable<PointD>> InflatePath(IEnumerable<double> path, double delta)
+    internal static class CurveExtensions
     {
-        var subj = new PathsD();
-        var mainPath = Clipper.MakePath(path.ToArray());
-        subj.Add(mainPath);
-        var solution = Clipper.InflatePaths(subj, delta, JoinType.Miter, EndType.Polygon);
-        var result = solution.Select(x => x.Select(point => point));
-        return result;
-    }
-
-    public static IEnumerable<Curve> InflateCurve(this Curve curve, double delta)
-    {
-        var lwVertices = curve.Vertices.Select(v => new LwPolylineVertex(v.X, v.Y, v.Bulge));
-        var lwPolyline = new LwPolyline(lwVertices);
-        var curvePath = lwPolyline.PolygonalVertexes(10, 0.005, 0.005).Aggregate(new List<double>(), (acc, prev) =>
+        static IEnumerable<IEnumerable<PointD>> InflatePath(IEnumerable<double> path, double delta)
         {
-            acc.Add(prev.X);
-            acc.Add(prev.Y);
-            return acc;
-        }, acc => acc.ToArray()); ;
+            var subj = new PathsD();
+            var mainPath = Clipper.MakePath(path.ToArray());
+            subj.Add(mainPath);
+            var solution = Clipper.InflatePaths(subj, delta, JoinType.Miter, EndType.Polygon);
+            var result = solution.Select(x => x.Select(point => point));
+            return result;
+        }
 
-        var paths = InflatePath(curvePath, delta);
-        var curves = paths.Select(x => x.Select(point => (point.x, point.y, 0d)))
-            .Select(vert => new Curve(vert, true));
-        return curves;
+        public static IEnumerable<Curve> InflateCurve(this Curve curve, double delta)
+        {
+            var lwVertices = curve.Vertices.Select(v => new LwPolylineVertex(v.X, v.Y, v.Bulge));
+            var lwPolyline = new LwPolyline(lwVertices);
+            var curvePath = lwPolyline.PolygonalVertexes(100, 0.0005, 0.0005).Aggregate(new List<double>(), (acc, prev) =>
+            {
+                acc.Add(prev.X);
+                acc.Add(prev.Y);
+                return acc;
+            }, acc => acc.ToArray()); ;
+
+            var paths = InflatePath(curvePath, delta);
+            var curves = paths.Select(x => x.Select(point => (point.x, point.y, 0d)))
+                .Select(vert => new Curve(vert, true));
+            return curves;
+        }
     }
 }
 

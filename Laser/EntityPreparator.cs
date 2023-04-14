@@ -61,18 +61,14 @@ namespace MachineClassLibrary.Laser
 
             Func<IProcObject, IShape> foo = procObject =>
             {
+
                 if (procObject is PCircle circle)
                 {
-                    if (circle.PObject.Radius + _contourOffset > 0 || _contourWidth > 0)
-                    {
-                        var r1 = circle.PObject.Radius + _contourOffset;
-                        var r2 = r1 + _contourWidth;
-                        return new Ring { Radius1 = r1, Radius2 = r2 };
-                    }
-                    else
-                    {
-                        return circle.PObject;
-                    }
+                    if (circle.PObject.Radius + _contourOffset <= 0 | (_contourOffset == 0 & _contourWidth == 0)) return circle.PObject;
+
+                    var r1 = circle.PObject.Radius + _contourOffset;
+                    var r2 = r1 + _contourWidth;
+                    return new Ring { Radius1 = r1, Radius2 = r2 };
                 }
 
                 if (procObject is PCurve curve)
