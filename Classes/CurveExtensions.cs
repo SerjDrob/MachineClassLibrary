@@ -12,7 +12,7 @@ internal static class CurveExtensions
         var subj = new PathsD();
         var mainPath = Clipper.MakePath(path.ToArray());
         subj.Add(mainPath);
-        var solution = Clipper.InflatePaths(subj, delta, JoinType.Miter, EndType.Polygon);
+        var solution = Clipper.InflatePaths(subj, delta, JoinType.Round, EndType.Polygon);
         var result = solution.Select(x => x.Select(point => point));
         return result;
     }
@@ -21,12 +21,12 @@ internal static class CurveExtensions
     {
         var lwVertices = curve.Vertices.Select(v => new LwPolylineVertex(v.X, v.Y, v.Bulge));
         var lwPolyline = new LwPolyline(lwVertices);
-        var curvePath = lwPolyline.PolygonalVertexes(10, 0.005, 0.005).Aggregate(new List<double>(), (acc, prev) =>
+        var curvePath = lwPolyline.PolygonalVertexes(0, 0.001, 0.001).Aggregate(new List<double>(), (acc, prev) =>
         {
             acc.Add(prev.X);
             acc.Add(prev.Y);
             return acc;
-        }, acc => acc.ToArray()); ;
+        }, acc => acc.ToArray()); 
 
         var paths = InflatePath(curvePath, delta);
         var curves = paths.Select(x => x.Select(point => (point.x, point.y, 0d)))
