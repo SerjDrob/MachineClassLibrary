@@ -198,5 +198,10 @@ namespace MachineClassLibrary.SFC
             _serialPort.Dispose();
             _client.Dispose();
         }
+
+        public void Connect()
+        {
+            throw new NotImplementedException();
+        }
     }
 }

@@ -278,7 +278,14 @@ namespace MachineClassLibrary.Machine.Machines
 
         public void SetSpindleFreq(int frequency)
         {
-            _spindle.SetSpeed((ushort)frequency);
+            try
+            {
+                _spindle.SetSpeed((ushort)frequency);
+            }
+            catch (SpindleException ex)
+            {
+                throw new MachineException($"Setting of the spindle speed has fallen with {ex.Message}", ex);
+            }
         }
 
         public void StartSpindle(params Sensors[] blockers)
@@ -377,6 +384,19 @@ namespace MachineClassLibrary.Machine.Machines
         public void InvokeSettings()
         {
             throw new NotImplementedException();
+        }
+
+        public bool TryConnectSpindle()
+        {
+            try
+            {
+                _spindle.Connect();
+                return true;
+            }
+            catch (Exception)
+            {
+                return false;                
+            }
         }
 
         public class GeometryBuilder<TPlace> : IGeometryBuilder<TPlace> where TPlace : Enum

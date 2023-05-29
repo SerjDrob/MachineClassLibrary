@@ -4,6 +4,10 @@ namespace MachineClassLibrary.SFC
 {
     public class SpindleEventArgs : EventArgs
     {
+        public SpindleEventArgs()
+        {
+            
+        }
         public SpindleEventArgs(int rpm, double current, bool onFreq, bool accelerating, bool deccelarating, bool stop)
         {
             Rpm = rpm;
@@ -20,5 +24,6 @@ namespace MachineClassLibrary.SFC
         public bool Accelerating { get; init; }// = false;
         public bool Deccelarating { get; init; }// = false;
         public bool Stop { get; init; } //= true;
+        public bool IsOk { get; set; }
     }
 }
