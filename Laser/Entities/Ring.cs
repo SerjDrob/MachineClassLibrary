@@ -1,4 +1,5 @@
-﻿using System.Windows;
+﻿using System.Collections;
+using System.Windows;
 
 namespace MachineClassLibrary.Laser.Entities
 {

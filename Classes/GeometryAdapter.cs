@@ -71,7 +71,6 @@ namespace MachineClassLibrary.Classes
                         )
                 );
         }
-
         public static SolidColorBrush GetColorFromArgb(int argb)
         {
             var rgbValues = BitConverter.GetBytes(argb);

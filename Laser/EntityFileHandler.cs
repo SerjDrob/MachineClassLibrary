@@ -3,6 +3,8 @@ using MachineClassLibrary.Laser.Entities;
 //using netDxf.Entities;
 using System;
 using System.IO;
+using System.Linq;
+using System.Net.NetworkInformation;
 
 namespace MachineClassLibrary.Laser
 {
@@ -14,6 +16,7 @@ namespace MachineClassLibrary.Laser
         const string CURVE_PREFIX = "Curve_";
         const string CIRCLE_PREFIX = "Circle_";
         const string RING_PREFIX = "Ring_";
+        const string CONTRING_PREFIX = "ContourRing_";
         public string FilePath { get => _path; }
         public EntityFileHandler(IDxfReader dxfReader, string folderPath)
         {
@@ -28,9 +31,19 @@ namespace MachineClassLibrary.Laser
                 Curve curve => WriteTransformCurve(curve),
                 Circle circle => WriteTransformCircle(circle),
                 Ring ring => WriteTransformRing(ring),
+                ContourRing contourRing => WriteTransformContourRing(contourRing),
                 _ => throw new ArgumentException($"I can not save this type '{shape.GetType().Name}' of entity yet.")
             };
             return this;
+        }
+
+        private string WriteTransformContourRing(ContourRing contourRing)
+        {
+            var filename = $"{CONTRING_PREFIX}{Guid.NewGuid()}.dxf";
+            var filePath = Path.Combine(_folderPath, filename);
+
+            _dxfReader.WriteShapesToFile(filePath, contourRing.Curves.ToArray());
+            return filePath;
         }
 
         private string WriteTransformRing(Ring ring)

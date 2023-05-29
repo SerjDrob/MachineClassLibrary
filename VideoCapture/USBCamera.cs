@@ -4,6 +4,7 @@ using AForge.Video.DirectShow;
 using Microsoft.Toolkit.Diagnostics;
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Drawing;
 using System.Drawing.Imaging;
 using System.IO;
@@ -152,7 +153,8 @@ namespace MachineClassLibrary.VideoCapture
 
         public int GetVideoCaptureDevicesCount()
         {
-            return new FilterInfoCollection(FilterCategory.VideoInputDevice).Count;
+            var collection = new FilterInfoCollection(FilterCategory.VideoInputDevice);
+            return collection.Count;
         }
        
         public bool AdjustWidthToHeight { get; set; }
