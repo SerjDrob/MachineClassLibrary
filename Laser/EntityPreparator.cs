@@ -76,7 +76,7 @@ namespace MachineClassLibrary.Laser
                     var initialCurve =  RotatePCurve(curve);
                     if (_contourOffset != 0 || _contourWidth > 0)
                     {
-                        var outerCurves = initialCurve.InflateCurve(_contourOffset);
+                        var outerCurves = _contourOffset != 0 ? initialCurve.InflateCurve(_contourOffset) : Enumerable.Repeat(initialCurve,1);
                         var innerCurves = outerCurves.SelectMany(curve=>curve.InflateCurve(-_contourWidth)); 
                         var resultCurves = outerCurves.Concat(innerCurves).ToList();
                         return new ContourRing { Curves = resultCurves };

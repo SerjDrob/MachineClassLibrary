@@ -62,6 +62,11 @@ namespace MachineClassLibrary.Laser.Markers
             return Task.FromResult(true);
         }
 
+        public bool SetDevConfig()
+        {
+            throw new NotImplementedException();
+        }
+
         public void SetExtMarkParams(ExtParamsAdapter paramsAdapter)
         {
             throw new NotImplementedException();

@@ -42,7 +42,11 @@ namespace MachineClassLibrary.Laser
         public static extern int lmc1_Initial(string strEzCadPath, int bTestMode, IntPtr hOwenWnd);
 
 
-
+        /// <summary>
+        /// µГµЅЙи±ёІОКэЕдЦГ¶Ф»°їт  
+        /// </summary> 
+        [DllImport("MarkEzd", EntryPoint = "lmc1_SetDevCfg", CharSet = CharSet.Unicode, CallingConvention = CallingConvention.StdCall)]
+        public static extern int SetDevCfg();
 
         #endregion
 
@@ -177,27 +181,27 @@ namespace MachineClassLibrary.Laser
             0,
             0);
 
-        public static int SetPenParams(PenParams penParams) => Lmc.lmc1_SetPenParam(penParams.PenNo,
-                                              penParams.MarkLoop,
-                                              penParams.MarkSpeed,
-                                              penParams.PowerRatio,
-                                              penParams.Current,
-                                              penParams.Freq,
-                                              penParams.QPulseWidth,
-                                              penParams.StartTC,
-                                              penParams.LaserOnTC,
-                                              penParams.LaserOffTC,
-                                              penParams.EndTC,
-                                              penParams.PolyTC,
-                                              penParams.JumpSpeed,
-                                              penParams.JumpPosTC,
-                                              penParams.JumpDistTC,
-                                              penParams.EndComp,
-                                              penParams.AccDist,
-                                              penParams.PointTime,
-                                              penParams.PulsePointMode,
-                                              penParams.PulseNum,
-                                              penParams.FlySpeed);
+        public static int SetPenParams(PenParams penParams) => SetPenParam(
+                                              nPenNo: penParams.PenNo,
+                                              nMarkLoop: penParams.MarkLoop,
+                                              dMarkSpeed: penParams.MarkSpeed,
+                                              dPowerRatio: penParams.PowerRatio,
+                                              dCurrent: penParams.Current,
+                                              nFreq: penParams.Freq,
+                                              dQPulseWidth: penParams.QPulseWidth,
+                                              nStartTC: penParams.StartTC,
+                                              nLaserOffTC: penParams.LaserOffTC,
+                                              nEndTC: penParams.EndTC,
+                                              nPolyTC: penParams.PolyTC,
+                                              dJumpSpeed: penParams.JumpSpeed,
+                                              nJumpPosTC: penParams.JumpPosTC,
+                                              nJumpDistTC: penParams.JumpDistTC,
+                                              dEndComp: penParams.EndComp,
+                                              dAccDist: penParams.AccDist,
+                                              dPointTime: penParams.PointTime,
+                                              bPulsePointMode: penParams.PulsePointMode,
+                                              nPulseNum: penParams.PulseNum,
+                                              dFlySpeed: penParams.FlySpeed);
         #endregion
 
 
@@ -251,6 +255,30 @@ namespace MachineClassLibrary.Laser
                                                     int nPulseNum,  //the number of pulse
                                                     double dFlySpeed    //speed of production line
                                                 );
+
+
+        [DllImport("MarkEzd", EntryPoint = "lmc1_SetPenParam", CharSet = CharSet.Unicode, CallingConvention = CallingConvention.StdCall)]
+        public static extern int SetPenParam(int nPenNo,
+                            int nMarkLoop,
+                            double dMarkSpeed,
+                            double dPowerRatio,
+                            double dCurrent,
+                            int nFreq,
+                            double dQPulseWidth,
+                            int nStartTC,
+                            int nLaserOffTC,
+                            int nEndTC,
+                            int nPolyTC,
+                            double dJumpSpeed,
+                            int nJumpPosTC,
+                            int nJumpDistTC,
+                            double dEndComp,
+                            double dAccDist,
+                            double dPointTime,
+                            bool bPulsePointMode,
+                            int nPulseNum,
+                            double dFlySpeed);
+
 
         [DllImport("MarkEzd.dll", EntryPoint = "lmc1_MarkEntity", CharSet = CharSet.Unicode, CallingConvention = CallingConvention.Cdecl)]
         public static extern int lmc1_MarkEntity(string pEntName);

@@ -15,6 +15,7 @@ namespace MachineClassLibrary.Laser
         public void SetMarkParams(MarkLaserParams markLaserParams);
 
         public void SetExtMarkParams(ExtParamsAdapter paramsAdapter);
+        public bool SetDevConfig();
 
         public Task<bool> PierceObjectAsync(IPerforating perforator);
         //public Task<bool> PierceHatchRingAsync(double outerD, double width);
