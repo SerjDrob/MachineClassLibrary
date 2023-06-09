@@ -1,50 +1,51 @@
-﻿using System;
-using System.IO.Ports;
-using System.Threading.Tasks;
+﻿using Advantech.Motion;
 using EasyModbus.Exceptions;
 using Modbus.Device;
+using System;
+using System.IO.Ports;
+using System.Threading.Tasks;
 
 namespace MachineClassLibrary.SFC
 {
     public class CommanderSK : ISpindle, IDisposable
     {
-        /// <summary>
-        ///     300 Hz = 18000 rpm
-        /// </summary>
-        private const ushort LowFreqLimit = 3000;
-
-        /// <summary>
-        ///     550 Hz = 33000 rpm
-        /// </summary>
-        private const ushort HighFreqLimit = 5500;
-
+       
+        private readonly ushort LowFreqLimit;
+        private readonly ushort HighFreqLimit;
         private readonly object _modbusLock = new();
+        private readonly string _comPort;
+        private readonly uint _baudRate;
+        private readonly SpindleParams _spindleParams;
         private ModbusSerialMaster _client;
         private SerialPort _serialPort;
 
-        // TODO wait o cancel in the end, NEVER forget Tasks
+        // TODO wait or cancel in the end, NEVER forget Tasks
         private Task _watchingStateTask;
 
-        public CommanderSK()
+        public CommanderSK(string comPort, uint baudRate, SpindleParams spindleParams)
         {
-            if (EstablishConnection("COM1"))
+            _comPort = comPort;
+            _baudRate = baudRate;
+            _spindleParams = spindleParams;
+            LowFreqLimit = _spindleParams.MinFreq;
+            HighFreqLimit = _spindleParams.MaxFreq;
+        }
+
+        public void Connect()
+        {
+            if (EstablishConnection(_comPort, _baudRate))
             {
                 _watchingStateTask = WatchingStateAsync();
-                if (CheckSpindleWorking())
-                {
-                    return;
-                }
+                if (CheckSpindleWorking()) return;
                 if (!SetParams()) throw new SpindleException("SetParams is failed");
             }
         }
-
         private bool CheckSpindleWorking()
         {
             lock (_modbusLock)
             {
-                var data = _client.ReadHoldingRegisters(1, 0xD000, 1);
-
-                return data[0] != 0;
+                var data = _client.ReadHoldingRegisters(1, 0x43E9, 2);//Pr10.02
+                return data[1] != 0;
             }
         }
 
@@ -56,14 +57,17 @@ namespace MachineClassLibrary.SFC
 
         public void SetSpeed(ushort rpm)
         {
-            if (!(rpm / 6 > LowFreqLimit && rpm / 6 < HighFreqLimit))
+            if (!(rpm / 60 > LowFreqLimit && rpm / 60 < HighFreqLimit))
             {
-                throw new SpindleException($"{rpm}rpm is out of ({LowFreqLimit * 6},{HighFreqLimit * 6}) rpm range");
+                throw new SpindleException($"{rpm} rpm is out of ({LowFreqLimit * 60},{HighFreqLimit * 60}) rpm range");
             }
             rpm = (ushort)Math.Abs(rpm / 6);
             lock (_modbusLock)
             {
-                _client.WriteSingleRegister(1, 106, rpm);
+                var high = rpm;
+                var low = (ushort)(rpm - 5);
+                _client.WriteMultipleRegisters(1, 0x4069,
+                    new ushort[] { 0, high, 0, low });//Pr01.06 - high limit of speed, Pr01.07 - low limit of speed
             }
         }
 
@@ -71,7 +75,7 @@ namespace MachineClassLibrary.SFC
         {
             lock (_modbusLock)
             {
-                _client.WriteSingleRegister(1, 0x1001, 0x0001);
+                _client.WriteMultipleRegisters(1, 0x4279, new ushort[] { 0, 1 });//Pr6.34
                 _hasStarted = true;
             }
         }
@@ -81,62 +85,62 @@ namespace MachineClassLibrary.SFC
         {
             lock (_modbusLock)
             {
-                _client.WriteSingleRegister(1, 0x1001, 0x0003);
+                _client.WriteMultipleRegisters(1, 0x4279, new ushort[] { 0, 0 });//Pr6.34
                 _hasStarted = false;
             }
         }
 
-        private bool EstablishConnection(string com)
+        private bool EstablishConnection(string com, uint baudRate)
         {
             _serialPort = new SerialPort
             {
                 PortName = com,
-                BaudRate = 9600,
-                Parity = Parity.Even,
+                BaudRate = (int)baudRate,
+                Parity = Parity.None,
                 WriteTimeout = 1000,
-                ReadTimeout = 100
+                ReadTimeout = 500
             };
 
             _serialPort.Open();
             if (_serialPort.IsOpen)
             {
                 _client = ModbusSerialMaster.CreateRtu(_serialPort);
+                return IsConnected = true;
             }
             else
             {
                 return false;
             }
-
-            return IsConnected = true;
         }
 
         private async Task WatchingStateAsync()
         {
-            ushort[] data = default;
-            bool onFreq = false;
-            bool acc = false;
-            bool dec = false;
-            bool stop = false;
-
             while (true)
             {
                 try
                 {
-                    int current;
-                    int freq;
                     lock (_modbusLock)
                     {
-                        data = _client.ReadHoldingRegisters(1, 0xD000, 2);
-                        current = data[1];
-                        freq = data[0];
-                        data = _client.ReadHoldingRegisters(1, 0x2000, 1);
-                        onFreq = data[0] == 0x0001 | data[0] == 0x0002;
-                        acc = data[0] == 0x0011 | data[0] == 0x0012;
-                        dec = data[0] == 0x0014 | data[0] == 0x0015;
-                        stop = data[0] == 0x0003;
-                    }
+                        var freq = _client.ReadHoldingRegisters(1, 0x41F4, 2)[1];//Pr5.01
+                        var current = _client.ReadHoldingRegisters(1, 0x4190, 2)[1];
+                        var onFreq = _client.ReadHoldingRegisters(1, 0x43ED, 2)[1] == 1;
+                        var stop = _client.ReadHoldingRegisters(1, 0x43EA, 2)[1] == 1;
+                        var acc = !stop & !onFreq & _hasStarted;
+                        var dec = !stop & !onFreq & !_hasStarted;
+                        var isOk = _client.ReadHoldingRegisters(1, 0x43E8, 2)[1] == 1;
 
-                    GetSpindleState?.Invoke(this, new SpindleEventArgs(freq * 6, (double)current / 10, onFreq, acc, dec, stop));
+                        GetSpindleState?.Invoke(this,
+                            new SpindleEventArgs
+                            {
+                                Rpm = freq * 6,
+                                Current = current / 100d,
+                                OnFreq = onFreq,
+                                Accelerating = acc,
+                                Deccelarating = dec,
+                                Stop = stop,
+                                IsOk = isOk
+                            });
+                    }
                 }
                 catch (ModbusException)
                 {
@@ -152,40 +156,10 @@ namespace MachineClassLibrary.SFC
         {
             lock (_modbusLock)
             {
-                _client.WriteMultipleRegisters(1, 0x0000, new ushort[]
-                {
-                    0,
-                    5000,
-                    2,
-                    LowFreqLimit, //500,//lower limiting frequency/10
-                    HighFreqLimit, //upper limiting frequency/10
-                    900 //acceleration time/10
-                });
-
-                _client.WriteMultipleRegisters(1, 0x000B, new ushort[]
-                {
-                    60, //torque boost/10, 0.0 - 20.0%
-                    5200, //basic running frequency/10
-                    50 //maximum output voltage 50 - 500V
-                });
-
-                _client.WriteMultipleRegisters(1, 0x020F, new ushort[]
-                {
-                    4999, //f3/10
-                    30 //V3
-                });
-
-                _client.WriteMultipleRegisters(1, 0x020D, new ushort[]
-                {
-                    1200, //f2/10
-                    20 //V2
-                });
-
-                _client.WriteMultipleRegisters(1, 0x020B, new ushort[]
-                {
-                    800, //f1/10
-                    10 //V1
-                });
+                _client.WriteMultipleRegisters(1, 0x40D2, new ushort[] { 0, (ushort)(10 * _spindleParams.Acc) });//Pr2.11
+                _client.WriteMultipleRegisters(1, 0x40DC, new ushort[] { 0, (ushort)(10 * _spindleParams.Dec) });//Pr2.21
+                _client.WriteMultipleRegisters(1, 0x41FC, new ushort[] { 0, _spindleParams.RatedVoltage });//Pr5.09
+                _client.WriteMultipleRegisters(1, 0x41FA, new ushort[] { 0, (ushort)(100 * _spindleParams.RatedCurrent) });//Pr5.07
             }
 
             return true;

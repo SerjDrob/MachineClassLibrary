@@ -10,6 +10,7 @@ namespace MachineClassLibrary.SFC
         public void SetSpeed(ushort rpm);
         public void Start();
         public void Stop();
+        void Connect();
 
         /// <summary>
         ///     Gets frequency, current, spinning state

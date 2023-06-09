@@ -104,5 +104,10 @@ namespace MachineClassLibrary.SFC
         public void Dispose()
         {
         }
+
+        public void Connect()
+        {
+            throw new NotImplementedException();
+        }
     }
 }

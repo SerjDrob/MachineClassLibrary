@@ -96,5 +96,10 @@ namespace MachineClassLibrary.SFC
                 }
             });
         }
+
+        public void Connect()
+        {
+            throw new NotImplementedException();
+        }
     }
 }

@@ -12,6 +12,11 @@ namespace MachineClassLibrary.SFC
 
         public event EventHandler<SpindleEventArgs> GetSpindleState;
 
+        public void Connect()
+        {
+            throw new NotImplementedException();
+        }
+
         public void Dispose()
         {
             //throw new NotImplementedException();
