@@ -70,6 +70,5 @@ namespace MachineClassLibrary.Laser.Entities
         }
 
         IProcObject IProcObject.CloneWithPosition(double x, double y) => CloneWithPosition(x, y);
-        
     }
 }

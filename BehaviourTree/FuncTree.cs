@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Threading;
 using System.Threading.Tasks;
 
 namespace MachineClassLibrary.BehaviourTree
@@ -13,35 +14,36 @@ namespace MachineClassLibrary.BehaviourTree
         {
             _myTask = func;
         }
-        public static FuncTree SetFunc(Func<Task> func) => new FuncTree(func);
-        public static MakeLoop StartLoop(int count) => new MakeLoop(count);
+        public static FuncTree SetFunc(Func<Task> func) => new(func);
+        public static MakeLoop StartLoop(int count, CancellationToken cancellationToken = new()) => new(count, cancellationToken);
         public class MakeLoop
         {
-            public MakeLoop(int count)
+            private readonly List<FuncTree> _children = new();
+            private readonly int _count;
+            private readonly CancellationToken _cancellationToken;
+            public MakeLoop(int count, CancellationToken cancellationToken)
             {
+                _cancellationToken = cancellationToken;
                 _count = count;
             }
-            private List<FuncTree> _children = new();
-            private readonly int _count;
-
             public MakeLoop AddChild(FuncTree child)
             {
                 _children.Add(child);
                 return this;
             }
-            public FuncTree EndLoop
+            public FuncTree EndLoop => new(async () =>
             {
-                get => new FuncTree(async () =>
+                if (_cancellationToken.IsCancellationRequested) return;
+                for (var i = 0; i < _count; i++)
                 {
-                    for (int i = 0; i < _count; i++)
+                    if (_cancellationToken.IsCancellationRequested) return;
+                    foreach (var item in _children)
                     {
-                        foreach (var item in _children)
-                        {
-                            await item.DoFuncAsync();
-                        }
+                        if (_cancellationToken.IsCancellationRequested) return;
+                        await item.DoFuncAsync();
                     }
-                });
-            }
+                }
+            });
         }
     }    
 }
