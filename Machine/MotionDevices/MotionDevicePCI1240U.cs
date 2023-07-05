@@ -68,6 +68,8 @@ namespace MachineClassLibrary.Machine.MotionDevices
                 Motion.mAcm_AxSetCmdPosition(_mAxishand[i], cmdPosition).CheckResult(i);
                 Motion.mAcm_AxSetActualPosition(_mAxishand[i], cmdPosition).CheckResult(i);
 
+
+
                 axisEnableEvent[i] |= (uint)EventType.EVT_AX_MOTION_DONE;
                 axisEnableEvent[i] |= (uint)EventType.EVT_AX_VH_START;
                 axisEnableEvent[i] |= (uint)EventType.EVT_AX_VH_END;
@@ -431,8 +433,6 @@ private async Task DeviceStateMonitorAsync()
 
             //double homeVelLow = configs.homeVelLow;
             //double homeVelHigh = configs.homeVelHigh;
-
-           
 
             _result = Motion.mAcm_SetProperty(_mAxishand[axisNum], (uint)PropertyID.CFG_AxHomeResetEnable, ref configs.reset, 4); _errors.Add(PropertyID.CFG_AxHomeResetEnable, _result);
             _result = Motion.mAcm_SetProperty(_mAxishand[axisNum], (uint)PropertyID.CFG_AxPPU, ref ppu, 4); _errors.Add(PropertyID.CFG_AxPPU, _result);
