@@ -24,7 +24,8 @@ namespace MachineClassLibrary.Laser.Markers
 
         public void CloseMarkDevice()
         {
-            var result = Lmc.lmc1_Close();
+            //var result = Lmc.lmc1_Close();
+            var result = JczLmc.Close();
             if (result != 0) throw new Exception($"The device closing failed with error code {(Lmc.EzCad_Error_Code)result}");
             else IsMarkDeviceInit = false;
         }
@@ -32,8 +33,8 @@ namespace MachineClassLibrary.Laser.Markers
         public async Task<bool> InitMarkDevice(string initDirPath)
         {
             IntPtr Handle = new WindowInteropHelper(new Window()).Handle;
-            var result = Lmc.lmc1_Initial(initDirPath, 0, Handle);
-
+            //var result = Lmc.lmc1_Initial(initDirPath, 0, Handle);
+            var result = JczLmc.InitializeTotal(initDirPath, false, Handle);
             if (result != 0)
             {
                 throw new Exception($"The device opening failed with error code {(Lmc.EzCad_Error_Code)result}");
@@ -54,11 +55,12 @@ namespace MachineClassLibrary.Laser.Markers
 
             //}
 
-            var result = Lmc.SetPenParams(_markLaserParams.PenParams) == 0;
-
+            //var result = Lmc.SetPenParams(_markLaserParams.PenParams) == 0;
+            var result = JczLmc.SetPenParams(_markLaserParams.PenParams) == 0;
             if (await _pwm.SetPWM(50000, 5, 1000, 50))
             {
-                result = Lmc.lmc1_MarkLine(x1, y1, x2, y2, 0) == 0;
+                //result = Lmc.lmc1_MarkLine(x1, y1, x2, y2, 0) == 0;
+                result = JczLmc.MarkLine(x1, y1, x2, y2, 0) == 0;
                 if (!await _pwm.StopPWM())
                 {
 
@@ -76,10 +78,28 @@ namespace MachineClassLibrary.Laser.Markers
 
         public async Task<bool> PierceDxfObjectAsync(string filePath)
         {
-            var result = Lmc.SetPenParams(_markLaserParams.PenParams);
-            result = Lmc.SetHatchParams(_markLaserParams.HatchParams);
-            result = Lmc.lmc1_AddFileToLib(filePath, "ProcEntity", 0, 0, 0, 0, 1, _markLaserParams.PenParams.PenNo, _markLaserParams.HatchParams.EnableHatch);
+            //var result = Lmc.SetPenParams(_markLaserParams.PenParams);
+            //result = Lmc.SetHatchParams(_markLaserParams.HatchParams);
+
+            //result = Lmc.lmc1_AddFileToLib(filePath, "ProcEntity", 0, 0, 0, 0, 1, _markLaserParams.PenParams.PenNo, _markLaserParams.HatchParams.EnableHatch);
             //Lmc.lmc1_SaveEntLibToFile("D:/TestFile.ezd");
+
+            var result = JczLmc.SetPenParams(_markLaserParams.PenParams);
+            result = JczLmc.SetHatchParams(_markLaserParams.HatchParams);
+
+            result = JczLmc.AddFileToLib(
+                strFileName: filePath, 
+                strEntName: "ProcEntity", 
+                dPosX: 0, 
+                dPosY: 0, 
+                dPosZ: 0, 
+                nAlign: 0, 
+                dRatio: 1, 
+                nPenNo: _markLaserParams.PenParams.PenNo, 
+                bHatchFile: _markLaserParams.HatchParams.EnableHatch ? 1:0);
+
+            JczLmc.SaveEntLibToFile("D:/TestFile.ezd");
+
             if (_markLaserParams.PenParams.IsModulated)
             {
                 var freq = _markLaserParams.PenParams.Freq;
@@ -94,26 +114,37 @@ namespace MachineClassLibrary.Laser.Markers
             }
             await Task.Run(async () =>
             {
-                var result = (Lmc.EzCad_Error_Code)Lmc.lmc1_MarkEntity("ProcEntity");
+                //var result = (Lmc.EzCad_Error_Code)Lmc.lmc1_MarkEntity("ProcEntity");
+                //if (!await _pwm.StopPWM())
+                //{
+
+                //}
+                //if (!result.HasFlag(Lmc.EzCad_Error_Code.LMC1_ERR_SUCCESS) & !result.HasFlag(Lmc.EzCad_Error_Code.LMC1_ERR_USERSTOP))
+                //{
+                //    Lmc.lmc1_DeleteEnt("ProcEntity");
+                //    throw new OperationCanceledException($"Marking failed with code {(Lmc.EzCad_Error_Code)result}");
+                //}
+
+                var result = (JczLmc.EzCad_Error_Code)JczLmc.MarkEntity("ProcEntity");
                 if (!await _pwm.StopPWM())
                 {
 
                 }
-                if (!result.HasFlag(Lmc.EzCad_Error_Code.LMC1_ERR_SUCCESS) & !result.HasFlag(Lmc.EzCad_Error_Code.LMC1_ERR_USERSTOP))
+                if (!result.HasFlag(JczLmc.EzCad_Error_Code.LMC1_ERR_SUCCESS) & !result.HasFlag(JczLmc.EzCad_Error_Code.LMC1_ERR_USERSTOP))
                 {
-                    Lmc.lmc1_DeleteEnt("ProcEntity");
+                    JczLmc.DeleteEnt("ProcEntity");
                     throw new OperationCanceledException($"Marking failed with code {(Lmc.EzCad_Error_Code)result}");
                 }
             }
             );
-            Lmc.lmc1_DeleteEnt("ProcEntity");
+            JczLmc.DeleteEnt("ProcEntity");
             
             return true;
         }
 
         public async Task<bool> PiercePointAsync(double x = 0, double y = 0)
         {
-            return await Task.FromResult(Lmc.lmc1_MarkPoint(x, y, 0, 0) == 0);
+            return await Task.FromResult(JczLmc.MarkPoint(x, y, 0, 0) == 0);
         }
 
         public void SetExtMarkParams(ExtParamsAdapter paramsAdapter)
@@ -129,6 +160,10 @@ namespace MachineClassLibrary.Laser.Markers
             var result = Lmc.lmc1_SetFontParam("Cambria", textSize, 0.625 * textSize, 0, 0, 0, false);
             result += Lmc.SetPenParams(penparams);
             result += Lmc.lmc1_AddTextToLib(text, "text", 0, 0, 0, 8, angle, 0, true);
+
+
+
+
             if (result!= 0) return false;
             if (_markLaserParams.PenParams.IsModulated)
             {
@@ -160,19 +195,22 @@ namespace MachineClassLibrary.Laser.Markers
         }
         public void SetMarkDeviceParams()
         {
-            Lmc.lmc1_SetDevCfg2(false, false);
+            //Lmc.lmc1_SetDevCfg2(false, false);
+            JczLmc.SetDevCfg2(false, false);
         }
 
         public void SetMarkParams(MarkLaserParams markLaserParams)
         {
             _markLaserParams = markLaserParams;
 
-            var result = Lmc.SetPenParams(markLaserParams.PenParams);
+            //var result = Lmc.SetPenParams(markLaserParams.PenParams);
+            var result = JczLmc.SetPenParams(markLaserParams.PenParams);
             if (result != 0)
             {
                 throw new Exception($"The device opening failed with error code {(Lmc.EzCad_Error_Code)result}");
             }
-            result = Lmc.SetHatchParams(markLaserParams.HatchParams);
+            //result = Lmc.SetHatchParams(markLaserParams.HatchParams);
+            result = JczLmc.SetHatchParams(markLaserParams.HatchParams);
             if (result != 0)
             {
                 throw new Exception($"The device opening failed with error code {(Lmc.EzCad_Error_Code)result}");
@@ -188,9 +226,16 @@ namespace MachineClassLibrary.Laser.Markers
 
         public async Task<bool> CancelMarkingAsync()
         {
-            var result = Lmc.lmc1_CancelMark();
+            //var result = Lmc.lmc1_CancelMark();
+            var result = await Task.FromResult(JczLmc.StopMark());
             return await _pwm.StopPWM();
             //if (result != 0) throw new Exception($"Cancelling of marking failed with error code {(Lmc.EzCad_Error_Code)result}");
+        }
+
+        public bool SetDevConfig()
+        {
+            //return Lmc.SetDevCfg() == 0;
+            return JczLmc.SetDevCfg() == 0;
         }
     }
 }

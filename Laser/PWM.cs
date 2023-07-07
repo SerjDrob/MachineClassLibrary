@@ -112,7 +112,7 @@ namespace MachineClassLibrary.Laser
 
         public async Task<bool> SetPWM(int freq, int dutyCycle1, int modFreq, int dutyCycle2)
         {
-            if (!_serialPort.IsOpen) return false;
+            if (!_serialPort?.IsOpen ?? true) return false;
             if (!IsInRange(freq, FREQ_RANGE.bottom, FREQ_RANGE.top))
             {
                 throw new ArgumentException($"the frequency must be in range [{FREQ_RANGE.bottom}, {FREQ_RANGE.top}] Hz");

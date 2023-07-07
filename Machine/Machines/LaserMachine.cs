@@ -361,6 +361,11 @@ namespace MachineClassLibrary.Machine.Machines
             _videoCapture?.InvokeSettings();
         }
 
+        public bool SetDevConfig()
+        {
+            return _markLaser.SetDevConfig();
+        }
+
         public class GeometryBuilder<TPlace> : IGeometryBuilder<TPlace> where TPlace : Enum
         {
             private Dictionary<TPlace, (Ax axis, double pos)[]> _places;
