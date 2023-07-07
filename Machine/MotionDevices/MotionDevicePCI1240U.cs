@@ -422,6 +422,7 @@ private async Task DeviceStateMonitorAsync()
             var dec = configs.dec;
             var jerk = configs.jerk;
             var ppu = configs.ppu;
+            var denominator = (uint)configs.denominator;
             double axMaxAcc = configs.maxAcc;
             double axMaxDec = configs.maxDec;
             var axisMaxVel = 4000000;
@@ -435,7 +436,12 @@ private async Task DeviceStateMonitorAsync()
            
 
             _result = Motion.mAcm_SetProperty(_mAxishand[axisNum], (uint)PropertyID.CFG_AxHomeResetEnable, ref configs.reset, 4); _errors.Add(PropertyID.CFG_AxHomeResetEnable, _result);
+            //_result = Motion.mAcm_SetU32Property(_mAxishand[axisNum], (uint)PropertyID.CFG_AxPPUDenominator, denominator);
+
+
             _result = Motion.mAcm_SetProperty(_mAxishand[axisNum], (uint)PropertyID.CFG_AxPPU, ref ppu, 4); _errors.Add(PropertyID.CFG_AxPPU, _result);
+
+            //_result = Motion.mAcm_SetProperty(_mAxishand[axisNum], (uint)PropertyID.CFG_AxPPUDenominator, ref denominator, 4); _errors.Add(PropertyID.CFG_AxPPUDenominator, _result);
             _result = Motion.mAcm_SetProperty(_mAxishand[axisNum], (uint)PropertyID.CFG_AxMaxAcc, ref axMaxAcc, 8); _errors.Add(PropertyID.CFG_AxMaxAcc, _result);
             _result = Motion.mAcm_SetProperty(_mAxishand[axisNum], (uint)PropertyID.CFG_AxMaxDec, ref axMaxDec, 8); _errors.Add(PropertyID.CFG_AxMaxDec, _result);
             _result = Motion.mAcm_SetProperty(_mAxishand[axisNum], (uint)PropertyID.CFG_AxMaxVel, ref axMaxVel, 8); _errors.Add(PropertyID.CFG_AxMaxVel, _result);
