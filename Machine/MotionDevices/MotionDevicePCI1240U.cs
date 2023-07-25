@@ -68,6 +68,8 @@ namespace MachineClassLibrary.Machine.MotionDevices
                 Motion.mAcm_AxSetCmdPosition(_mAxishand[i], cmdPosition).CheckResult(i);
                 Motion.mAcm_AxSetActualPosition(_mAxishand[i], cmdPosition).CheckResult(i);
 
+
+
                 axisEnableEvent[i] |= (uint)EventType.EVT_AX_MOTION_DONE;
                 axisEnableEvent[i] |= (uint)EventType.EVT_AX_VH_START;
                 axisEnableEvent[i] |= (uint)EventType.EVT_AX_VH_END;
@@ -422,6 +424,7 @@ private async Task DeviceStateMonitorAsync()
             var dec = configs.dec;
             var jerk = configs.jerk;
             var ppu = configs.ppu;
+            var denominator = (uint)configs.denominator;
             double axMaxAcc = configs.maxAcc;
             double axMaxDec = configs.maxDec;
             var axisMaxVel = 4000000;
@@ -432,10 +435,13 @@ private async Task DeviceStateMonitorAsync()
             //double homeVelLow = configs.homeVelLow;
             //double homeVelHigh = configs.homeVelHigh;
 
-           
-
             _result = Motion.mAcm_SetProperty(_mAxishand[axisNum], (uint)PropertyID.CFG_AxHomeResetEnable, ref configs.reset, 4); _errors.Add(PropertyID.CFG_AxHomeResetEnable, _result);
+            //_result = Motion.mAcm_SetU32Property(_mAxishand[axisNum], (uint)PropertyID.CFG_AxPPUDenominator, denominator);
+
+
             _result = Motion.mAcm_SetProperty(_mAxishand[axisNum], (uint)PropertyID.CFG_AxPPU, ref ppu, 4); _errors.Add(PropertyID.CFG_AxPPU, _result);
+
+            //_result = Motion.mAcm_SetProperty(_mAxishand[axisNum], (uint)PropertyID.CFG_AxPPUDenominator, ref denominator, 4); _errors.Add(PropertyID.CFG_AxPPUDenominator, _result);
             _result = Motion.mAcm_SetProperty(_mAxishand[axisNum], (uint)PropertyID.CFG_AxMaxAcc, ref axMaxAcc, 8); _errors.Add(PropertyID.CFG_AxMaxAcc, _result);
             _result = Motion.mAcm_SetProperty(_mAxishand[axisNum], (uint)PropertyID.CFG_AxMaxDec, ref axMaxDec, 8); _errors.Add(PropertyID.CFG_AxMaxDec, _result);
             _result = Motion.mAcm_SetProperty(_mAxishand[axisNum], (uint)PropertyID.CFG_AxMaxVel, ref axMaxVel, 8); _errors.Add(PropertyID.CFG_AxMaxVel, _result);

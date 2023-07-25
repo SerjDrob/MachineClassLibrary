@@ -10,15 +10,6 @@ namespace MachineClassLibrary.GeometryUtility
 {
     public partial class CoorSystem<TPlaceEnum> : CoorSystemBase<TPlaceEnum> where TPlaceEnum : Enum
     {
-
-        //----
-        //public CoorSystem()
-        //{
-        //    _workTransformation = new Matrix3(m11: 1, m12: 0, m13: 0,
-        //                                      m21: 0, m22: 1, m23: 0,
-        //                                      m31: 0, m32: 0, m33: 1);
-        //}
-//----
         private CoorSystem(Matrix3 mainMatrix) : base(mainMatrix) { }
         public static ThreePointCoorSystemBuilder GetThreePointSystemBuilder() => new ThreePointCoorSystemBuilder();
         public static WorkMatrixCoorSystemBuilder<TPlaceEnum> GetWorkMatrixSystemBuilder() => new WorkMatrixCoorSystemBuilder<TPlaceEnum>();

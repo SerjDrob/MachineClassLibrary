@@ -1,11 +1,9 @@
-﻿using MachineClassLibrary.GeometryUtility;
-using Microsoft.Toolkit.Diagnostics;
-using netDxf;
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.Drawing;
-using System.Linq;
 using System.Numerics;
+using Microsoft.Toolkit.Diagnostics;
+using netDxf;
 
 namespace MachineClassLibrary.GeometryUtility
 {
