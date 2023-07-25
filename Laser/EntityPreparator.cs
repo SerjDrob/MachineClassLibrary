@@ -67,7 +67,8 @@ namespace MachineClassLibrary.Laser
                     if (circle.PObject.Radius + _contourOffset <= 0 | (_contourOffset == 0 & _contourWidth == 0)) return circle.PObject;
 
                     var r1 = circle.PObject.Radius + _contourOffset;
-                    var r2 = r1 + _contourWidth;
+                    var r2 = r1 - _contourWidth;
+                    if (r2 < 0.02) return new Circle { Radius = r1 };
                     return new Ring { Radius1 = r1, Radius2 = r2 };
                 }
 
@@ -79,6 +80,7 @@ namespace MachineClassLibrary.Laser
                         var outerCurves = _contourOffset != 0 ? initialCurve.InflateCurve(_contourOffset) : Enumerable.Repeat(initialCurve,1);
                         var innerCurves = outerCurves.SelectMany(curve=>curve.InflateCurve(-_contourWidth)); 
                         var resultCurves = outerCurves.Concat(innerCurves).ToList();
+
                         return new ContourRing { Curves = resultCurves };
                     }
                     else

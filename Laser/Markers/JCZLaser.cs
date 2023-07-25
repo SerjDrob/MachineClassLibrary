@@ -57,7 +57,7 @@ namespace MachineClassLibrary.Laser.Markers
 
             //var result = Lmc.SetPenParams(_markLaserParams.PenParams) == 0;
             var result = JczLmc.SetPenParams(_markLaserParams.PenParams) == 0;
-            if (await _pwm.SetPWM(50000, 5, 1000, 50))
+            if (/*await _pwm.SetPWM(50000, 5, 1000, 50)*/true)
             {
                 //result = Lmc.lmc1_MarkLine(x1, y1, x2, y2, 0) == 0;
                 result = JczLmc.MarkLine(x1, y1, x2, y2, 0) == 0;
@@ -155,11 +155,22 @@ namespace MachineClassLibrary.Laser.Markers
 
         public async Task<bool> MarkTextAsync(string text, double textSize, double angle)//TODO return bool or info or through exception?
         {
-            var penparams = _markLaserParams.PenParams with { MarkLoop = 1, MarkSpeed = 500 };//TODO move to settings 
+            var penparams = _markLaserParams.PenParams with { MarkLoop = 1/*, MarkSpeed = 500*/ };//TODO move to settings 
 
-            var result = Lmc.lmc1_SetFontParam("Cambria", textSize, 0.625 * textSize, 0, 0, 0, false);
-            result += Lmc.SetPenParams(penparams);
-            result += Lmc.lmc1_AddTextToLib(text, "text", 0, 0, 0, 8, angle, 0, true);
+            var result = JczLmc.SetFontParam3(
+                fontname: "Cambria",
+                CharHeight: textSize,
+                CharWidthRatio: 0.625,// * textSize,
+                CharAngle: 0,
+                CharSpace: 0,
+                LineSpace: 0,
+                spaceWidthRatio: 0.1,
+                EqualCharWidth: true,
+                nTextAlign: 8,
+                bBold: false,
+                bItalic: false);// Lmc.lmc1_SetFontParam("Cambria", textSize, 0.625 * textSize, 0, 0, 0, false);
+            result += JczLmc.SetPenParams(penparams);// Lmc.SetPenParams(par);
+            result += JczLmc.AddTextToLib(text, "text", 0, 0, 0, 8, angle, 0, 1); // Lmc.lmc1_AddTextToLib(text, "text", 0, 0, 0, 8, angle, 0, true);
 
 
 
@@ -228,7 +239,8 @@ namespace MachineClassLibrary.Laser.Markers
         {
             //var result = Lmc.lmc1_CancelMark();
             var result = await Task.FromResult(JczLmc.StopMark());
-            return await _pwm.StopPWM();
+            var res = await _pwm.StopPWM();
+            return res;
             //if (result != 0) throw new Exception($"Cancelling of marking failed with error code {(Lmc.EzCad_Error_Code)result}");
         }
 
