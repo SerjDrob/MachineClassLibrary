@@ -1,5 +1,4 @@
-﻿using Advantech.Motion;
-using EasyModbus.Exceptions;
+﻿using EasyModbus.Exceptions;
 using Modbus.Device;
 using System;
 using System.IO.Ports;

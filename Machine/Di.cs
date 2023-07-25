@@ -2,8 +2,8 @@
 {
     public enum Di : ushort
     {
-        In1,
+        In1 = 1,
         In2,
-        In3
+        In3        
     }
 }
