@@ -1,5 +1,4 @@
 ﻿using System;
-using System.Linq;
 using System.Numerics;
 using System.Runtime.CompilerServices;
 using MachineClassLibrary.Classes;
@@ -57,45 +56,6 @@ namespace MachineClassLibrary.GeometryUtility
         }
         public double[] ToSub(LMPlace to, double x, double y) => _coorSystem.ToSub(to,x,y);
         public ICoorSystem<LMPlace> WithAxes(bool negX, bool negY) => _coorSystem.WithAxes(negX,negY);
-
-
-
-        class CoeffLine
-        {
-            private readonly double[] originPoints;
-            private readonly double[] derivedPoints;
-
-            public CoeffLine(params (double orig, double derived)[] values)
-            {
-                if (values.Length < 2) throw new ArgumentException("points count must be no less than two");
-                var res = values.OrderBy(val => val.orig);
-                originPoints = res.Select(val => val.orig).ToArray();
-                derivedPoints = res.Select(val => val.derived).ToArray();
-            }
-
-            public double this[double par]
-            {
-                get
-                {
-                    var range = GetRange(originPoints, par);
-                    var y0 = derivedPoints[range.Start];
-                    var y1 = derivedPoints[range.End];
-                    var x0 = originPoints[range.Start];
-                    var x1 = originPoints[range.End];
-                    return (y1 - y0) * ((par - x0) / (x1 - x0)) + y0;
-                }
-            }
-
-            private static Range GetRange(double[] points, double checkVal)
-            {
-                if (checkVal < points[0] || checkVal > points[^1] || points.Length == 2) return new Range(0, ^1);
-                for (int i = 0; i < points.Length - 1; i++)
-                {
-                    if (checkVal > points[i] && checkVal < points[i + 1]) return new Range(i, i + 1);
-                }
-                throw new InvalidOperationException("A range was not found");
-            }
-        }
 
     }
 }
