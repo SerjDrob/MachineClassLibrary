@@ -13,6 +13,13 @@ namespace MachineClassLibrary.GeometryUtility
             return Math.Atan2(point2[1] - point1[1], point2[0] - point1[0]);
         }
 
+        public static double GetMatrixAngle2(this ICoorSystem coorSystem)
+        {
+            var point1 = coorSystem.ToGlobal(0, 0);
+            var point2 = coorSystem.ToGlobal(100, 0);
+            return Math.Atan((point2[1] - point1[1])/(point2[0] - point1[0]));
+        }
+
         public static Matrix3 GetMatrix3(this float[] elements)
         {
             Guard.HasSizeEqualTo<float>(elements, 6, "The array must have 6 elements");

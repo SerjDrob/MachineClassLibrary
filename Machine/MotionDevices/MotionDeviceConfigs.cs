@@ -25,10 +25,10 @@ namespace MachineClassLibrary.Machine.MotionDevices
         public uint cmpSrcCmd; // (uint)CmpSource.SRC_COMMAND_POSITION;
         public double homeVelLow;
         public double homeVelHigh;
-        public int denominator = 1;
+        public int denominator;
 
-        public MotionDeviceConfigs()
-        {
-        }
+        //public MotionDeviceConfigs()
+        //{
+        //}
     }
 }
