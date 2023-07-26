@@ -91,7 +91,7 @@ namespace MachineClassLibrary.GeometryUtility
                 if (checkVal < points[0] || checkVal > points[^1] || points.Length == 2) return new Range(0, ^1);
                 for (int i = 0; i < points.Length - 1; i++)
                 {
-                    if (checkVal > points[i] && checkVal < points[i + 1]) return new Range(i, i + 1);
+                    if (checkVal >= points[i] && checkVal < points[i + 1]) return new Range(i, i + 1);
                 }
                 throw new InvalidOperationException("A range was not found");
             }
