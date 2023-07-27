@@ -13,9 +13,9 @@ namespace MachineClassLibrary.GeometryUtility
         {
             private (PointF originPoint, PointF derivativePoint) _firstPair;
             private (PointF originPoint, PointF derivativePoint) _secondPair;
-            private Matrix3 _workMatrix = new Matrix3(m11: 1, m12: 0, m13: 0,
-                                                      m21: 0, m22: 1, m23: 0,
-                                                      m31: 0, m32: 0, m33: 1);
+            private Matrix3 _workMatrix = new(m11: 1, m12: 0, m13: 0,
+                                                     m21: 0, m22: 1, m23: 0,
+                                                     m31: 0, m32: 0, m33: 1);
             private CoeffLine _xLine;
             private bool _useXLine;
             private CoeffLine _yLine;
@@ -51,8 +51,8 @@ namespace MachineClassLibrary.GeometryUtility
             }
             public TwoPointCoorSystemBuilder FormWorkMatrix(double xScaleMul, double yScaleMul)
             {
-                var point0 = _workTransformation * new netDxf.Vector3(_firstPair.originPoint.X, _firstPair.originPoint.Y, 1);
-                var point1 = _workTransformation * new netDxf.Vector3(_secondPair.originPoint.X, _secondPair.originPoint.Y, 1);
+                var point0 = _workTransformation * new Vector3(_firstPair.originPoint.X, _firstPair.originPoint.Y, 1);
+                var point1 = _workTransformation * new Vector3(_secondPair.originPoint.X, _secondPair.originPoint.Y, 1);
 
                 var S = new Matrix3(m11: xScaleMul, m12: 0, m13: 0,
                                            m21: 0, m22: yScaleMul, m23: 0,
@@ -69,18 +69,18 @@ namespace MachineClassLibrary.GeometryUtility
                 var angle = Math.Atan((k1 - k2) / (1 + k1 * k2));
 
                 var R = new Matrix3(m11: Math.Cos(angle), m12: -Math.Sin(angle), m13: 0,
-                                            m21: Math.Sin(angle), m22: Math.Cos(angle), m23: 0,
-                                            m31: 0, m32: 0, m33: 1);
+                                           m21: Math.Sin(angle), m22: Math.Cos(angle), m23: 0,
+                                           m31: 0,               m32: 0,               m33: 1);
 
                 var m1 = R * _workTransformation * S;
 
-                var p1 = m1 * new netDxf.Vector3(_firstPair.originPoint.X, _firstPair.originPoint.Y, 1);
+                var p1 = m1 * new Vector3(_firstPair.originPoint.X, _firstPair.originPoint.Y, 1);
                 var deltaX = fderX - p1.X;
                 var deltaY = fderY - p1.Y;
 
                 var Translate = new Matrix3(m11: 1, m12: 0, m13: deltaX,
-                                                                    m21: 0, m22: 1, m23: deltaY,
-                                                                    m31: 0, m32: 0, m33: 1);
+                                                   m21: 0, m22: 1, m23: deltaY,
+                                                   m31: 0, m32: 0, m33: 1);
 
                 _workMatrix = Translate * R * _workTransformation * S;
 
