@@ -417,6 +417,7 @@ private async Task DeviceStateMonitorAsync()
             Motion.mAcm_AxDoGetBit(_mAxishand[axisNum], dOut, ref data);
             return data != 0;
         }
+
         public virtual void SetAxisConfig(int axisNum, MotionDeviceConfigs configs)
         {
             //uint res;
@@ -424,7 +425,6 @@ private async Task DeviceStateMonitorAsync()
             var dec = configs.dec;
             var jerk = configs.jerk;
             var ppu = configs.ppu;
-            var denominator = (uint)configs.denominator;
             double axMaxAcc = configs.maxAcc;
             double axMaxDec = configs.maxDec;
             var axisMaxVel = 4000000;

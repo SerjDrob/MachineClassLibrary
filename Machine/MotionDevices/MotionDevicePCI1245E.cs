@@ -11,7 +11,9 @@ namespace MachineClassLibrary.Machine.MotionDevices
             base.SetAxisConfig(axisNum, configs);
             double homeVelLow = configs.homeVelLow;
             double homeVelHigh = configs.homeVelHigh;
+            var denominator = (uint)configs.denominator;
             _errors = new();
+            _result = Motion.mAcm_SetProperty(_mAxishand[axisNum], (uint)PropertyID.CFG_AxPPUDenominator, ref denominator, 4); _errors.Add(PropertyID.CFG_AxPPUDenominator, _result);
             _result = Motion.mAcm_SetProperty(_mAxishand[axisNum], (uint)PropertyID.CFG_AxPulseInLogic, ref configs.plsInLogic, 4); _errors.Add(PropertyID.CFG_AxPulseInLogic, _result);
             _result = Motion.mAcm_SetProperty(_mAxishand[axisNum], (uint)PropertyID.PAR_AxHomeVelLow, ref homeVelLow, 8); _errors.Add(PropertyID.PAR_AxHomeVelLow, _result);
             _result = Motion.mAcm_SetProperty(_mAxishand[axisNum], (uint)PropertyID.PAR_AxHomeVelHigh, ref homeVelHigh, 8); _errors.Add(PropertyID.PAR_AxHomeVelHigh, _result);
