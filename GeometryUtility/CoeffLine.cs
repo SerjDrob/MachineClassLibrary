@@ -22,6 +22,10 @@ namespace MachineClassLibrary.GeometryUtility
             {
                 var (opoints, dpoints) = rev ? (derivedPoints, originPoints) : (originPoints, derivedPoints);
                 var range = GetRange(opoints, par);
+
+                if(par == opoints[range.Start]) return dpoints[range.Start];
+                if(par == opoints[range.End]) return dpoints[range.End];
+
                 var y0 = dpoints[range.Start];
                 var y1 = dpoints[range.End];
                 var x0 = opoints[range.Start];
@@ -35,7 +39,7 @@ namespace MachineClassLibrary.GeometryUtility
             if (checkVal < points[0] || checkVal > points[^1] || points.Length == 2) return new Range(0, ^1);
             for (int i = 0; i < points.Length - 1; i++)
             {
-                if (checkVal >= points[i] && checkVal < points[i + 1]) return new Range(i, i + 1);
+                if (checkVal >= points[i] && checkVal <= points[i + 1]) return new Range(i, i + 1);
             }
             throw new InvalidOperationException("A range was not found");
         }
