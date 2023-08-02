@@ -14,7 +14,7 @@ namespace MachineClassLibrary.Laser.Entities
             LayerName = layerName;
             ARGBColor = rgbColor;
         }
-        private PCircle(double x, double y, double angle, Circle pObject, string layerName, int rgbColor, Guid id)
+        private PCircle(double x, double y, double angle, Circle pObject, bool mirrorX, bool turn90, double scaling, string layerName, int rgbColor, Guid id)
         {
             Id = id;
             X = x;
@@ -23,6 +23,9 @@ namespace MachineClassLibrary.Laser.Entities
             PObject = pObject;
             LayerName = layerName;
             ARGBColor = rgbColor;
+            MirrorX = mirrorX;
+            Turn90 = turn90;
+            Scaling = scaling;
         }
         public double X { get; init; }
         public double Y { get; init; }
@@ -57,7 +60,7 @@ namespace MachineClassLibrary.Laser.Entities
         {
             Turn90 = turn;
         }
-        public IProcObject<Circle> CloneWithPosition(double x, double y) => new PCircle(x, y, Angle, _pobject, LayerName, ARGBColor, Id);
+        public IProcObject<Circle> CloneWithPosition(double x, double y) => new PCircle(x, y, Angle, _pobject, MirrorX, Turn90, Scaling, LayerName, ARGBColor, Id);
         public override string ToString() => $"{GetType().Name} X:{X}, Y:{Y} Id = {Id}";
         private Circle GetTransformedCircle() 
         {
