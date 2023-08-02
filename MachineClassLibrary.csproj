@@ -22,13 +22,15 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <Compile Remove="GeometryUtility\CoorSystem1.cs" />
     <Compile Remove="GeometryUtility\FirstCoorSystem.cs" />
     <Compile Remove="Laser\Machine.cs" />
   </ItemGroup>
 
   <ItemGroup>
-    <None Include="GeometryUtility\CoorSystem1.cs" />
+    <Content Remove="C:\Users\Serj\.nuget\packages\clipper2\1.2.2\contentFiles\any\netstandard2.0\Clipper2.ico" />
+  </ItemGroup>
+
+  <ItemGroup>
     <None Include="GeometryUtility\FirstCoorSystem.cs" />
     <None Include="Laser\Machine.cs" />
   </ItemGroup>

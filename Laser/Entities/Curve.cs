@@ -17,19 +17,5 @@ namespace MachineClassLibrary.Laser.Entities
 
         public Rect Bounds { get; init; }
 
-        //public void Scale(double scale)
-        //{
-        //    Vertices = Vertices.Select(vertex=> (vertex.X * scale, vertex.Y * scale, vertex.Bulge));
-        //}
-
-        //public void SetMirrorX(bool mirror)
-        //{
-        //   // throw new System.NotImplementedException();
-        //}
-
-        //public void SetTurn90(bool turn)
-        //{
-        //  //  throw new System.NotImplementedException();
-        //}
     }
 }

@@ -17,6 +17,8 @@ namespace MachineClassLibrary.Laser
         const string CIRCLE_PREFIX = "Circle_";
         const string RING_PREFIX = "Ring_";
         const string CONTRING_PREFIX = "ContourRing_";
+        const string CLUSTER_PREFIX = "Cluster_";
+
         public string FilePath { get => _path; }
         public EntityFileHandler(IDxfReader dxfReader, string folderPath)
         {
@@ -34,6 +36,15 @@ namespace MachineClassLibrary.Laser
                 ContourRing contourRing => WriteTransformContourRing(contourRing),
                 _ => throw new ArgumentException($"I can not save this type '{shape.GetType().Name}' of entity yet.")
             };
+            return this;
+        }
+
+        public EntityFileHandler SaveEntitiesToFile(IShape[] shapes)
+        {
+            var filename = $"{CLUSTER_PREFIX}{Guid.NewGuid()}.dxf";
+            var filePath = Path.Combine(_folderPath, filename);
+            _dxfReader.WriteShapesToFile(filePath, shapes);
+            _path = filePath;
             return this;
         }
 
