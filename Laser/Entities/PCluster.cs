@@ -106,6 +106,11 @@ namespace MachineClassLibrary.Laser.Entities
                 return acc;
             });
 
+           return procObjects.SplitOnClusters(boundary, xParts, yParts);
+        }
+
+        public static IEnumerable<IProcObject> SplitOnClusters(this IEnumerable<IProcObject> procObjects, Rect boundary, int xParts, int yParts)
+        {
             var width = boundary.Width / xParts;
             var height = boundary.Height / yParts;
             var boundaries = Enumerable.Range(0, xParts)
@@ -116,8 +121,9 @@ namespace MachineClassLibrary.Laser.Entities
                 var centerX = b.X + b.Width / 2;
                 var centerY = b.Y + b.Height / 2;
                 return new PCluster(centerX, centerY, objects.ExtractMorph(o => b.Contains(o.X, o.Y), ex => ex.CloneWithPosition(ex.X - centerX, ex.Y - centerY)));
-            });
+            }).Where(b=>b.ProcObjects.Any());
         }
+
         public static IEnumerable<T> Extract<T>(this List<T> values, Predicate<T> predicate)
         {
             var extracted = new List<T>(values.Where(predicate.Invoke));
