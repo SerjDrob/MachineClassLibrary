@@ -65,7 +65,26 @@ namespace MachineClassLibrary.Laser.Parameters
         [Category("Штриховка, мкм")]
         [DisplayName("Шаг")]
         public int HatchLineDistance { get; set; }
-
+        [Category("Фрезеровка")]
+        [DisplayName("Фрезеровать")]
+        public bool EnableMilling
+        {
+            get;
+            set;
+        }
+        /// <summary>
+        /// um
+        /// </summary>
+        public int ContourOffset
+        {
+            get;
+            set;
+        }
+        public bool DisableContour
+        {
+            get;
+            set;
+        }
         public object Clone()
         {
             return this.MemberwiseClone();
