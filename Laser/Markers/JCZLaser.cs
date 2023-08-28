@@ -78,18 +78,13 @@ namespace MachineClassLibrary.Laser.Markers
 
         public async Task<bool> PierceDxfObjectAsync(string filePath)
         {
-            //var result = Lmc.SetPenParams(_markLaserParams.PenParams);
-            //result = Lmc.SetHatchParams(_markLaserParams.HatchParams);
-
-            //result = Lmc.lmc1_AddFileToLib(filePath, "ProcEntity", 0, 0, 0, 0, 1, _markLaserParams.PenParams.PenNo, _markLaserParams.HatchParams.EnableHatch);
-            //Lmc.lmc1_SaveEntLibToFile("D:/TestFile.ezd");
-
-            var result = JczLmc.SetPenParams(_markLaserParams.PenParams);
+            int result;
+            result = JczLmc.SetPenParams(_markLaserParams.PenParams);
             result = JczLmc.SetHatchParams(_markLaserParams.HatchParams);
 
             result = JczLmc.AddFileToLib(
                 strFileName: filePath, 
-                strEntName: "ProcEntity", 
+                strEntName: "Entity", 
                 dPosX: 0, 
                 dPosY: 0, 
                 dPosZ: 0, 
@@ -114,30 +109,19 @@ namespace MachineClassLibrary.Laser.Markers
             }
             await Task.Run(async () =>
             {
-                //var result = (Lmc.EzCad_Error_Code)Lmc.lmc1_MarkEntity("ProcEntity");
-                //if (!await _pwm.StopPWM())
-                //{
-
-                //}
-                //if (!result.HasFlag(Lmc.EzCad_Error_Code.LMC1_ERR_SUCCESS) & !result.HasFlag(Lmc.EzCad_Error_Code.LMC1_ERR_USERSTOP))
-                //{
-                //    Lmc.lmc1_DeleteEnt("ProcEntity");
-                //    throw new OperationCanceledException($"Marking failed with code {(Lmc.EzCad_Error_Code)result}");
-                //}
-
-                var result = (JczLmc.EzCad_Error_Code)JczLmc.MarkEntity("ProcEntity");
+                var result = (JczLmc.EzCad_Error_Code)JczLmc.MarkEntity("Entity");
                 if (!await _pwm.StopPWM())
                 {
 
                 }
                 if (!result.HasFlag(JczLmc.EzCad_Error_Code.LMC1_ERR_SUCCESS) & !result.HasFlag(JczLmc.EzCad_Error_Code.LMC1_ERR_USERSTOP))
                 {
-                    JczLmc.DeleteEnt("ProcEntity");
+                    JczLmc.DeleteEnt("Entity");
                     throw new OperationCanceledException($"Marking failed with code {(Lmc.EzCad_Error_Code)result}");
                 }
             }
             );
-            JczLmc.DeleteEnt("ProcEntity");
+            JczLmc.DeleteEnt("Entity");
             
             return true;
         }
