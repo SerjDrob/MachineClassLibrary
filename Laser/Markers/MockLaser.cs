@@ -14,7 +14,8 @@ namespace MachineClassLibrary.Laser.Markers
 
         public Task<bool> CancelMarkingAsync()
         {
-            throw new NotImplementedException();
+            Debug.WriteLine("Marking has been canceled.");
+            return Task.FromResult(true);
         }
 
         public void CloseMarkDevice()
