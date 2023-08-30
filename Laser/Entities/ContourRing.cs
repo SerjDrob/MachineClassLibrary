@@ -1,4 +1,5 @@
 ﻿using System.Collections.Generic;
+using System.Linq;
 using System.Windows;
 
 namespace MachineClassLibrary.Laser.Entities
@@ -6,6 +7,10 @@ namespace MachineClassLibrary.Laser.Entities
     public class ContourRing : IShape
     {
         public IEnumerable<Curve> Curves { get; set; }
-        public Rect Bounds { get; init; }
+        public Rect Bounds => Curves.Aggregate(new Rect(),(acc, cur) =>
+        {
+            acc.Union(cur.Bounds);
+            return acc;
+        });
     }
 }

@@ -37,9 +37,7 @@ namespace MachineClassLibrary.Laser.Entities
         public int ARGBColor { get; set; }
         private readonly Curve _curve;
         public double Scaling { get; private set; } = 1;
-
         public bool MirrorX { get; private set; } = false;
-
         public bool Turn90 { get; private set; } = false;
         public bool IsBeingProcessed { get; set; } = false;
         public bool IsProcessed { get; set; } = false;

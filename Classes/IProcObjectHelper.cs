@@ -10,7 +10,7 @@ namespace MachineClassLibrary.Classes
             var size = procObject.GetSize();
             return new Rect(
                 procObject.X - size.x / 2,
-                procObject.Y + size.y / 2,
+                procObject.Y - size.y / 2,//TODO there was +
                 size.x,
                 size.y);
         }
