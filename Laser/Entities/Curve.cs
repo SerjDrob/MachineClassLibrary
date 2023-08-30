@@ -10,6 +10,11 @@ namespace MachineClassLibrary.Laser.Entities
         {
             Vertices = vertices;
             IsClosed = isClosed;
+            //var minX = vertices.Min(x => x.X);
+            //var minY = vertices.Min(y => y.Y);
+            //var maxX = vertices.Max(x => x.X);
+            //var maxY = vertices.Max(y => y.Y);
+            //Bounds = new Rect(new System.Windows.Point { X = minX, Y = minY }, new System.Windows.Point { X = maxX, Y = maxY });
         }
 
         public IEnumerable<(double X, double Y, double Bulge)> Vertices { get; init; }

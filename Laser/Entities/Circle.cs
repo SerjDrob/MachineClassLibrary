@@ -15,6 +15,9 @@ namespace MachineClassLibrary.Laser.Entities
             get;
             set;
         }
-        public Rect Bounds { get; init; }
+        public Rect Bounds
+        {
+            get; init;
+        }//=> new(new System.Windows.Point(CenterX - Radius,CenterY - Radius),new Size(Radius*2,Radius*2));
     }
 }

@@ -86,10 +86,6 @@ namespace MachineClassLibrary.Classes
         }
         private PCurve ConvertPolyline(DxfLwPolyline polyline)
         {
-            
-
-
-
             var center = polyline.Vertices.GetPolylineCenter();
 
             return new PCurve(center.x, center.y, 0,
@@ -130,7 +126,6 @@ namespace MachineClassLibrary.Classes
         }
         public IEnumerable<PCurve> GetAllCurves(string fromLayer = null)
         {
-
             return _document.Entities.OfType<DxfLwPolyline>()
                 .Where(lw => fromLayer is null ? true : lw.Layer == fromLayer)
                 .Select(polyline =>

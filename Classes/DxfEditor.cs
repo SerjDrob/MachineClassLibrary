@@ -1,4 +1,5 @@
 ﻿using MachineClassLibrary.Laser.Entities;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Windows;
@@ -75,7 +76,7 @@ namespace MachineClassLibrary.Classes
 
 
         //-------------------------------
-
+        public event EventHandler<bool> CanUndoChanged;
         private bool DissatisfySelection(IProcObject procObject)
         {
             return !_erasedObjects?.Where(e => e.selection.Contains(procObject.GetBoundingBox()))
@@ -88,16 +89,19 @@ namespace MachineClassLibrary.Classes
         public void RemoveBySelection(string layerName, Rect selection)
         {
             _erasedObjects.Push((new[] { layerName }, selection));
+            CanUndoChanged?.Invoke(this, true);
         }
         public void RemoveBySelection(string[] layers, Rect selection)
         {
             _erasedObjects ??= new();
             _erasedObjects.Push((layers, selection));
+            CanUndoChanged?.Invoke(this, true);
         }
-
         public void Undo()
         {
-            _erasedObjects?.TryPop(out var values);
+            _erasedObjects?.TryPop(out _);
+            var canUndo = _erasedObjects?.Any() ?? false;
+            CanUndoChanged?.Invoke(this, canUndo);
         }
         public void Reset()
         {

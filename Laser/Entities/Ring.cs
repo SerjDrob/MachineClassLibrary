@@ -16,6 +16,7 @@ namespace MachineClassLibrary.Laser.Entities
             get;
             set;
         }
-        public Rect Bounds { get; init; }
+        public Rect Bounds => new Rect(CenterX - _biggestR, CenterY - _biggestR, _biggestR * 2, _biggestR * 2);
+        private double _biggestR => Radius1 > Radius2 ? Radius1 : Radius2;
     }
 }

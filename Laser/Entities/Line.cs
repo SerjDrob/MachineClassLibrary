@@ -14,24 +14,9 @@ namespace MachineClassLibrary.Laser.Entities
         public double Y1 { get; set; }
         public double Y2 { get; set; }
 
-        public Rect Bounds { get; init; }
-
-        //public void Scale(double scale)
-        //{
-        //    X1 *= scale;
-        //    X2 *= scale;
-        //    Y1 *= scale;
-        //    Y2 *= scale;
-        //}
-
-        //public void SetMirrorX(bool mirror)
-        //{
-        //   // throw new NotImplementedException();
-        //}
-
-        //public void SetTurn90(bool turn)
-        //{
-        //   // throw new NotImplementedException();
-        //}
+        public Rect Bounds
+        {
+            get;init;
+        }//=> new Rect(X1, Y1, X2 - X1, Y2 - Y1);
     }
 }

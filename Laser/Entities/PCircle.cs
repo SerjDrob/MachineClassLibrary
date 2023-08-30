@@ -31,7 +31,10 @@ namespace MachineClassLibrary.Laser.Entities
         public double Y { get; init; }
         public double Angle { get; init; }
         private readonly Circle _pobject;
-        public Circle PObject { get => GetTransformedCircle(); init { _pobject = value; } }
+        public Circle PObject
+        {
+            get => GetTransformedCircle(); init => _pobject = value;
+        }
         public string LayerName { get; set; }
         public int ARGBColor { get; set; }
 
