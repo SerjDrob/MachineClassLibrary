@@ -1,4 +1,5 @@
-﻿using System.Collections.Generic;
+﻿using System.CodeDom;
+using System.Collections.Generic;
 using System.Linq;
 using System.Windows;
 
@@ -19,8 +20,10 @@ namespace MachineClassLibrary.Laser.Entities
 
         public IEnumerable<(double X, double Y, double Bulge)> Vertices { get; init; }
         public bool IsClosed { get; init; }
-
         public Rect Bounds { get; init; }
+
+        public static bool operator == (Curve left, Curve right) => left.Bounds.Width == right.Bounds.Width && left.Bounds.Height == right.Bounds.Height;
+        public static bool operator != (Curve left, Curve right) => !(left == right);
 
     }
 }
