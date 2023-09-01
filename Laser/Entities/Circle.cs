@@ -1,4 +1,5 @@
-﻿using System.Windows;
+﻿using System.CodeDom;
+using System.Windows;
 
 namespace MachineClassLibrary.Laser.Entities
 {
@@ -19,5 +20,8 @@ namespace MachineClassLibrary.Laser.Entities
         {
             get; init;
         }//=> new(new System.Windows.Point(CenterX - Radius,CenterY - Radius),new Size(Radius*2,Radius*2));
+
+        public static bool operator ==(Circle a, Circle b) => a.Radius == b.Radius;
+        public static bool operator !=(Circle a, Circle b) => !(a == b);
     }
 }
