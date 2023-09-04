@@ -7,14 +7,66 @@ using System.Threading.Tasks;
 using MachineClassLibrary.Laser.Entities;
 
 namespace MachineClassLibrary.Miscellaneous;
-internal class WaferMetrics
+public class WaferMetrics
 {
+    private readonly IEnumerable<IProcObject> _wafer;
+
+    public WaferMetrics(IEnumerable<IProcObject> procObjects)
+    {
+        _wafer = procObjects;
+    }
+    public void CreateProcessingChain()
+    {
+        var vx = 1;
+        var vy = 2;
+        var result = new Dictionary<Guid,double>();
+        IProcObject tempElement = _wafer.First();
+
+        foreach (var element in _wafer)
+        {
+            result[element.Id] = Time(tempElement,element,vx,vy);
+            tempElement = element;
+        }
+
+        var result2 = _wafer.GroupBy(o => o,p=>p.Id, new ProcObjectByPObjEqComparer())
+          .ToLookup(g=>g.Key.Id);
+
+
+        double Time(IProcObject first, IProcObject second, double velx, double vely) => 
+            Math.Max(Math.Abs(second.X - first.X) / velx, Math.Abs(second.Y - first.Y) / vely);
+    }
 }
 internal static class ProcObjectExtensions
 {
     
 }
 
+internal class MultiKeyDictionary<K,E>
+{
+    private readonly Dictionary<K, E> _mainElements = new();
+    private readonly IEnumerable<IGrouping<K, K>> _keyGroups;
+
+    public MultiKeyDictionary(IEnumerable<IGrouping<K, K>> keyGroups)
+    {
+        _keyGroups = keyGroups;
+    }
+
+    public E this[K someKey]
+    {
+        get
+        {
+            var key = GetKey(someKey);
+            return _mainElements[key];
+        }
+        set
+        {
+            var key = GetKey(someKey);
+            _mainElements[key] = value;
+        }
+    }
+
+    private K GetKey(K someKey) => _keyGroups.Single(g => g.Any(e => e.Equals(someKey))).Key;
+}
 
 public class ProcObjectByPObjEqComparer : EqualityComparer<IProcObject>
 {
