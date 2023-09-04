@@ -79,9 +79,10 @@ namespace MachineClassLibrary.Classes
         public event EventHandler<bool> CanUndoChanged;
         private bool DissatisfySelection(IProcObject procObject)
         {
-            return !_erasedObjects?.Where(e => e.selection.Contains(procObject.GetBoundingBox()))
+            var res =  !_erasedObjects?.Where(e => e.selection.Contains(procObject.GetBoundingBox()))
                 .Where(e => e.layers.Any(l => l == procObject.LayerName))
                 .Any() ?? true;
+            return res;
         }
 
         private Stack<(string[] layers, Rect selection)> _erasedObjects;

@@ -32,7 +32,10 @@ namespace MachineClassLibrary.Laser.Entities
         public double X { get; init; }
         public double Y { get; init; }
         public double Angle { get; init; }
-        public Curve PObject { get => GetTransformedCurve(); init { _curve = value; } }
+        public Curve PObject
+        {
+            get => GetTransformedCurve(); init => _curve = value;
+        }
         public string LayerName { get; set; }
         public int ARGBColor { get; set; }
         private readonly Curve _curve;
@@ -78,7 +81,7 @@ namespace MachineClassLibrary.Laser.Entities
             matrix.TransformPoints(points);
 
             var result = points.Zip(_curve.Vertices, (p, v) => ((double)p.X, (double)p.Y, MirrorX ? -v.Bulge : v.Bulge));
-            return new Curve(result, _curve.IsClosed);
+            return new Curve(result, _curve.IsClosed) { Bounds = _curve.Bounds };
         }
         
     }

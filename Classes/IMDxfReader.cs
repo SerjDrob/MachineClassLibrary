@@ -131,10 +131,10 @@ namespace MachineClassLibrary.Classes
                 .Select(polyline =>
                 {
                     var center = polyline.Vertices.GetPolylineCenter();
-                    return new PCurve(center.x, center.y, 0,
-                    new Curve(polyline.Vertices.Select(vertex => (vertex.X - center.x, vertex.Y - center.y, vertex.Bulge)),
-                    polyline.IsClosed)
-                    { Bounds = polyline.GetBoundingBox().ToRect() },
+                    var bounds = polyline.GetBoundingBox().ToRect();
+                    var curve = new Curve(polyline.Vertices.Select(vertex => (vertex.X - center.x, vertex.Y - center.y, vertex.Bulge)),
+                    polyline.IsClosed){ Bounds = polyline.GetBoundingBox().ToRect() };
+                    return new PCurve(center.x, center.y, 0, curve,
                     polyline.Layer, polyline.Color.ToRGB());
                 });
         }
