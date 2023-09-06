@@ -6,83 +6,85 @@ using System.Text;
 using System.Threading.Tasks;
 using MachineClassLibrary.Laser.Entities;
 
-namespace MachineClassLibrary.Miscellaneous;
-public class WaferMetrics
+namespace MachineClassLibrary.Miscellaneous
 {
-    private readonly IEnumerable<IProcObject> _wafer;
-
-    public WaferMetrics(IEnumerable<IProcObject> procObjects)
+    public class WaferMetrics
     {
-        _wafer = procObjects;
-    }
-    public void CreateProcessingChain()
-    {
-        var vx = 1;
-        var vy = 2;
-        var result = new Dictionary<Guid,double>();
-        IProcObject tempElement = _wafer.First();
+        private readonly IEnumerable<IProcObject> _wafer;
 
-        foreach (var element in _wafer)
+        public WaferMetrics(IEnumerable<IProcObject> procObjects)
         {
-            result[element.Id] = Time(tempElement,element,vx,vy);
-            tempElement = element;
+            _wafer = procObjects;
         }
-
-        var result2 = _wafer.GroupBy(o => o,p=>p.Id, new ProcObjectByPObjEqComparer())
-          .ToLookup(g=>g.Key.Id);
-
-
-        double Time(IProcObject first, IProcObject second, double velx, double vely) => 
-            Math.Max(Math.Abs(second.X - first.X) / velx, Math.Abs(second.Y - first.Y) / vely);
-    }
-}
-internal static class ProcObjectExtensions
-{
-    
-}
-
-internal class MultiKeyDictionary<K,E>
-{
-    private readonly Dictionary<K, E> _mainElements = new();
-    private readonly IEnumerable<IGrouping<K, K>> _keyGroups;
-
-    public MultiKeyDictionary(IEnumerable<IGrouping<K, K>> keyGroups)
-    {
-        _keyGroups = keyGroups;
-    }
-
-    public E this[K someKey]
-    {
-        get
+        public void CreateProcessingChain()
         {
-            var key = GetKey(someKey);
-            return _mainElements[key];
-        }
-        set
-        {
-            var key = GetKey(someKey);
-            _mainElements[key] = value;
+            var vx = 1;
+            var vy = 2;
+            var result = new Dictionary<Guid, double>();
+            IProcObject tempElement = _wafer.First();
+
+            foreach (var element in _wafer)
+            {
+                result[element.Id] = Time(tempElement, element, vx, vy);
+                tempElement = element;
+            }
+
+            var result2 = _wafer.GroupBy(o => o, p => p.Id, new ProcObjectByPObjEqComparer())
+              .ToLookup(g => g.Key.Id);
+
+
+            double Time(IProcObject first, IProcObject second, double velx, double vely) =>
+                Math.Max(Math.Abs(second.X - first.X) / velx, Math.Abs(second.Y - first.Y) / vely);
         }
     }
-
-    private K GetKey(K someKey) => _keyGroups.Single(g => g.Any(e => e.Equals(someKey))).Key;
-}
-
-public class ProcObjectByPObjEqComparer : EqualityComparer<IProcObject>
-{
-    public override bool Equals(IProcObject x, IProcObject y)
+    internal static class ProcObjectExtensions
     {
-        if (x == null || y==null || x.GetType() != y.GetType())
+
+    }
+
+    internal class MultiKeyDictionary<K, E>
+    {
+        private readonly Dictionary<K, E> _mainElements = new();
+        private readonly IEnumerable<IGrouping<K, K>> _keyGroups;
+
+        public MultiKeyDictionary(IEnumerable<IGrouping<K, K>> keyGroups)
         {
-            return false;
+            _keyGroups = keyGroups;
         }
 
-        return x switch
+        public E this[K someKey]
         {
-            PCircle circle1 when y is PCircle circle2 => circle1.PObject == circle2.PObject,
-            PCurve curve1 when y is PCurve curve2 => curve1.PObject == curve2.PObject,
-            _ => false
-        };
+            get
+            {
+                var key = GetKey(someKey);
+                return _mainElements[key];
+            }
+            set
+            {
+                var key = GetKey(someKey);
+                _mainElements[key] = value;
+            }
+        }
+
+        private K GetKey(K someKey) => _keyGroups.Single(g => g.Any(e => e.Equals(someKey))).Key;
     }
-    public override int GetHashCode([DisallowNull] IProcObject obj) => GetHashCode();
+
+    public class ProcObjectByPObjEqComparer : EqualityComparer<IProcObject>
+    {
+        public override bool Equals(IProcObject x, IProcObject y)
+        {
+            if (x == null || y == null || x.GetType() != y.GetType())
+            {
+                return false;
+            }
+
+            return x switch
+            {
+                PCircle circle1 when y is PCircle circle2 => circle1.PObject == circle2.PObject,
+                PCurve curve1 when y is PCurve curve2 => curve1.PObject == curve2.PObject,
+                _ => false
+            };
+        }
+        public override int GetHashCode([DisallowNull] IProcObject obj) => GetHashCode();
+    }
 }
