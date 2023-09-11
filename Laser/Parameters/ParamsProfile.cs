@@ -10,7 +10,8 @@ namespace MachineClassLibrary.Laser.Parameters
                 .IncludeMembers(s => s.PenParams, s => s.HatchParams);
 
             CreateMap<PenParams, ExtendedParams>(MemberList.None);
-            CreateMap<HatchParams, ExtendedParams>(MemberList.None);
+            CreateMap<HatchParams, ExtendedParams>(MemberList.None)
+                .ForMember(ext=>ext.HatchLineDistance, opt => opt.MapFrom(h=> (int)(h.HatchLineDist * 1000))) ;
         }
     }
 }
