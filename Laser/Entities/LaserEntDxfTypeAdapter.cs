@@ -19,5 +19,16 @@
                 _ => LaserEntity.None
             };
         }
+        public static string GetEntityName(LaserEntity laserEntity)
+        {
+            return laserEntity switch
+            {
+                LaserEntity.Curve => CURVE,
+                LaserEntity.Circle => CIRCLE,
+                LaserEntity.Line => LINE,
+                LaserEntity.Point => POINT,
+                _ => null
+            };
+        }
     }
 }

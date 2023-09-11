@@ -83,7 +83,7 @@ namespace MachineClassLibrary.Laser.Parameters
         {
             get;
             set;
-        }
+        } = true;
         [Category("Штриховка / фрезеровка")]
         [DisplayName("Не проходить контур")]
         public bool DisableContour

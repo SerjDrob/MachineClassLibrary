@@ -36,13 +36,21 @@ namespace MachineClassLibrary.Laser
             _angle += angle;
             return this;
         }
-
+        /// <summary>
+        /// Set width of an entity hatching contour's width
+        /// </summary>
+        /// <param name="width">width in mm</param>
+        /// <returns>EntityPreparator</returns>
         public EntityPreparator SetEntityContourWidth(double width)
         {
             _contourWidth = width;
             return this;
         }
-
+        /// <summary>
+        /// Set width of an entity contour's offset
+        /// </summary>
+        /// <param name="width">offset in mm</param>
+        /// <returns>EntityPreparator</returns>
         public EntityPreparator SetEntityContourOffset(double offset)
         {
             _contourOffset = offset;
