@@ -188,11 +188,6 @@ namespace MachineClassLibrary.Laser.Markers
             Lmc.lmc1_DeleteEnt("text");
             return true;
         }
-        public void SetMarkDeviceParams()
-        {
-            //Lmc.lmc1_SetDevCfg2(false, false);
-            JczLmc.SetDevCfg2(false, false);
-        }
 
         public void SetMarkParams(MarkLaserParams markLaserParams)
         {
@@ -228,10 +223,6 @@ namespace MachineClassLibrary.Laser.Markers
             //if (result != 0) throw new Exception($"Cancelling of marking failed with error code {(Lmc.EzCad_Error_Code)result}");
         }
 
-        public bool SetDevConfig()
-        {
-            //return Lmc.SetDevCfg() == 0;
-            return JczLmc.SetDevCfg() == 0;
-        }
+        public bool SetDevConfig() => JczLmc.SetDevCfg2(false, false) == 0;
     }
 }

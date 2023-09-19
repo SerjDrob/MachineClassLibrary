@@ -270,11 +270,6 @@ namespace MachineClassLibrary.Machine.Machines
             return await _markLaser.PierceObjectAsync(perforator);
         }
 
-        public void SetMarkDeviceParams()
-        {
-            _markLaser.SetMarkDeviceParams();
-        }
-
         public async Task<bool> PiercePointAsync(double x = 0, double y = 0)
         {
             return await _markLaser.PiercePointAsync(x, y);

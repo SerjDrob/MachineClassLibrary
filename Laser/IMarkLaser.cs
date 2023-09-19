@@ -10,8 +10,6 @@ namespace MachineClassLibrary.Laser
         public bool IsMarkDeviceInit { get; }
         public Task<bool> InitMarkDevice(string initDirPath);
         public void CloseMarkDevice();
-        public void SetMarkDeviceParams();
-
         public void SetMarkParams(MarkLaserParams markLaserParams);
 
         public void SetExtMarkParams(ExtParamsAdapter paramsAdapter);
