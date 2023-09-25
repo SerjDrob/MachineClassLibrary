@@ -228,7 +228,7 @@ namespace MachineClassLibrary.Machine.MotionDevices
                         _axisStates[num].nLmt = false;
                     }
 
-                    TransmitAxState?.Invoke(this, new AxNumEventArgs(num, _axisStates[num].GetAxisState));
+                    //TransmitAxState?.Invoke(this, new AxNumEventArgs(num, _axisStates[num].GetAxisState));
                     num++;
                     if (num == AxisCount) num = 0;
                 }

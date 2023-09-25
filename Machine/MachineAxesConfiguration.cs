@@ -1,6 +1,4 @@
-﻿using MachineClassLibrary.Machine;
-
-namespace MachineClassLibrary.Machine
+﻿namespace MachineClassLibrary.Machine
 {
     public class MachineAxesConfiguration
     {
