@@ -1,16 +1,15 @@
 ﻿using System;
+using MachineClassLibrary.Machine;
 using Microsoft.Extensions.DependencyInjection;
-using MachineClassLibrary.Laser;
-using NewLaserProject.Classes;
 
 namespace MachineClassLibrary.Laser.Markers
 {
     public class LaserBoardFactory
     {
         private readonly IServiceProvider _serviceProvider;
-        private readonly MachineConfiguration _machineConfiguration;
+        private readonly LaserMachineConfiguration _machineConfiguration;
 
-        public LaserBoardFactory(IServiceProvider serviceProvider, MachineConfiguration machineConfiguration)
+        public LaserBoardFactory(IServiceProvider serviceProvider, LaserMachineConfiguration machineConfiguration)
         {
             _serviceProvider = serviceProvider;
             _machineConfiguration = machineConfiguration;

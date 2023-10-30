@@ -1,28 +1,30 @@
-﻿using AForge.Imaging.Filters;
-using AForge.Video;
-using AForge.Video.DirectShow;
-using Microsoft.Toolkit.Diagnostics;
-using System;
+﻿using System;
 using System.Collections.Generic;
-using System.Linq;
 using System.Drawing;
 using System.Drawing.Imaging;
 using System.IO;
-using System.Management;
 using System.Threading.Tasks;
 using System.Windows.Media.Imaging;
+using AForge.Imaging.Filters;
+using AForge.Video;
+using AForge.Video.DirectShow;
+using MachineClassLibrary.Miscellaneous;
+using Microsoft.Toolkit.Diagnostics;
 
 
 namespace MachineClassLibrary.VideoCapture
 {
-    public class USBCamera : IVideoCapture
+    public class USBCamera : PlugMeWatcher, IVideoCapture
     {
         private VideoCaptureDevice _localCamera;
         private int _localCameraIndex;
         private int _localCameraCapabilities;
         private bool _isStarted = false;
         private string _currentMonikerString;
-        public Dictionary<int, (string, string[])> AvaliableVideoCaptureDevices { get; private set; }
+        public Dictionary<int, (string, string[])> AvailableVideoCaptureDevices
+        {
+            get; private set;
+        }
         public bool IsVideoCaptureConnected { get; private set; } = false;
 
         public string VideoCaptureMessage => _errorMessage;
@@ -30,40 +32,31 @@ namespace MachineClassLibrary.VideoCapture
         private string _errorMessage;
 
         private List<VideoCaptureDevice> _videoCaptureDevices;
-        private const string queryString = "SELECT * FROM Win32_DeviceChangeEvent WHERE EventType = 2";
-        private object _eventLocker = new object();
         private bool _freezeImage;
         private BitmapImage _bitmap;
 
-        public USBCamera()
+        public USBCamera() : base("VID_AA47", "PID_1301")
         {
             _videoCaptureDevices = GetVideoCaptureDevices();
-            var watcher = new ManagementEventWatcher();
-            var query = new WqlEventQuery(queryString);
-            watcher.Query = query;
-            watcher.EventArrived += Watcher_EventArrived;
-            watcher.Start();
+            WaitAndPlugMe(() =>
+            {
+                _videoCaptureDevices = GetVideoCaptureDevices();
+                //StartCamera(_localCameraIndex, _localCameraCapabilities);
+            });
+            DevicePlugged += USBCamera_DevicePlugged;
         }
+
+        private void USBCamera_DevicePlugged(object sender, EventArgs e) => CameraPlugged?.Invoke(sender,e);
 
         public event EventHandler<VideoCaptureEventArgs> OnBitmapChanged;
-
-        private void Watcher_EventArrived(object sender, EventArrivedEventArgs e)
-        {
-            Task.Delay(100).Wait();
-            _videoCaptureDevices = GetVideoCaptureDevices();
-
-            if (_isStarted & !(_localCamera?.IsRunning ?? false))
-            {
-                StartCamera(_localCameraIndex, _localCameraCapabilities);
-            }
-        }
+        public event EventHandler CameraPlugged;
         private List<VideoCaptureDevice> GetVideoCaptureDevices()
         {
             var devices = new FilterInfoCollection(FilterCategory.VideoInputDevice);
             var videoCaptureDevices = new List<VideoCaptureDevice>();
             if (devices.Count != 0)
             {
-                AvaliableVideoCaptureDevices = new();
+                AvailableVideoCaptureDevices = new();
                 for (int i = 0; i < devices.Count; i++)
                 {
                     var device = new VideoCaptureDevice(devices[i].MonikerString);
@@ -76,7 +69,7 @@ namespace MachineClassLibrary.VideoCapture
                             var cap = device.VideoCapabilities[n];
                             caps[n] = $"{cap.FrameSize.Width} X {cap.FrameSize.Height} {cap.FrameRate}fps";
                         }
-                        AvaliableVideoCaptureDevices.Add(i, (devices[i].MonikerString, caps));
+                        AvailableVideoCaptureDevices.Add(i, (devices[i].MonikerString, caps));
                     }
                 }
             }
@@ -97,23 +90,23 @@ namespace MachineClassLibrary.VideoCapture
             _localCameraCapabilities = capabilitiesInd;
             try
             {
-                Guard.IsGreaterThan(AvaliableVideoCaptureDevices?.Count ?? 0, 0, nameof(_videoCaptureDevices.Count));
+                Guard.IsGreaterThan(AvailableVideoCaptureDevices?.Count ?? 0, 0, nameof(_videoCaptureDevices.Count));
             }
             catch (ArgumentOutOfRangeException ex)
             {
                 _errorMessage = $"Device count is 0";
                 return;
             }
-            Guard.IsInRange(ind, 0, AvaliableVideoCaptureDevices.Count, nameof(ind));
+            Guard.IsInRange(ind, 0, AvailableVideoCaptureDevices.Count, nameof(ind));
             try
             {
-                Guard.IsInRange(capabilitiesInd, 0, AvaliableVideoCaptureDevices[ind].Item2.Length, nameof(capabilitiesInd));
+                Guard.IsInRange(capabilitiesInd, 0, AvailableVideoCaptureDevices[ind].Item2.Length, nameof(capabilitiesInd));
             }
             catch (ArgumentOutOfRangeException)
             {
                 capabilitiesInd = 0;
             }
-            _currentMonikerString = AvaliableVideoCaptureDevices[ind].Item1;
+            _currentMonikerString = AvailableVideoCaptureDevices[ind].Item1;
             _localCamera = new VideoCaptureDevice(_currentMonikerString);
             if (!_localCamera.IsRunning)
             {
@@ -122,7 +115,7 @@ namespace MachineClassLibrary.VideoCapture
                 _localCamera.PlayingFinished += _localCamera_PlayingFinished;
                 _localCamera.NewFrame += HandleNewFrame;
                 _localCamera.Start();
-                
+
                 IsVideoCaptureConnected = true;
                 _errorMessage = string.Empty;
                 _localCameraIndex = ind;
@@ -156,14 +149,17 @@ namespace MachineClassLibrary.VideoCapture
             var collection = new FilterInfoCollection(FilterCategory.VideoInputDevice);
             return collection.Count;
         }
-       
-        public bool AdjustWidthToHeight { get; set; }
+
+        public bool AdjustWidthToHeight
+        {
+            get; set;
+        }
 
         private async void HandleNewFrame(object sender, NewFrameEventArgs eventArgs)
         {
-            
+
             var filter = new ContrastCorrection();
-            
+
             Bitmap ApplyAdjustWidthIfEnable(Bitmap bitmap)
             {
                 if (!AdjustWidthToHeight) return bitmap;
@@ -191,7 +187,7 @@ namespace MachineClassLibrary.VideoCapture
                     _bitmap.EndInit();
                     _bitmap.Freeze();
                 }
-                if(_bitmap is not null) OnBitmapChanged?.Invoke(this, new VideoCaptureEventArgs(_bitmap, _errorMessage));
+                if (_bitmap is not null) OnBitmapChanged?.Invoke(this, new VideoCaptureEventArgs(_bitmap, _errorMessage));
             }
             catch (Exception ex)
             {
@@ -202,7 +198,7 @@ namespace MachineClassLibrary.VideoCapture
 
         public void InvokeSettings()
         {
-            _localCamera.DisplayPropertyPage(IntPtr.Zero);
+            _localCamera?.DisplayPropertyPage(IntPtr.Zero);
         }
     }
 }

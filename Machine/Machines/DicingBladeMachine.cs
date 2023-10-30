@@ -43,6 +43,7 @@ namespace MachineClassLibrary.Machine.Machines
         public event EventHandler<SensorsEventArgs> OnSensorStateChanged;
         public event EventHandler<SpindleEventArgs> OnSpindleStateChanging;
         public event EventHandler<VideoCaptureEventArgs> OnBitmapChanged;
+        public event EventHandler CameraPlugged;
 
         public void ConfigureGeometry(Dictionary<Place, (Ax, double)[]> places)
         {
@@ -306,7 +307,7 @@ namespace MachineClassLibrary.Machine.Machines
 
         private List<Sensors> _spindleBlockers;
 
-        public Dictionary<int, (string, string[])> AvaliableVideoCaptureDevices => _videoCamera.AvaliableVideoCaptureDevices;
+        public Dictionary<int, (string, string[])> AvailableVideoCaptureDevices => _videoCamera.AvailableVideoCaptureDevices;
 
         public bool IsVideoCaptureConnected => _videoCamera.IsVideoCaptureConnected;
 

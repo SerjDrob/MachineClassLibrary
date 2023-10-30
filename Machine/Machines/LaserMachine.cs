@@ -23,6 +23,7 @@ namespace MachineClassLibrary.Machine.Machines
 
         public event EventHandler<VideoCaptureEventArgs> OnBitmapChanged;
         public event EventHandler<ValveEventArgs> OnValveStateChanged;
+        public event EventHandler CameraPlugged;
 
         public LaserMachine(ExceptionsAgregator exceptionsAgregator, IMotionDevicePCI1240U motionDevice, IMarkLaser markLaser, IVideoCapture videoCapture) : base(exceptionsAgregator, motionDevice)
         {
@@ -31,7 +32,11 @@ namespace MachineClassLibrary.Machine.Machines
             _markLaser = markLaser;
             _videoCapture = videoCapture;
             _videoCapture.OnBitmapChanged += _videoCapture_OnBitmapChanged;
+            _videoCapture.CameraPlugged += _videoCapture_CameraPlugged;
         }
+
+        private void _videoCapture_CameraPlugged(object sender, EventArgs e) => CameraPlugged?.Invoke(sender, e);
+
         public void ConfigureGeometry(Dictionary<LMPlace, (Ax, double)[]> places)
         {
             if (_places is not null)
@@ -233,7 +238,7 @@ namespace MachineClassLibrary.Machine.Machines
 
         public bool IsMarkDeviceInit => _markLaser.IsMarkDeviceInit;
 
-        public Dictionary<int, (string, string[])> AvaliableVideoCaptureDevices => _videoCapture.AvaliableVideoCaptureDevices;
+        public Dictionary<int, (string, string[])> AvailableVideoCaptureDevices => _videoCapture.AvailableVideoCaptureDevices;
 
         public bool IsVideoCaptureConnected => _videoCapture.IsVideoCaptureConnected;
 

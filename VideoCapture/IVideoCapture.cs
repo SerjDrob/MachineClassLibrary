@@ -12,7 +12,7 @@ namespace MachineClassLibrary.VideoCapture
 {
     public interface IVideoCapture
     {
-        Dictionary<int, (string, string[])> AvaliableVideoCaptureDevices { get; }
+        Dictionary<int, (string, string[])> AvailableVideoCaptureDevices { get; }
         bool IsVideoCaptureConnected { get; }
         string VideoCaptureMessage { get; }
         /// <summary>
@@ -32,6 +32,6 @@ namespace MachineClassLibrary.VideoCapture
         int GetVideoCapabilitiesCount();
         void InvokeSettings();
         event EventHandler<VideoCaptureEventArgs> OnBitmapChanged;
-
+        event EventHandler CameraPlugged;
     }
 }
