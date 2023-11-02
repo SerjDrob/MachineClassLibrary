@@ -120,8 +120,23 @@ namespace MachineClassLibrary.Laser.Parameters
         {
             get; set;
         }
-        
-        
+
+        public int HatchAttribute
+        {
+            get;
+            set;
+        }
+        public int HatchEdgeDist
+        {
+            get;
+            set;
+        }
+        private bool _hatchContourFirst;
+        public bool HatchContourFirst
+        {
+            get => _hatchContourFirst & DisableContour;
+            set => _hatchContourFirst = value;
+        }
         public object Clone()
         {
             return this.MemberwiseClone();
