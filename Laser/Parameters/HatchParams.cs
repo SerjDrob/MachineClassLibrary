@@ -20,6 +20,7 @@
          bool HatchLoopRev, //loop reverse
          bool HatchAutoRotate, //enable auto rotate angle or not
          double HatchRotateAngle,
-         int HatchAttribute
+         int HatchAttribute,
+         bool HatchContourFirst
     );
 }

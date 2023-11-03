@@ -1,5 +1,6 @@
 ﻿using MachineClassLibrary.Laser.Entities;
 using MachineClassLibrary.Laser.Parameters;
+using netDxf.Entities;
 using System;
 using System.IO;
 using System.Threading.Tasks;
@@ -81,17 +82,43 @@ namespace MachineClassLibrary.Laser.Markers
             int result;
             result = JczLmc.SetPenParams(_markLaserParams.PenParams);
             result = JczLmc.SetHatchParams(_markLaserParams.HatchParams);
-
+            var hatch = _markLaserParams.HatchParams;
             result = JczLmc.AddFileToLib(
-                strFileName: filePath, 
-                strEntName: "Entity", 
-                dPosX: 0, 
-                dPosY: 0, 
-                dPosZ: 0, 
-                nAlign: 0, 
-                dRatio: 1, 
-                nPenNo: _markLaserParams.PenParams.PenNo, 
-                bHatchFile: _markLaserParams.HatchParams.EnableHatch ? 1:0);
+                strFileName: filePath,
+                strEntName: "Entity",
+                dPosX: 0,
+                dPosY: 0,
+                dPosZ: 0,
+                nAlign: 0,
+                dRatio: 1,
+                nPenNo: _markLaserParams.PenParams.PenNo,
+                bHatchFile: 0);//_markLaserParams.HatchParams.EnableHatch ? 1:0);
+
+            result = JczLmc.SetHatchEntParam2(
+                HatchName: "Entity",
+                bEnableContour: hatch.EnableContour,
+                nParamIndex: 1,
+                bEnableHatch: hatch.EnableHatch ? 1:0,
+                bContourFirst: hatch.HatchContourFirst,
+                nPenNo: _markLaserParams.PenParams.PenNo,
+                nHatchType: 0,
+                bHatchAllCalc: true,
+                bHatchEdge: hatch.HatchEdge,
+                bHatchAverageLine: hatch.HatchAverageLine,
+                dHatchAngle: 0,
+                dHatchLineDist: hatch.HatchLineDist,
+                dHatchEdgeDist: hatch.HatchEdgeDist,
+                dHatchStartOffset: hatch.HatchStartOffset,
+                dHatchEndOffset: hatch.HatchEndOffset,
+                dHatchLineReduction: hatch.HatchLineReduction,
+                dHatchLoopDist: hatch.HatchLoopDist,
+                nEdgeLoop: hatch.EdgeLoop,
+                nHatchLoopRev: (hatch.HatchAttribute & JczLmc.HATCHATTRIB_OUT) != 0,
+                bHatchAutoRotate: hatch.HatchAutoRotate,
+                dHatchRotateAngle: hatch.HatchRotateAngle,
+                bHatchCrossMode: false,
+                dCycCount: 1
+                );
 
             JczLmc.SaveEntLibToFile("D:/TestFile.ezd");
 

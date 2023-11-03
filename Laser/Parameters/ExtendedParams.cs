@@ -86,7 +86,7 @@ namespace MachineClassLibrary.Laser.Parameters
         } = true;
         [Category("Штриховка / фрезеровка")]
         [DisplayName("Не проходить контур")]
-        public bool DisableContour
+        public bool EnableContour
         {
             get;
             set;
@@ -134,7 +134,7 @@ namespace MachineClassLibrary.Laser.Parameters
         private bool _hatchContourFirst;
         public bool HatchContourFirst
         {
-            get => _hatchContourFirst & DisableContour;
+            get => _hatchContourFirst & EnableContour;
             set => _hatchContourFirst = value;
         }
         public object Clone()
