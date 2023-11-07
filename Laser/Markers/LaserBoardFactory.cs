@@ -24,7 +24,7 @@ namespace MachineClassLibrary.Laser.Markers
 
         public IPWM GetPWM()
         {
-            if (_machineConfiguration.IsUF) return _serviceProvider.GetService<PWM>() ?? throw new NullReferenceException("Cannot get service PWM");
+            if (_machineConfiguration.IsUF) return _serviceProvider.GetService<PWM3>() ?? throw new NullReferenceException("Cannot get service PWM");
             if (_machineConfiguration.IsIR) return _serviceProvider.GetService<PWM2>() ?? throw new NullReferenceException("Cannot get service PWM2");
             throw new ArgumentException("Cannot get PWM");
         }

@@ -175,10 +175,8 @@ namespace MachineClassLibrary.Laser.Markers
             await Task.Run(async () =>
             {
                 var result = Lmc.lmc1_MarkEntity("text");
-                if (!await _pwm.StopPWM())
-                {
-
-                }
+                if(_markLaserParams.PenParams.IsModulated) if(!await _pwm.StopPWM()){}
+                
                 if (result != 0)
                 {
                     Lmc.lmc1_DeleteEnt("text");
@@ -218,8 +216,9 @@ namespace MachineClassLibrary.Laser.Markers
         {
             //var result = Lmc.lmc1_CancelMark();
             var result = await Task.FromResult(JczLmc.StopMark());
-            var res = await _pwm.StopPWM();
-            return res;
+            var res = true;
+            if (_markLaserParams.PenParams.IsModulated) res = await _pwm.StopPWM();
+            return res & result==0;
             //if (result != 0) throw new Exception($"Cancelling of marking failed with error code {(Lmc.EzCad_Error_Code)result}");
         }
 
