@@ -1194,7 +1194,7 @@ namespace MachineClassLibrary.Laser
            bEnableContour: hatchParams.EnableContour,
            bEnableHatch1: hatchParams.EnableHatch ? 1:0,
            nPenNo1: hatchParams.PenNo,
-           nHatchAttrib1: HATCHATTRIB_LOOP,//40
+           nHatchAttrib1: hatchParams.HatchAttribute,//HATCHATTRIB_LOOP,//40
            dHatchEdgeDist1: hatchParams.HatchEdgeDist,
            dHatchLineDist1: hatchParams.HatchLineDist,
            dHatchStartOffset1: hatchParams.HatchStartOffset,
@@ -1330,8 +1330,7 @@ namespace MachineClassLibrary.Laser
                          ref double dHatchRotateAngle);
 
         [DllImport("MarkEzd", EntryPoint = "lmc1_SetHatchEntParam2", CharSet = CharSet.Unicode, CallingConvention = CallingConvention.StdCall)]
-        public static extern int
-            SetHatchEntParam2(string HatchName,
+        public static extern int SetHatchEntParam2(string HatchName,
                             bool bEnableContour,
                             int nParamIndex,
                             int bEnableHatch,
@@ -1352,8 +1351,8 @@ namespace MachineClassLibrary.Laser
                             bool nHatchLoopRev,//»·РО·ґЧЄ
                             bool bHatchAutoRotate,//КЗ·сЧФ¶ЇРэЧЄЅЗ¶И
                             double dHatchRotateAngle,
-                                bool bHatchCrossMode,
-                                int dCycCount);
+                            bool bHatchCrossMode,
+                            int dCycCount);
 
         [DllImport("MarkEzd", EntryPoint = "lmc1_GetHatchEntParam2", CharSet = CharSet.Unicode, CallingConvention = CallingConvention.StdCall)]
         public static extern int GetHatchEntParam2(string HatchName,

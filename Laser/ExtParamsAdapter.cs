@@ -25,7 +25,7 @@ namespace MachineClassLibrary.Laser
             };
             var hatchParams = markLaserParams.HatchParams with
             {
-                EnableContour = _extendedParams.EnableHatch ? !_extendedParams.DisableContour : true,
+                EnableContour = _extendedParams.EnableHatch ? !_extendedParams.EnableContour : true,
                 HatchStartOffset = _extendedParams.EnableHatch & _extendedParams.EnableMilling ? _extendedParams.ContourOffset / 1000d : 0,
                 HatchLineDist = _extendedParams.HatchLineDistance / 1000d,
                 EnableHatch = _extendedParams.EnableHatch
