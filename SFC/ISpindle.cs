@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Threading.Tasks;
 
 namespace MachineClassLibrary.SFC
 {
@@ -11,6 +12,7 @@ namespace MachineClassLibrary.SFC
         public void Start();
         public void Stop();
         void Connect();
+        Task<bool> ChangeSpeedAsync(ushort rpm, int delay);
 
         /// <summary>
         ///     Gets frequency, current, spinning state

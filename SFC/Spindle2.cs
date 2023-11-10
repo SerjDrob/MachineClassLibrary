@@ -101,5 +101,7 @@ namespace MachineClassLibrary.SFC
         {
             throw new NotImplementedException();
         }
+
+        public Task<bool> ChangeSpeedAsync(ushort rpm, int delay) => throw new NotImplementedException();
     }
 }

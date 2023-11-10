@@ -12,6 +12,8 @@ namespace MachineClassLibrary.SFC
 
         public event EventHandler<SpindleEventArgs> GetSpindleState;
 
+        public Task<bool> ChangeSpeedAsync(ushort rpm, int delay) => throw new NotImplementedException();
+
         public void Connect()
         {
             throw new NotImplementedException();

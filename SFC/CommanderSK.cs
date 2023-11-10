@@ -53,7 +53,11 @@ namespace MachineClassLibrary.SFC
 
 
         public bool IsConnected { get; set; } = false;
-
+        /// <summary>
+        /// Set spindle's rpm
+        /// </summary>
+        /// <param name="rpm"></param>
+        /// <exception cref="SpindleException"></exception>
         public void SetSpeed(ushort rpm)
         {
             if (!(rpm / 60 > LowFreqLimit && rpm / 60 < HighFreqLimit))
@@ -69,6 +73,30 @@ namespace MachineClassLibrary.SFC
                     new ushort[] { 0, high, 0, low });//Pr01.06 - high limit of speed, Pr01.07 - low limit of speed
             }
         }
+        /// <summary>
+        /// Changing spindle's rpm on fly and waiting it to settle
+        /// </summary>
+        /// <param name="rpm">spindle's new rpm</param>
+        /// <param name="delay">delay after settling the rpm</param>
+        /// <returns>true if success</returns>
+        public async Task<bool> ChangeSpeedAsync(ushort rpm, int delay)
+        {
+            if(!_hasStarted) return false;
+            if (rpm == _freq * 6) return true;
+            try
+            {
+                SetSpeed(rpm);
+                if (_onFreq) return true;
+                await Task.Run(async () => { while (!_onFreq) await Task.Delay(50); });
+                await Task.Delay(delay);
+                return true;
+            }
+            catch 
+            {
+                return false;
+            }
+        }
+
 
         public void Start()
         {
@@ -80,6 +108,14 @@ namespace MachineClassLibrary.SFC
         }
 
         private bool _hasStarted = false;
+        private ushort _freq;
+        private ushort _current;
+        private bool _onFreq;
+        private bool _stop;
+        private bool _acc;
+        private bool _dec;
+        private bool _isOk;
+
         public void Stop()
         {
             lock (_modbusLock)
@@ -120,24 +156,24 @@ namespace MachineClassLibrary.SFC
                 {
                     lock (_modbusLock)
                     {
-                        var freq = _client.ReadHoldingRegisters(1, 0x41F4, 2)[1];//Pr5.01
-                        var current = _client.ReadHoldingRegisters(1, 0x4190, 2)[1];
-                        var onFreq = _client.ReadHoldingRegisters(1, 0x43ED, 2)[1] == 1;
-                        var stop = _client.ReadHoldingRegisters(1, 0x43EA, 2)[1] == 1;
-                        var acc = !stop & !onFreq & _hasStarted;
-                        var dec = !stop & !onFreq & !_hasStarted;
-                        var isOk = _client.ReadHoldingRegisters(1, 0x43E8, 2)[1] == 1;
+                        _freq = _client.ReadHoldingRegisters(1, 0x41F4, 2)[1];//Pr5.01
+                        _current = _client.ReadHoldingRegisters(1, 0x4190, 2)[1];
+                        _onFreq = _client.ReadHoldingRegisters(1, 0x43ED, 2)[1] == 1;
+                        _stop = _client.ReadHoldingRegisters(1, 0x43EA, 2)[1] == 1;
+                        _acc = !_stop & !_onFreq & _hasStarted;
+                        _dec = !_stop & !_onFreq & !_hasStarted;
+                        _isOk = _client.ReadHoldingRegisters(1, 0x43E8, 2)[1] == 1;
 
                         GetSpindleState?.Invoke(this,
                             new SpindleEventArgs
                             {
-                                Rpm = freq * 6,
-                                Current = current / 100d,
-                                OnFreq = onFreq,
-                                Accelerating = acc,
-                                Deccelarating = dec,
-                                Stop = stop,
-                                IsOk = isOk
+                                Rpm = _freq * 6,
+                                Current = _current / 100d,
+                                OnFreq = _onFreq,
+                                Accelerating = _acc,
+                                Deccelarating = _dec,
+                                Stop = _stop,
+                                IsOk = _isOk
                             });
                     }
                 }

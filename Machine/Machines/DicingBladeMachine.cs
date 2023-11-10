@@ -276,7 +276,11 @@ namespace MachineClassLibrary.Machine.Machines
         //{
         //    _videoCamera.FreezeCameraImage();
         //}
-
+        /// <summary>
+        /// Set spindle's rpm
+        /// </summary>
+        /// <param name="frequency">measured in rpm</param>
+        /// <exception cref="MachineException"></exception>
         public void SetSpindleFreq(int frequency)
         {
             try
@@ -399,6 +403,8 @@ namespace MachineClassLibrary.Machine.Machines
                 return false;                
             }
         }
+
+        public Task<bool> ChangeSpindleFreqOnFlyAsync(ushort rpm, int delay) => _spindle.ChangeSpeedAsync(rpm, delay);
 
         public class GeometryBuilder<TPlace> : IGeometryBuilder<TPlace> where TPlace : Enum
         {
