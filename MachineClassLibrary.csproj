@@ -43,6 +43,7 @@
     <PackageReference Include="Clipper2" Version="1.2.2" />
     <PackageReference Include="EasyModbusTCP" Version="5.6.0" />
     <PackageReference Include="FluentModbus" Version="5.0.0" />
+    <PackageReference Include="FTD2XX_NET" Version="1.0.14" />
     <PackageReference Include="Humanizer.Core" Version="2.14.1" />
     <PackageReference Include="IxMilia.Dxf" Version="0.8.3" />
     <PackageReference Include="MathNet.Numerics" Version="5.0.0" />
