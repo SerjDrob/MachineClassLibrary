@@ -71,6 +71,7 @@ namespace MachineClassLibrary.SFC
                 var low = (ushort)(rpm - 5);
                 _client.WriteMultipleRegisters(1, 0x4069,
                     new ushort[] { 0, high, 0, low });//Pr01.06 - high limit of speed, Pr01.07 - low limit of speed
+                _onFreq = false;
             }
         }
         /// <summary>
@@ -159,6 +160,7 @@ namespace MachineClassLibrary.SFC
                         _freq = _client.ReadHoldingRegisters(1, 0x41F4, 2)[1];//Pr5.01
                         _current = _client.ReadHoldingRegisters(1, 0x4190, 2)[1];
                         _onFreq = _client.ReadHoldingRegisters(1, 0x43ED, 2)[1] == 1;
+                        if(_onFreq) _hasStarted = true;
                         _stop = _client.ReadHoldingRegisters(1, 0x43EA, 2)[1] == 1;
                         _acc = !_stop & !_onFreq & _hasStarted;
                         _dec = !_stop & !_onFreq & !_hasStarted;
