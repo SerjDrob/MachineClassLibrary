@@ -128,11 +128,11 @@ namespace MachineClassLibrary.Laser.Markers
                bEnableHatch: hatch.EnableHatch ? 1 : 0,
                bContourFirst: hatch.HatchContourFirst,
                nPenNo: _markLaserParams.PenParams.PenNo,
-               nHatchType:1,//<----------
+               nHatchType:1,//<----------Figure
                bHatchAllCalc: false,
                bHatchEdge: hatch.HatchEdge,
                bHatchAverageLine: hatch.HatchAverageLine,
-               dHatchAngle:0,
+               dHatchAngle:0,//<----------Угол штриховки (град)
                dHatchLineDist: hatch.HatchLineDist,
                dHatchEdgeDist: hatch.HatchEdgeDist,
                dHatchStartOffset: hatch.HatchStartOffset,
@@ -141,8 +141,8 @@ namespace MachineClassLibrary.Laser.Markers
                dHatchLoopDist: hatch.HatchLineDist, //hatch.HatchLoopDist,
                nEdgeLoop: 0,//hatch.EdgeLoop,<-----------------
                nHatchLoopRev: (hatch.HatchAttribute & JczLmc.HATCHATTRIB_OUT) != 0,
-               bHatchAutoRotate: false,//hatch.HatchAutoRotate,//<----------
-               dHatchRotateAngle: hatch.HatchRotateAngle,//<---------
+               bHatchAutoRotate: false,//hatch.HatchAutoRotate,//<---------- автоугол
+               dHatchRotateAngle: hatch.HatchRotateAngle,//<--------- закоментированно
                bHatchCrossMode: true,
                dCycCount: 1
                );
