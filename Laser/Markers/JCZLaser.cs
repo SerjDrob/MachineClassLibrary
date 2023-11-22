@@ -51,24 +51,13 @@ namespace MachineClassLibrary.Laser.Markers
 
         public async Task<bool> PierceLineAsync(double x1, double y1, double x2, double y2)
         {
-            //if (!await _pwm.SetPWM(40000,4, 1000, 50))
-            //{
-
-            //}
-
-            //var result = Lmc.SetPenParams(_markLaserParams.PenParams) == 0;
             var result = JczLmc.SetPenParams(_markLaserParams.PenParams) == 0;
-            if (/*await _pwm.SetPWM(50000, 5, 1000, 50)*/true)
-            {
-                //result = Lmc.lmc1_MarkLine(x1, y1, x2, y2, 0) == 0;
                 result = JczLmc.MarkLine(x1, y1, x2, y2, 0) == 0;
                 if (!await _pwm.StopPWM())
                 {
 
                 }
                 return result;
-            }
-            return false;
         }
 
         public async Task<bool> PierceObjectAsync(IPerforating perforator)
@@ -93,16 +82,24 @@ namespace MachineClassLibrary.Laser.Markers
                 dRatio: 1,
                 nPenNo: _markLaserParams.PenParams.PenNo,
                 bHatchFile: 0);//_markLaserParams.HatchParams.EnableHatch ? 1:0);
-            /*
+
+            var GetHatchType = (int attribute) =>
+            {
+                if ((attribute & JczLmc.HATCHATTRIB_LOOP) > 0) return 0;
+                if ((attribute & JczLmc.HATCHATTRIB_CROSSLINE) > 0) return 1;
+                return 0;
+            };
+
+
             result = JczLmc.SetHatchEntParam2(
                 HatchName: "Entity",
-                bEnableContour: true,//hatch.EnableContour,<---------------
+                bEnableContour: hatch.EnableContour,//<---------------
                 nParamIndex: 1,
-                bEnableHatch: hatch.EnableHatch ? 1:0,
+                bEnableHatch: hatch.EnableHatch ? 1 : 0,
                 bContourFirst: hatch.HatchContourFirst,
                 nPenNo: _markLaserParams.PenParams.PenNo,
-                nHatchType: 0,//2<----------
-                bHatchAllCalc: true,
+                nHatchType: GetHatchType(hatch.HatchAttribute),//2<----------
+                bHatchAllCalc: false,
                 bHatchEdge: hatch.HatchEdge,
                 bHatchAverageLine: hatch.HatchAverageLine,
                 dHatchAngle: 0,
@@ -111,16 +108,16 @@ namespace MachineClassLibrary.Laser.Markers
                 dHatchStartOffset: hatch.HatchStartOffset,
                 dHatchEndOffset: hatch.HatchEndOffset,
                 dHatchLineReduction: hatch.HatchLineReduction,
-                dHatchLoopDist: hatch.HatchLineDist, //hatch.HatchLoopDist,
-                nEdgeLoop: 0,//hatch.EdgeLoop,<-----------------
+                dHatchLoopDist: hatch.HatchLoopDist,
+                nEdgeLoop: hatch.EdgeLoop,//<-----------------
                 nHatchLoopRev: (hatch.HatchAttribute & JczLmc.HATCHATTRIB_OUT) != 0,
-                bHatchAutoRotate: true,// hatch.HatchAutoRotate,<----------
-                dHatchRotateAngle: 45,//hatch.HatchRotateAngle,<---------
-                bHatchCrossMode: false,
+                bHatchAutoRotate: hatch.HatchAutoRotate,//<----------
+                dHatchRotateAngle: hatch.HatchRotateAngle,//<---------
+                bHatchCrossMode: (hatch.HatchAttribute & JczLmc.HATCHATTRIB_CROSSLINE) != 0,
                 dCycCount: 1
                 );
-            */
-
+           
+            /*
             result = JczLmc.SetHatchEntParam2(
                HatchName: "Entity",
                bEnableContour: hatch.EnableContour,//<---------------
@@ -146,7 +143,7 @@ namespace MachineClassLibrary.Laser.Markers
                bHatchCrossMode: true,
                dCycCount: 1
                );
-
+            */
             JczLmc.SaveEntLibToFile("D:/TestFile.ezd");
 
             if (_markLaserParams.PenParams.IsModulated)

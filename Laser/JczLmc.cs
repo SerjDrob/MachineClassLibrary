@@ -1166,7 +1166,7 @@ namespace MachineClassLibrary.Laser
         public const int HATCHATTRIB_OUT = 0x20;//»·РРУЙДЪПтНв
         public const int HATCHATTRIB_AUTOROT = 0x40;//ЧФ¶ЇЅЗ¶ИРэЧЄ
         public const int HATCHATTRIB_AVERAGELINE = 0x80;//ЧФ¶Ї·ЦІјМоідПЯ
-        public const int HATCHATTRIB_CROSELINE = 0x400;//Ѕ»ІжМоід
+        public const int HATCHATTRIB_CROSSLINE = 0x400;//Ѕ»ІжМоід
 
         /// <summary>
         /// ЙиЦГµ±З°µДМоідІОКэ,Из№ыПтКэѕЭївМнјУ¶ФПуК±К№ДЬМоід,ПµНі»бУГґЛєЇКэЙиЦГµДІОКэАґМоід
