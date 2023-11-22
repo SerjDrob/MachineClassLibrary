@@ -83,9 +83,9 @@ namespace MachineClassLibrary.Laser.Markers
                 nPenNo: _markLaserParams.PenParams.PenNo,
                 bHatchFile: 0);//_markLaserParams.HatchParams.EnableHatch ? 1:0);
 
-            var GetHatchType = (int attribute) =>
+            int GetHatchType(int attribute)
             {
-                if ((attribute & JczLmc.HATCHATTRIB_LOOP) > 0) return 0;
+                if ((attribute & JczLmc.HATCHATTRIB_LOOP) > 0) return 2;
                 if ((attribute & JczLmc.HATCHATTRIB_CROSSLINE) > 0) return 1;
                 return 0;
             };
@@ -100,7 +100,7 @@ namespace MachineClassLibrary.Laser.Markers
                 nPenNo: _markLaserParams.PenParams.PenNo,
                 nHatchType: GetHatchType(hatch.HatchAttribute),//2<----------
                 bHatchAllCalc: false,
-                bHatchEdge: hatch.HatchEdge,
+                bHatchEdge: hatch.HatchEdge,//when lines
                 bHatchAverageLine: hatch.HatchAverageLine,
                 dHatchAngle: 0,
                 dHatchLineDist: hatch.HatchLineDist,
@@ -115,7 +115,7 @@ namespace MachineClassLibrary.Laser.Markers
                 dHatchRotateAngle: hatch.HatchRotateAngle,//<---------
                 bHatchCrossMode: (hatch.HatchAttribute & JczLmc.HATCHATTRIB_CROSSLINE) != 0,
                 dCycCount: 1
-                );
+                ); ;
            
             /*
             result = JczLmc.SetHatchEntParam2(
