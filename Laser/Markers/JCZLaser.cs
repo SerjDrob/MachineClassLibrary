@@ -104,10 +104,10 @@ namespace MachineClassLibrary.Laser.Markers
                 bHatchAverageLine: hatch.HatchAverageLine,
                 dHatchAngle: 0,
                 dHatchLineDist: hatch.HatchLineDist,
-                dHatchEdgeDist: hatch.HatchEdgeDist,
+                dHatchEdgeDist: 0.0001,//hatch.HatchEdgeDist,
                 dHatchStartOffset: hatch.HatchStartOffset,
                 dHatchEndOffset: hatch.HatchEndOffset,
-                dHatchLineReduction: hatch.HatchLineReduction,
+                dHatchLineReduction: 0,//hatch.HatchLineReduction,
                 dHatchLoopDist: hatch.HatchLoopDist,
                 nEdgeLoop: hatch.EdgeLoop,//<-----------------
                 nHatchLoopRev: (hatch.HatchAttribute & JczLmc.HATCHATTRIB_OUT) != 0,
@@ -116,34 +116,34 @@ namespace MachineClassLibrary.Laser.Markers
                 bHatchCrossMode: (hatch.HatchAttribute & JczLmc.HATCHATTRIB_CROSSLINE) != 0,
                 dCycCount: 1
                 ); ;
-           
-            /*
-            result = JczLmc.SetHatchEntParam2(
-               HatchName: "Entity",
-               bEnableContour: hatch.EnableContour,//<---------------
-               nParamIndex: 1,
-               bEnableHatch: hatch.EnableHatch ? 1 : 0,
-               bContourFirst: hatch.HatchContourFirst,
-               nPenNo: _markLaserParams.PenParams.PenNo,
-               nHatchType:1,//<----------Figure
-               bHatchAllCalc: false,
-               bHatchEdge: hatch.HatchEdge,
-               bHatchAverageLine: hatch.HatchAverageLine,
-               dHatchAngle:0,//<----------Угол штриховки (град)
-               dHatchLineDist: hatch.HatchLineDist,
-               dHatchEdgeDist: hatch.HatchEdgeDist,
-               dHatchStartOffset: hatch.HatchStartOffset,
-               dHatchEndOffset: hatch.HatchEndOffset,
-               dHatchLineReduction: 0.001,//hatch.HatchLineReduction,
-               dHatchLoopDist: hatch.HatchLineDist, //hatch.HatchLoopDist,
-               nEdgeLoop: 0,//hatch.EdgeLoop,<-----------------
-               nHatchLoopRev: (hatch.HatchAttribute & JczLmc.HATCHATTRIB_OUT) != 0,
-               bHatchAutoRotate: false,//hatch.HatchAutoRotate,//<---------- автоугол
-               dHatchRotateAngle: hatch.HatchRotateAngle,//<--------- закоментированно
-               bHatchCrossMode: true,
-               dCycCount: 1
-               );
-            */
+
+
+            //result = JczLmc.SetHatchEntParam2(
+            //   HatchName: "Entity",
+            //   bEnableContour: hatch.EnableContour,//<---------------
+            //   nParamIndex: 1,
+            //   bEnableHatch: hatch.EnableHatch ? 1 : 0,
+            //   bContourFirst: hatch.HatchContourFirst,
+            //   nPenNo: _markLaserParams.PenParams.PenNo,
+            //   nHatchType: 1,//<----------Figure
+            //   bHatchAllCalc: false,
+            //   bHatchEdge: hatch.HatchEdge,
+            //   bHatchAverageLine: hatch.HatchAverageLine,
+            //   dHatchAngle: 0,//<----------Угол штриховки (град)
+            //   dHatchLineDist: hatch.HatchLineDist,
+            //   dHatchEdgeDist: 0.0001,//hatch.HatchEdgeDist,
+            //   dHatchStartOffset: hatch.HatchStartOffset,
+            //   dHatchEndOffset: hatch.HatchEndOffset,
+            //   dHatchLineReduction: 0,//hatch.HatchLineReduction,
+            //   dHatchLoopDist: hatch.HatchLineDist, //hatch.HatchLoopDist,
+            //   nEdgeLoop: 0,//hatch.EdgeLoop,<-----------------
+            //   nHatchLoopRev: (hatch.HatchAttribute & JczLmc.HATCHATTRIB_OUT) != 0,
+            //   bHatchAutoRotate: false,//hatch.HatchAutoRotate,//<---------- автоугол
+            //   dHatchRotateAngle: hatch.HatchRotateAngle,//<--------- закоментированно
+            //   bHatchCrossMode: true,
+            //   dCycCount: 1
+            //   );
+
             JczLmc.SaveEntLibToFile("D:/TestFile.ezd");
 
             if (_markLaserParams.PenParams.IsModulated)
@@ -190,7 +190,7 @@ namespace MachineClassLibrary.Laser.Markers
 
         public async Task<bool> MarkTextAsync(string text, double textSize, double angle)//TODO return bool or info or through exception?
         {
-            var penparams = _markLaserParams.PenParams with { MarkLoop = 1/*, MarkSpeed = 500*/ };//TODO move to settings 
+            var penparams = _markLaserParams.PenParams with { MarkLoop = 2, MarkSpeed = 500, IsModulated=false};//TODO move to settings 
 
             var result = JczLmc.SetFontParam3(
                 fontname: "Cambria",
