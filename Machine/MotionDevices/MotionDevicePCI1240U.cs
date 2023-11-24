@@ -81,7 +81,14 @@ namespace MachineClassLibrary.Machine.MotionDevices
         }
         public async Task StartMonitoringAsync()
         {
-           await DeviceStateMonitorAsync();
+            try
+            {
+                await DeviceStateMonitorAsync();
+            }
+            catch (Exception ex)
+            {
+                throw new MotionException($"{nameof(DeviceStateMonitorAsync)} failed with exception {ex.Message}", ex);
+            }
         }
 
 #if NOTTEST
@@ -600,6 +607,7 @@ private async Task DeviceStateMonitorAsync()
 
         public async Task HomeMovingAsync((AxDir direction, HomeRst homeRst, HmMode homeMode, double velocity, int axisNum)[] axs)
         {
+            ResetErrors();
             var state = new ushort();
             foreach (var axis in axs)
             {
@@ -611,7 +619,7 @@ private async Task DeviceStateMonitorAsync()
                 }
             }
 
-            ResetErrors();
+            
 
             foreach (var axvel in axs)
             {
