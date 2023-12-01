@@ -190,8 +190,11 @@ namespace MachineClassLibrary.Laser.Markers
 
         public async Task<bool> MarkTextAsync(string text, double textSize, double angle)//TODO return bool or info or through exception?
         {
+<<<<<<< HEAD
+=======
             var penparams = _markLaserParams.PenParams with { MarkLoop = 2, MarkSpeed = 500, IsModulated=false};//TODO move to settings 
 
+>>>>>>> 0f7f9ac41ad0b4f1c86f5c49721266197c2b7955
             var result = JczLmc.SetFontParam3(
                 fontname: "Cambria",
                 CharHeight: textSize,
@@ -204,11 +207,7 @@ namespace MachineClassLibrary.Laser.Markers
                 nTextAlign: 8,
                 bBold: false,
                 bItalic: false);// Lmc.lmc1_SetFontParam("Cambria", textSize, 0.625 * textSize, 0, 0, 0, false);
-            result += JczLmc.SetPenParams(penparams);// Lmc.SetPenParams(par);
             result += JczLmc.AddTextToLib(text, "text", 0, 0, 0, 8, angle, 0, 1); // Lmc.lmc1_AddTextToLib(text, "text", 0, 0, 0, 8, angle, 0, true);
-
-
-
 
             if (result!= 0) return false;
             if (_markLaserParams.PenParams.IsModulated)

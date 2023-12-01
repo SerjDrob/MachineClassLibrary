@@ -22,7 +22,13 @@ namespace MachineClassLibrary.Classes
         {
             var lwVertices = curve.Vertices.Select(v => new LwPolylineVertex(v.X, v.Y, v.Bulge));
             var lwPolyline = new LwPolyline(lwVertices);
+<<<<<<< HEAD
+
+            var curvePath = lwPolyline.PolygonalVertexes(10, 0.001, 0.001)
+                .Aggregate(new List<double>(), (acc, prev) =>
+=======
             var curvePath = lwPolyline.PolygonalVertexes(15, 0.001, 0.001).Aggregate(new List<double>(), (acc, prev) =>
+>>>>>>> 0f7f9ac41ad0b4f1c86f5c49721266197c2b7955
                 {
                     acc.Add(prev.X);
                     acc.Add(prev.Y);
