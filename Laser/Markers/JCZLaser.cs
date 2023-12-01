@@ -190,7 +190,7 @@ namespace MachineClassLibrary.Laser.Markers
 
         public async Task<bool> MarkTextAsync(string text, double textSize, double angle)//TODO return bool or info or through exception?
         {
-            var penparams = _markLaserParams.PenParams with { MarkLoop = 2, MarkSpeed = 500, IsModulated=false};//TODO move to settings 
+            var penparams = _markLaserParams.PenParams;// with { MarkLoop = 2, MarkSpeed = 500, IsModulated=false};//TODO move to settings 
 
             var result = JczLmc.SetFontParam3(
                 fontname: "Cambria",
