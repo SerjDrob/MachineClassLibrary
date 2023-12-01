@@ -6,7 +6,7 @@ using netDxf.Entities;
 
 namespace MachineClassLibrary.Classes
 {
-    internal static class CurveExtensions
+    /*internal*/public static class CurveExtensions
     {
         static IEnumerable<IEnumerable<PointD>> InflatePath(IEnumerable<double> path, double delta)
         {
@@ -22,7 +22,9 @@ namespace MachineClassLibrary.Classes
         {
             var lwVertices = curve.Vertices.Select(v => new LwPolylineVertex(v.X, v.Y, v.Bulge));
             var lwPolyline = new LwPolyline(lwVertices);
-            var curvePath = lwPolyline.PolygonalVertexes(0, 0.001, 0.001).Aggregate(new List<double>(), (acc, prev) =>
+
+            var curvePath = lwPolyline.PolygonalVertexes(10, 0.001, 0.001)
+                .Aggregate(new List<double>(), (acc, prev) =>
                 {
                     acc.Add(prev.X);
                     acc.Add(prev.Y);
