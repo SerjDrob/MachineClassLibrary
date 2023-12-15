@@ -685,7 +685,7 @@ namespace MachineClassLibrary.Machine.Machines
                 var state = axNumEventArgs.AxisState;
                 if (axisNum < _axes.Count())
                 {
-                    var axis = _axes.Where(a => a.Value.AxisNum == axisNum).First().Key;
+                    var axis = _axes.ToList().Where(a => a.Value.AxisNum == axisNum).First().Key;
                     _axes[axis].ActualPosition = _axes[axis].LineCoefficient == 0 ? state.cmdPos : state.actPos * _axes[axis].LineCoefficient;
                     _axes[axis].CmdPosition = state.cmdPos;
                     _axes[axis].DIs = state.sensors;

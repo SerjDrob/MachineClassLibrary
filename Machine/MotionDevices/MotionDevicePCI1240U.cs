@@ -64,7 +64,6 @@ namespace MachineClassLibrary.Machine.MotionDevices
                 Motion.mAcm_AxGetState(_mAxishand[i], ref state);
 
                 if(state == 3) Motion.mAcm_AxResetError(_mAxishand[i]).CheckResult(i);
-
                 Motion.mAcm_AxSetCmdPosition(_mAxishand[i], cmdPosition).CheckResult(i);
                 Motion.mAcm_AxSetActualPosition(_mAxishand[i], cmdPosition).CheckResult(i);
 
