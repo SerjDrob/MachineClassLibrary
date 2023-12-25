@@ -42,6 +42,7 @@ namespace MachineClassLibrary.Machine
         public double GetAxisSetVelocity(Ax axis);
         public void EmergencyStop();
         public void Stop(Ax axis);
+        public void StartMonitoringState();
         public Task WaitUntilAxisStopAsync(Ax axis);
         public void GoWhile(Ax axis, AxDir direction);
         public double GetAxActual(Ax axis);

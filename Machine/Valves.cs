@@ -6,6 +6,10 @@
         Coolant,
         ChuckVacuum,
         SpindleContact,
-        Light
+        Light,
+        RedLight,
+        YellowLight,
+        GreenLight,
+        BlueLight
     }
 }

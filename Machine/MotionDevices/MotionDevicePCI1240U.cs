@@ -232,7 +232,14 @@ private async Task DeviceStateMonitorAsync()
                         vhEnd
                     );
                     _axisStates[num] = axState;
-                    TransmitAxState?.Invoke(this, new AxNumEventArgs(num, axState));
+                    try
+                    {
+                        TransmitAxState?.Invoke(this, new AxNumEventArgs(num, axState));
+                    }
+                    catch (Exception ex)
+                    {
+                        await Console.Error.WriteLineAsync(ex.Message);
+                    }
                 }
                 await Task.Delay(1).ConfigureAwait(false);
             }
@@ -699,6 +706,8 @@ private async Task DeviceStateMonitorAsync()
         {
             var deviceHandle = IntPtr.Zero;
             var result = Motion.mAcm_DevOpen(device.DeviceNum, ref deviceHandle);
+
+            result = Motion.mAcm_SetU32Property(deviceHandle, (uint)PropertyID.CFG_DevEmgLogic, (uint)EmgLogic.EMG_ACT_LOW);
 
             if (!Success(result))
             {

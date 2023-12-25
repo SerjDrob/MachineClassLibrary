@@ -33,10 +33,16 @@ namespace MachineClassLibrary.Machine.Machines
             IsMotionDeviceInit = _motionDevice.DevicesConnection();
             if (IsMotionDeviceInit)
             {
-                /*_monitoringMachineState = */_motionDevice.StartMonitoringAsync();
                 _motionDevice.TransmitAxState += MotionDevice_TransmitAxState;
             }
         }
+
+        public void StartMonitoringState()
+        {
+            /*_monitoringMachineState = */
+            if (IsMotionDeviceInit) _motionDevice.StartMonitoringAsync();
+        }
+
         private Task _monitoringMachineState;
         public event EventHandler<AxisStateEventArgs> OnAxisMotionStateChanged;
 
@@ -683,7 +689,7 @@ namespace MachineClassLibrary.Machine.Machines
             {
                 var axisNum = axNumEventArgs.AxisNum;
                 var state = axNumEventArgs.AxisState;
-                if (axisNum < _axes.Count())
+                if (axisNum < _axes.Count && _axes.Count > 0)
                 {
                     var axis = _axes.ToList().Where(a => a.Value.AxisNum == axisNum).First().Key;
                     _axes[axis].ActualPosition = _axes[axis].LineCoefficient == 0 ? state.cmdPos : state.actPos * _axes[axis].LineCoefficient;
