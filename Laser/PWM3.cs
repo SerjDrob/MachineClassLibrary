@@ -5,16 +5,16 @@ using System.Threading.Tasks;
 
 namespace MachineClassLibrary.Laser
 {
-    public class PWM : IPWM
+    public class PWM3 : IPWM
     {
 
         private SerialPort _serialPort;
         private string _lastMessage;
-        private const string START_CMD = "String:Str";
-        private const string STOP_CMD = "String:Close";
+        private const string START_CMD = "START";
+        private const string STOP_CMD = "STOP ,";
 
         private (int bottom, int top) FREQ_RANGE = (10000, 150000);
-        private (int bottom, int top) MODFREQ_RANGE = (50, 1000);
+        private (int bottom, int top) MODFREQ_RANGE = (50, 2000);
         private (int bottom, int top) DUTY_CYCLE = (1, 100);
 
         private string _response;
@@ -28,8 +28,6 @@ namespace MachineClassLibrary.Laser
             foreach (var port in avaliablePorts)
             {
                 if (!OpenPort(port)) continue;
-
-                //_serialPort.Write($"{PASSWORD}");
                 if (await WaitCompareResponse($"{PASSWORD}", $"{PASSED}", 200)) return true;
                 _serialPort.Close();
             }
@@ -55,12 +53,10 @@ namespace MachineClassLibrary.Laser
                 Parity = Parity.None,
                 DataBits = 8,
                 StopBits = StopBits.One,
-                //WriteTimeout = 100,
-                //ReadTimeout = 500,
-                ReceivedBytesThreshold = 1,
-                Handshake = Handshake.None,
-                //NewLine = "\r"
-
+                WriteTimeout = 500,
+                ReadTimeout = 500,
+                ReceivedBytesThreshold = 14,
+                Handshake = Handshake.None
             };
             try
             {
@@ -70,12 +66,10 @@ namespace MachineClassLibrary.Laser
             {
                 return false;
             }
-            //comPort.Encoding = Encoding.Default;
-
             if (comPort.IsOpen)
             {
                 _serialPort = comPort;
-                _serialPort.DataReceived += _serialPort_DataReceived;
+                _serialPort.DataReceived += new SerialDataReceivedEventHandler(_serialPort_DataReceived);
                 return true;
             }
             else
@@ -86,10 +80,22 @@ namespace MachineClassLibrary.Laser
 
         private void _serialPort_DataReceived(object sender, SerialDataReceivedEventArgs e)
         {
-            var bytesCount = _serialPort.BytesToRead;
-            var message = new char[bytesCount];
-            var count = _serialPort.Read(message, 0, bytesCount);
-            _response = new String(message);
+            try
+            {
+                var bytesCount = _serialPort.BytesToRead;
+                var message = new char[bytesCount];
+                var count = _serialPort.Read(message, 0, bytesCount);
+                _response = new String(message);
+            }
+            catch (Exception ex)
+            {
+
+                //throw;
+            }
+            finally
+            {
+                _isResponded = true;
+            }            
             _isResponded = true;
         }
 
@@ -128,14 +134,6 @@ namespace MachineClassLibrary.Laser
         public async Task<bool> SetPWM(int freq, int dutyCycle1, int modFreq, int dutyCycle2)
         {
             if (!_serialPort?.IsOpen ?? true) return false;
-            if (!IsInRange(freq, FREQ_RANGE.bottom, FREQ_RANGE.top))
-            {
-                throw new ArgumentException($"the frequency must be in range [{FREQ_RANGE.bottom}, {FREQ_RANGE.top}] Hz");
-            }
-            if (!IsInRange(dutyCycle1, DUTY_CYCLE.bottom, DUTY_CYCLE.top))
-            {
-                throw new ArgumentException($"the dutyCycle1 must be in range [{DUTY_CYCLE.bottom}, {DUTY_CYCLE.top}] %");
-            }
             if (!IsInRange(modFreq, MODFREQ_RANGE.bottom, MODFREQ_RANGE.top))
             {
                 throw new ArgumentException($"the frequency must be in range [{MODFREQ_RANGE.bottom}, {MODFREQ_RANGE.top}] Hz");
@@ -147,21 +145,14 @@ namespace MachineClassLibrary.Laser
 
             if (_serialPort?.IsOpen ?? false)
             {
-                var f1 = Math.Round(48000000f / (freq + 1));
-                var c1 = Math.Round(f1 * dutyCycle1 / 100);
-
-                var f2 = Math.Round(12000000f / (modFreq + 1));
-                var c2 = Math.Round(f2 * dutyCycle2 / 100);
-                _lastMessage = $"f1:{f1,5} d1:{c1,5} f2:{f2,5} d2:{c2,5}";
-                _serialPort.Write($"{START_CMD} {_lastMessage}");
-
-                return await WaitCompareResponse("START", 200);
+                _lastMessage = $"{START_CMD} f:{modFreq} d:{dutyCycle2} ";
+                var result = await WaitCompareResponse(_lastMessage, _lastMessage, 200);
+                return result;
             }
             else
             {
                 throw new InvalidOperationException("serial port isn't opened");
             }
-            return false;
         }
 
         public override string ToString()
@@ -186,9 +177,7 @@ namespace MachineClassLibrary.Laser
         {
             if (_serialPort?.IsOpen ?? false)
             {
-                _serialPort.Write($"{STOP_CMD} {_lastMessage}");
-
-                return await WaitCompareResponse("STOP", 200); ;
+                return await WaitCompareResponse($"{STOP_CMD}", $"{ STOP_CMD}", 200);
             }
             //else
             //{

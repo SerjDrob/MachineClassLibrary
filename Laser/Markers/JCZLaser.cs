@@ -1,17 +1,17 @@
-﻿using MachineClassLibrary.Laser.Entities;
-using MachineClassLibrary.Laser.Parameters;
-using netDxf.Entities;
-using System;
-using System.IO;
+﻿using System;
 using System.Threading.Tasks;
 using System.Windows;
 using System.Windows.Interop;
+using MachineClassLibrary.Laser.Parameters;
 
 namespace MachineClassLibrary.Laser.Markers
 {
     public class JCZLaser : IMarkLaser
     {
-        public bool IsMarkDeviceInit { get; private set; }
+        public bool IsMarkDeviceInit
+        {
+            get; private set;
+        }
         private MarkLaserParams _markLaserParams;
         private readonly IPWM _pwm;
 
@@ -52,12 +52,12 @@ namespace MachineClassLibrary.Laser.Markers
         public async Task<bool> PierceLineAsync(double x1, double y1, double x2, double y2)
         {
             var result = JczLmc.SetPenParams(_markLaserParams.PenParams) == 0;
-                result = JczLmc.MarkLine(x1, y1, x2, y2, 0) == 0;
-                if (!await _pwm.StopPWM())
-                {
+            result = JczLmc.MarkLine(x1, y1, x2, y2, 0) == 0;
+            if (!await _pwm.StopPWM())
+            {
 
-                }
-                return result;
+            }
+            return result;
         }
 
         public async Task<bool> PierceObjectAsync(IPerforating perforator)
@@ -173,7 +173,7 @@ namespace MachineClassLibrary.Laser.Markers
             }
             );
             JczLmc.DeleteEnt("Entity");
-            
+
             return true;
         }
 
@@ -210,7 +210,7 @@ namespace MachineClassLibrary.Laser.Markers
 
 
 
-            if (result!= 0) return false;
+            if (result != 0) return false;
             if (_markLaserParams.PenParams.IsModulated)
             {
                 var freq = _markLaserParams.PenParams.Freq;
@@ -226,8 +226,8 @@ namespace MachineClassLibrary.Laser.Markers
             await Task.Run(async () =>
             {
                 var result = Lmc.lmc1_MarkEntity("text");
-                if(_markLaserParams.PenParams.IsModulated) if(!await _pwm.StopPWM()){}
-                
+                if (_markLaserParams.PenParams.IsModulated) if (!await _pwm.StopPWM()) { }
+
                 if (result != 0)
                 {
                     Lmc.lmc1_DeleteEnt("text");
@@ -269,7 +269,7 @@ namespace MachineClassLibrary.Laser.Markers
             var result = await Task.FromResult(JczLmc.StopMark());
             var res = true;
             if (_markLaserParams.PenParams.IsModulated) res = await _pwm.StopPWM();
-            return res & result==0;
+            return res & result == 0;
             //if (result != 0) throw new Exception($"Cancelling of marking failed with error code {(Lmc.EzCad_Error_Code)result}");
         }
 
