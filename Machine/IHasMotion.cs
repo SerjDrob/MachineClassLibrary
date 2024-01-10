@@ -28,17 +28,6 @@ namespace MachineClassLibrary.Machine
         public Velocity VelocityRegime { get; set; }
 
         public event EventHandler<AxisStateEventArgs> OnAxisMotionStateChanged;
-        //public double GetGeometry(Place place, int arrNum);
-        //public double GetGeometry(Place place, Ax axis);
-        //public Task GoThereAsync(Place place, bool precisely = false);
-        //public Task MoveGpInPlaceAsync(Groups group, Place place, bool precisely = false);
-        //public Task MoveAxesInPlaceAsync(Place place);
-        //public (Ax, double)[] TranslateActualCoors(Place place);
-        //public double TranslateActualCoors(Place place, Ax axis);
-        //public (Ax, double)[] TranslateActualCoors(Place place, (Ax axis, double pos)[] position);
-        //public double TranslateSpecCoor(Place place, double position, Ax axis);
-        //public void ConfigureGeometry(Dictionary<Place, (Ax, double)[]> places);
-        //public void ConfigureGeometry(Dictionary<Place, double> places);
         public double GetAxisSetVelocity(Ax axis);
         public void EmergencyStop();
         public void Stop(Ax axis);
@@ -47,14 +36,17 @@ namespace MachineClassLibrary.Machine
         public void GoWhile(Ax axis, AxDir direction);
         public double GetAxActual(Ax axis);
         public void EmgStop();
+        /// <summary>
+        /// Setting precision for axes movement
+        /// </summary>
+        /// <param name="tolerance">measured in mm</param>
+        public void SetPrecision(double tolerance);
         public Task MoveGpInPosAsync(Groups group, double[] position, bool precisely = false);
         public Task MoveGpRelativeAsync(Groups group, double[] offset, bool precisely = false);
         public Task MoveAxInPosAsync(Ax axis, double position, bool precisely = false);
         public Task MoveAxRelativeAsync(Ax axis, double diffPosition, bool precisely = false);        
-        public void EmgScenario( /*DIEventArgs eventArgs*/);
-        //public void ConfigureAxes((Ax axis, double linecoefficient)[] ax);
-        //public void ConfigureVelRegimes(Dictionary<Ax, Dictionary<Velocity, double>> velRegimes);
-        public IHasMotion AddGroup(Groups group, Ax[] axes);        
+        public void EmgScenario();
+        public IHasMotion AddGroup(Groups group, Ax[] axes);
         public void ConfigureAxesGroups(Dictionary<Groups, Ax[]> groups);
         public void ConfigureDoubleFeatures(Dictionary<MFeatures, double> doubleFeatures);
         public double GetFeature(MFeatures feature);

@@ -46,7 +46,7 @@ namespace MachineClassLibrary.Machine.MotionDevices
             uint bufLength = 4;
             uint ppu = 0;
             //uint res = 0;
-            var tolerance = 0.001;
+            var tolerance = _tolerance;//0.001;
 
             ushort direction = 0;
 

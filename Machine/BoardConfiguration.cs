@@ -10,6 +10,7 @@
         {
             get; set;
         }
+        public double AxesTolerance { get; set; } = 0.001;
         public bool IsPCI1240U => MotionBoard == PCI1240U;
         public bool IsPCI1245E => MotionBoard == PCI1245E;
         public bool IsMOCKBOARD => MotionBoard == MOCKBOARD;

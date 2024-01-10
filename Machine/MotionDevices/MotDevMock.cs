@@ -239,5 +239,10 @@ namespace MachineClassLibrary.Machine.MotionDevices
         {
             throw new NotImplementedException();
         }
+
+        public void SetPrecision(double tolerance)
+        {
+            return;
+        }
     }
 }

@@ -735,5 +735,7 @@ namespace MachineClassLibrary.Machine.Machines
         {
             return _motionDevice.GetAxActual(_axes[axis].AxisNum) * _axes[axis].LineCoefficient;
         }
+
+        public void SetPrecision(double tolerance) => _motionDevice.SetPrecision(tolerance);
     }
 }

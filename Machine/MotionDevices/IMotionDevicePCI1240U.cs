@@ -35,6 +35,11 @@ namespace MachineClassLibrary.Machine.MotionDevices
         void SetGroupConfig(int gpNum, MotionDeviceConfigs configs);
         void SetGroupVelocity(int groupNum);
         void SetGroupVelocity(int groupNum, double velocity);
+        /// <summary>
+        /// Setting tollerance for a precision motion of axes
+        /// </summary>
+        /// <param name="tolerance">measured in mm</param>
+        void SetPrecision(double tolerance);
         Task StartMonitoringAsync();
         void StopAxis(int axisNum);
     }

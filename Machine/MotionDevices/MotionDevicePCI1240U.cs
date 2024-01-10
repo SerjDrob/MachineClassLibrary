@@ -16,6 +16,7 @@ namespace MachineClassLibrary.Machine.MotionDevices
         public MotionDevicePCI1240U()
         {
             _bridges = new Dictionary<int, int>();
+            _tolerance = 0.001;
             var device = GetAvailableDevs().First();
             DeviceHandle = OpenDevice(device);
         }
@@ -29,6 +30,8 @@ namespace MachineClassLibrary.Machine.MotionDevices
         protected double _storeSpeed;
         private Dictionary<int, int> _bridges;
         private AxisState[] _axisStates;
+        protected double _tolerance;
+
         public static IntPtr DeviceHandle { get; private set; }
 
         public event EventHandler<AxNumEventArgs> TransmitAxState;
@@ -508,7 +511,7 @@ private async Task DeviceStateMonitorAsync()
         }
         public virtual async Task MoveAxisPreciselyAsync(int axisNum, double lineCoefficient, double position, int rec = 0)
         {
-            double accuracy = 0.001;
+            double accuracy = _tolerance;//0.001;
             double backlash = 1;// .03;
             ushort state = default;
             double vel = 0.1;
@@ -775,5 +778,7 @@ private async Task DeviceStateMonitorAsync()
             Motion.mAcm_AxGetActualPosition(_mAxishand[axNum], ref pos).CheckResult(axNum);
             return pos;
         }
+
+        public void SetPrecision(double tolerance) => _tolerance = tolerance;
     }
 }
