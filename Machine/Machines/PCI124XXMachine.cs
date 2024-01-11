@@ -134,33 +134,6 @@ namespace MachineClassLibrary.Machine.Machines
                 };
                 _motionDevice.SetGroupVelocity(_axesGroups[group].groupNum, v);
 
-                //if (precisely)
-                //{
-                //    var gpNum = _axesGroups[group].groupNum;
-
-                //    var axesNums = _axes.Where(a => _axesGroups[group].axes.Contains(a.Key))
-                //                        .Select(n => n.Value.AxisNum);
-
-                //    var lineCoeffs = _axes.Where(a => _axesGroups[group].axes.Contains(a.Key))
-                //                          .Select(n => n.Value.LineCoefficient);
-
-                //    var gpAxes = axesNums.Zip(lineCoeffs, (a, b) => new ValueTuple<int, double>(a, b)).ToArray();
-
-                //    var n = _axesGroups[group].axes.FindIndex(a => a == Ax.Y);
-
-                //    positions[n] -= 0.03;
-
-                //    await _motionDevice.MoveGroupPreciselyAsync(gpNum, positions, gpAxes);
-
-                //    positions[n] += 0.03;
-
-                //    await _motionDevice.MoveAxisPreciselyAsync(_axes[Ax.Y].AxisNum, _axes[Ax.Y].LineCoefficient,
-                //        positions[n]);
-                //}
-                //else
-                //{
-                //    await _motionDevice.MoveGroupAsync(_axesGroups[group].groupNum, positions);
-                //}
                 var axesNums = _axes.Where(a => _axesGroups[group].axes.Contains(a.Key))
                                         .Select(n => n.Value.AxisNum);
 
