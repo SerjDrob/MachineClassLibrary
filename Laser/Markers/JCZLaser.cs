@@ -1,4 +1,5 @@
 ﻿using System;
+using System.IO;
 using System.Threading.Tasks;
 using System.Windows;
 using System.Windows.Interop;
@@ -144,7 +145,9 @@ namespace MachineClassLibrary.Laser.Markers
             //   dCycCount: 1
             //   );
 
-            JczLmc.SaveEntLibToFile("D:/TestFile.ezd");
+
+            var tempFilePath = Path.Combine(Path.GetTempPath(), "TestFile.ezd");
+            JczLmc.SaveEntLibToFile(tempFilePath);
 
             if (_markLaserParams.PenParams.IsModulated)
             {
