@@ -156,9 +156,14 @@ namespace MachineClassLibrary.Laser.Markers
                 var modFreq = _markLaserParams.PenParams.ModFreq;
                 var modDutyCycle = _markLaserParams.PenParams.ModDutyCycle;
 
-                if (await _pwm.SetPWM(freq, (int)Math.Round(dutyCycle), modFreq, modDutyCycle))
+                try
                 {
-
+                    var pwmResult = await _pwm.SetPWM(freq, (int)Math.Round(dutyCycle), modFreq, modDutyCycle);
+                    if(!pwmResult) throw new MarkerException("PWM is failed.");
+                }
+                catch (Exception ex)
+                {
+                    throw new MarkerException("PWM is failed.", ex);
                 }
             }
             await Task.Run(async () =>
