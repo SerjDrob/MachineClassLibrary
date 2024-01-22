@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Diagnostics;
 using System.IO.Ports;
 using System.Threading;
 using System.Threading.Tasks;
@@ -70,6 +71,8 @@ namespace MachineClassLibrary.Laser
             {
                 _serialPort = comPort;
                 _serialPort.DataReceived += new SerialDataReceivedEventHandler(_serialPort_DataReceived);
+                _serialPort.DiscardOutBuffer();
+                _serialPort.DiscardInBuffer();
                 return true;
             }
             else
@@ -86,6 +89,8 @@ namespace MachineClassLibrary.Laser
                 var message = new char[bytesCount];
                 var count = _serialPort.Read(message, 0, bytesCount);
                 _response = new String(message);
+                _serialPort.DiscardInBuffer();
+                _serialPort.DiscardOutBuffer();
             }
             catch (Exception ex)
             {
@@ -125,7 +130,8 @@ namespace MachineClassLibrary.Laser
                 while (!_isResponded && !token.IsCancellationRequested) ;
                 return _isResponded;
             }, token);
-            var answer = await task && _response.Contains(assumedMessage);//assumedMessage.Equals(resp);
+            var answer = await task && _response.Contains(assumedMessage);
+            //Debug.WriteLine($"|{assumedMessage}| / |{_response}| / {answer}");
             _isResponded = false;
             _response = String.Empty;
             return answer;
@@ -177,7 +183,7 @@ namespace MachineClassLibrary.Laser
         {
             if (_serialPort?.IsOpen ?? false)
             {
-                return await WaitCompareResponse($"{STOP_CMD}", $"{ STOP_CMD}", 200);
+                return await WaitCompareResponse($"{STOP_CMD}", $"{STOP_CMD}", 200);
             }
             //else
             //{

@@ -155,23 +155,34 @@ namespace MachineClassLibrary.Laser.Markers
                 var dutyCycle = freq * _markLaserParams.PenParams.QPulseWidth * 1e-6 * 100;
                 var modFreq = _markLaserParams.PenParams.ModFreq;
                 var modDutyCycle = _markLaserParams.PenParams.ModDutyCycle;
-
+                bool pwmResult = true;
                 try
                 {
-                    var pwmResult = await _pwm.SetPWM(freq, (int)Math.Round(dutyCycle), modFreq, modDutyCycle);
-                    if(!pwmResult) throw new MarkerException("PWM is failed.");
+                    pwmResult = await _pwm.SetPWM(freq, (int)Math.Round(dutyCycle), modFreq, modDutyCycle);
+                }
+                catch(InvalidOperationException ex)
+                {
+                    throw new MarkerException("PWM is failed. Serial port is close.", ex);
+                }
+                catch(ArgumentException ex)
+                {
+                    throw new MarkerException("PWM is failed. An argument is invalid", ex);
                 }
                 catch (Exception ex)
                 {
-                    throw new MarkerException("PWM is failed.", ex);
+                    throw new MarkerException(ex.Message, ex);
+                }
+                finally
+                {
+                    if (!pwmResult) throw new MarkerException("PWM is failed. Cannot get the response.");
                 }
             }
             await Task.Run(async () =>
             {
                 var result = (JczLmc.EzCad_Error_Code)JczLmc.MarkEntity("Entity");
-                if (!await _pwm.StopPWM())
+                if (!result.HasFlag(JczLmc.EzCad_Error_Code.LMC1_ERR_USERSTOP))
                 {
-
+                    await _pwm.StopPWM();//TODO think and fix it
                 }
                 if (!result.HasFlag(JczLmc.EzCad_Error_Code.LMC1_ERR_SUCCESS) & !result.HasFlag(JczLmc.EzCad_Error_Code.LMC1_ERR_USERSTOP))
                 {
