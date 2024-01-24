@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Diagnostics;
 using System.IO.Ports;
 using System.Threading;
 using System.Threading.Tasks;
@@ -11,7 +12,7 @@ namespace MachineClassLibrary.Laser
         private SerialPort _serialPort;
         private string _lastMessage;
         private const string START_CMD = "START";
-        private const string STOP_CMD = "STOP ,";
+        private const string STOP_CMD = "STOP ";
 
         private (int bottom, int top) FREQ_RANGE = (10000, 150000);
         private (int bottom, int top) MODFREQ_RANGE = (50, 2000);
@@ -70,6 +71,8 @@ namespace MachineClassLibrary.Laser
             {
                 _serialPort = comPort;
                 _serialPort.DataReceived += new SerialDataReceivedEventHandler(_serialPort_DataReceived);
+                _serialPort.DiscardOutBuffer();
+                _serialPort.DiscardInBuffer();
                 return true;
             }
             else
@@ -82,10 +85,15 @@ namespace MachineClassLibrary.Laser
         {
             try
             {
-                var bytesCount = _serialPort.BytesToRead;
-                var message = new char[bytesCount];
-                var count = _serialPort.Read(message, 0, bytesCount);
-                _response = new String(message);
+                lock (this)
+                {
+                    var bytesCount = _serialPort.BytesToRead;
+                    var message = new char[bytesCount];
+                    var count = _serialPort.Read(message, 0, bytesCount);
+                    _response = new String(message);
+                    _serialPort.DiscardInBuffer();
+                    _serialPort.DiscardOutBuffer(); 
+                }
             }
             catch (Exception ex)
             {
@@ -116,8 +124,11 @@ namespace MachineClassLibrary.Laser
 
         private async Task<bool> WaitCompareResponse(string message, string assumedMessage, int waitingTime)
         {
-            _serialPort.ReceivedBytesThreshold = assumedMessage.Length;
-            _serialPort.Write(message);
+            lock (this)
+            {
+                _serialPort.ReceivedBytesThreshold = assumedMessage.Length;
+                _serialPort.Write(message);
+            }
             var token = new CancellationTokenSource(waitingTime).Token;
 
             var task = Task.Run(() =>
@@ -125,7 +136,14 @@ namespace MachineClassLibrary.Laser
                 while (!_isResponded && !token.IsCancellationRequested) ;
                 return _isResponded;
             }, token);
-            var answer = await task && _response.Contains(assumedMessage);//assumedMessage.Equals(resp);
+
+            var answer = await task && _response.Contains(assumedMessage);
+            lock (this)
+            {
+                var debugline = $"|{assumedMessage}| / |{_response}| / {answer}";
+                if (debugline == string.Empty) debugline = "---------";
+                Debug.WriteLine(debugline); 
+            }
             _isResponded = false;
             _response = String.Empty;
             return answer;
@@ -177,7 +195,7 @@ namespace MachineClassLibrary.Laser
         {
             if (_serialPort?.IsOpen ?? false)
             {
-                return await WaitCompareResponse($"{STOP_CMD}", $"{ STOP_CMD}", 200);
+                return await WaitCompareResponse($"{STOP_CMD}", $"{STOP_CMD}", 200);
             }
             //else
             //{
