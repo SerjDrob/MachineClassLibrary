@@ -49,6 +49,7 @@ namespace MachineClassLibrary.VideoCapture
         private void USBCamera_DevicePlugged(object sender, EventArgs e) => CameraPlugged?.Invoke(sender,e);
 
         public event EventHandler<VideoCaptureEventArgs> OnBitmapChanged;
+        public event EventHandler<Bitmap> OnRawBitmapChanged;
         public event EventHandler CameraPlugged;
         private List<VideoCaptureDevice> GetVideoCaptureDevices()
         {
@@ -176,6 +177,7 @@ namespace MachineClassLibrary.VideoCapture
                 {
                     using var img = ApplyAdjustWidthIfEnable((Bitmap)eventArgs.Frame.Clone());
                     filter.ApplyInPlace(img);
+                    OnRawBitmapChanged?.Invoke(this, img);
                     var ms = new MemoryStream();
                     img.Save(ms, ImageFormat.Bmp);
 

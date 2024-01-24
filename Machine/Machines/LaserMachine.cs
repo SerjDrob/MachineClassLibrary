@@ -6,6 +6,7 @@ using MachineClassLibrary.VideoCapture;
 using Microsoft.Toolkit.Diagnostics;
 using System;
 using System.Collections.Generic;
+using System.Drawing;
 using System.Linq;
 using System.Threading.Tasks;
 
@@ -24,6 +25,7 @@ namespace MachineClassLibrary.Machine.Machines
         public event EventHandler<VideoCaptureEventArgs> OnBitmapChanged;
         public event EventHandler<ValveEventArgs> OnValveStateChanged;
         public event EventHandler CameraPlugged;
+        public event EventHandler<Bitmap> OnRawBitmapChanged;
 
         public LaserMachine(ExceptionsAgregator exceptionsAgregator, IMotionDevicePCI1240U motionDevice, IMarkLaser markLaser, IVideoCapture videoCapture) : base(exceptionsAgregator, motionDevice)
         {

@@ -4,6 +4,7 @@ using MachineClassLibrary.SFC;
 using MachineClassLibrary.VideoCapture;
 using System;
 using System.Collections.Generic;
+using System.Drawing;
 using System.Linq;
 using System.Threading.Tasks;
 
@@ -44,6 +45,7 @@ namespace MachineClassLibrary.Machine.Machines
         public event EventHandler<SpindleEventArgs> OnSpindleStateChanging;
         public event EventHandler<VideoCaptureEventArgs> OnBitmapChanged;
         public event EventHandler CameraPlugged;
+        public event EventHandler<Bitmap> OnRawBitmapChanged;
 
         public void ConfigureGeometry(Dictionary<Place, (Ax, double)[]> places)
         {
