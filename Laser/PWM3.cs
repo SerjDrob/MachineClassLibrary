@@ -12,7 +12,7 @@ namespace MachineClassLibrary.Laser
         private SerialPort _serialPort;
         private string _lastMessage;
         private const string START_CMD = "START";
-        private const string STOP_CMD = "STOP ,";
+        private const string STOP_CMD = "STOP ";
 
         private (int bottom, int top) FREQ_RANGE = (10000, 150000);
         private (int bottom, int top) MODFREQ_RANGE = (50, 2000);
@@ -85,12 +85,15 @@ namespace MachineClassLibrary.Laser
         {
             try
             {
-                var bytesCount = _serialPort.BytesToRead;
-                var message = new char[bytesCount];
-                var count = _serialPort.Read(message, 0, bytesCount);
-                _response = new String(message);
-                _serialPort.DiscardInBuffer();
-                _serialPort.DiscardOutBuffer();
+                lock (this)
+                {
+                    var bytesCount = _serialPort.BytesToRead;
+                    var message = new char[bytesCount];
+                    var count = _serialPort.Read(message, 0, bytesCount);
+                    _response = new String(message);
+                    _serialPort.DiscardInBuffer();
+                    _serialPort.DiscardOutBuffer(); 
+                }
             }
             catch (Exception ex)
             {
@@ -121,8 +124,11 @@ namespace MachineClassLibrary.Laser
 
         private async Task<bool> WaitCompareResponse(string message, string assumedMessage, int waitingTime)
         {
-            _serialPort.ReceivedBytesThreshold = assumedMessage.Length;
-            _serialPort.Write(message);
+            lock (this)
+            {
+                _serialPort.ReceivedBytesThreshold = assumedMessage.Length;
+                _serialPort.Write(message);
+            }
             var token = new CancellationTokenSource(waitingTime).Token;
 
             var task = Task.Run(() =>
@@ -130,8 +136,14 @@ namespace MachineClassLibrary.Laser
                 while (!_isResponded && !token.IsCancellationRequested) ;
                 return _isResponded;
             }, token);
+
             var answer = await task && _response.Contains(assumedMessage);
-            //Debug.WriteLine($"|{assumedMessage}| / |{_response}| / {answer}");
+            lock (this)
+            {
+                var debugline = $"|{assumedMessage}| / |{_response}| / {answer}";
+                if (debugline == string.Empty) debugline = "---------";
+                Debug.WriteLine(debugline); 
+            }
             _isResponded = false;
             _response = String.Empty;
             return answer;

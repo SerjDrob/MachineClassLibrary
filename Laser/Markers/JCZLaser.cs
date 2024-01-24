@@ -182,17 +182,15 @@ namespace MachineClassLibrary.Laser.Markers
                 var result = (JczLmc.EzCad_Error_Code)JczLmc.MarkEntity("Entity");
                 if (!result.HasFlag(JczLmc.EzCad_Error_Code.LMC1_ERR_USERSTOP))
                 {
+                    if (!result.HasFlag(JczLmc.EzCad_Error_Code.LMC1_ERR_SUCCESS))
+                    {
+                        JczLmc.DeleteEnt("Entity");
+                        throw new OperationCanceledException($"Marking failed with code {(Lmc.EzCad_Error_Code)result}");
+                    }
                     await _pwm.StopPWM();//TODO think and fix it
                 }
-                if (!result.HasFlag(JczLmc.EzCad_Error_Code.LMC1_ERR_SUCCESS) & !result.HasFlag(JczLmc.EzCad_Error_Code.LMC1_ERR_USERSTOP))
-                {
-                    JczLmc.DeleteEnt("Entity");
-                    throw new OperationCanceledException($"Marking failed with code {(Lmc.EzCad_Error_Code)result}");
-                }
-            }
-            );
+            });
             JczLmc.DeleteEnt("Entity");
-
             return true;
         }
 
