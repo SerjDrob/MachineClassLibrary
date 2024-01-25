@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Diagnostics;
 using System.IO.Ports;
+using System.Runtime.InteropServices;
 using System.Threading;
 using System.Threading.Tasks;
 
@@ -142,13 +143,14 @@ namespace MachineClassLibrary.Laser
             {
                 var debugline = $"|{assumedMessage}| / |{_response}| / {answer}";
                 if (debugline == string.Empty) debugline = "---------";
-                Debug.WriteLine(debugline); 
+                Debug.WriteLine(debugline);
+                Console.WriteLine(debugline);
             }
             _isResponded = false;
             _response = String.Empty;
             return answer;
         }
-
+        
         public async Task<bool> SetPWM(int freq, int dutyCycle1, int modFreq, int dutyCycle2)
         {
             if (!_serialPort?.IsOpen ?? true) return false;
