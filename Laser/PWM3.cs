@@ -1,7 +1,6 @@
 ﻿using System;
 using System.Diagnostics;
 using System.IO.Ports;
-using System.Runtime.InteropServices;
 using System.Threading;
 using System.Threading.Tasks;
 
@@ -93,7 +92,7 @@ namespace MachineClassLibrary.Laser
                     var count = _serialPort.Read(message, 0, bytesCount);
                     _response = new String(message);
                     _serialPort.DiscardInBuffer();
-                    _serialPort.DiscardOutBuffer(); 
+                    _serialPort.DiscardOutBuffer();
                 }
             }
             catch (Exception ex)
@@ -104,7 +103,7 @@ namespace MachineClassLibrary.Laser
             finally
             {
                 _isResponded = true;
-            }            
+            }
             _isResponded = true;
         }
 
@@ -143,14 +142,14 @@ namespace MachineClassLibrary.Laser
             {
                 var debugline = $"|{assumedMessage}| / |{_response}| / {answer}";
                 if (debugline == string.Empty) debugline = "---------";
-                Debug.WriteLine(debugline);
+               // Debug.WriteLine(debugline);
                 Console.WriteLine(debugline);
             }
             _isResponded = false;
             _response = String.Empty;
             return answer;
         }
-        
+
         public async Task<bool> SetPWM(int freq, int dutyCycle1, int modFreq, int dutyCycle2)
         {
             if (!_serialPort?.IsOpen ?? true) return false;
