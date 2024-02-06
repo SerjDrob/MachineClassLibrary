@@ -42,7 +42,7 @@ namespace MachineClassLibrary.Laser.Markers
         
         public Task<bool> PierceDxfObjectAsync(string filePath)
         {
-            throw new NotImplementedException();
+            return Task.FromResult(true); // throw new NotImplementedException();
         }
 
         public Task<bool> PierceLineAsync(double x1, double y1, double x2, double y2)
@@ -65,12 +65,13 @@ namespace MachineClassLibrary.Laser.Markers
 
         public bool SetDevConfig()
         {
-            throw new NotImplementedException();
+            //throw new NotImplementedException();
+            return true;
         }
 
         public void SetExtMarkParams(ExtParamsAdapter paramsAdapter)
         {
-            throw new NotImplementedException();
+            //throw new NotImplementedException();
         }
 
         public void SetMarkDeviceParams()

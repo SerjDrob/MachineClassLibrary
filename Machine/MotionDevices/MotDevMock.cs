@@ -71,7 +71,7 @@ namespace MachineClassLibrary.Machine.MotionDevices
 
         public void MoveAxesByCoorsAsync((int axisNum, double position)[] ax)
         {
-            throw new NotImplementedException();
+           // throw new NotImplementedException();
         }
 
         public Task MoveAxesByCoorsPrecAsync((int axisNum, double position, double lineCoefficient)[] ax)
@@ -135,9 +135,9 @@ namespace MachineClassLibrary.Machine.MotionDevices
         }
 
 
-        public Task MoveAxisPreciselyAsync(int axisNum, double lineCoefficient, double position, int rec = 0)
+        public async Task MoveAxisPreciselyAsync(int axisNum, double lineCoefficient, double position, int rec = 0)
         {
-            throw new NotImplementedException();
+            await Task.Delay(1000);
         }
 
         public Task MoveGroupAsync(int groupNum, double[] position)
