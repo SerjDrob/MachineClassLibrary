@@ -1,11 +1,10 @@
-﻿using Advantech.Motion;
-using MachineClassLibrary.Classes;
-using System;
+﻿using System;
 using System.Collections.Generic;
-using System.Drawing.Drawing2D;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using Advantech.Motion;
+using MachineClassLibrary.Classes;
 
 namespace MachineClassLibrary.Machine.MotionDevices
 {
@@ -21,22 +20,28 @@ namespace MachineClassLibrary.Machine.MotionDevices
             DeviceHandle = OpenDevice(device);
         }
 
-        public int AxisCount { get; private set; }
+        public int AxisCount
+        {
+            get; private set;
+        }
         protected IntPtr[] _mAxishand;
         protected uint _result;
-        protected Dictionary<PropertyID, uint> _errors = new Dictionary<PropertyID, uint>();
+        protected Dictionary<PropertyID, uint> _errors = new();
         protected bool _initErrorsDictionaryInBaseClass = true;
         private List<IntPtr> _mGpHand;
         protected double _storeSpeed;
-        private Dictionary<int, int> _bridges;
+        private readonly Dictionary<int, int> _bridges;
         private AxisState[] _axisStates;
         protected double _tolerance;
 
-        public static IntPtr DeviceHandle { get; private set; }
+        public static IntPtr DeviceHandle
+        {
+            get; private set;
+        }
 
         public event EventHandler<AxNumEventArgs> TransmitAxState;
 
-        public event Action<string, int> ThrowMessage;
+        // public event Action<string, int> ThrowMessage;
 
         public bool DevicesConnection()
         {
@@ -66,7 +71,7 @@ namespace MachineClassLibrary.Machine.MotionDevices
 
                 Motion.mAcm_AxGetState(_mAxishand[i], ref state);
 
-                if(state == 3) Motion.mAcm_AxResetError(_mAxishand[i]).CheckResult(i);
+                if (state == 3) Motion.mAcm_AxResetError(_mAxishand[i]).CheckResult(i);
                 Motion.mAcm_AxSetCmdPosition(_mAxishand[i], cmdPosition).CheckResult(i);
                 Motion.mAcm_AxSetActualPosition(_mAxishand[i], cmdPosition).CheckResult(i);
 
@@ -257,7 +262,7 @@ private async Task DeviceStateMonitorAsync()
                 _mGpHand = new List<IntPtr>();
             }
             var hand = new IntPtr();
-            for (int i = 0; i < axisNums.Length; i++)
+            for (var i = 0; i < axisNums.Length; i++)
             {
                 var result = Motion.mAcm_GpAddAxis(ref hand, _mAxishand[axisNums[i]]);
                 if (!Success(result))
@@ -316,7 +321,7 @@ private async Task DeviceStateMonitorAsync()
             {
                 _result = Motion.mAcm_AxGetActualPosition(_mAxishand[axisNum], ref position);
                 if (!Success(_result)) { throw new MotionException($"Get actual position Failed With Error Code: [0x{_result:X}]"); }
-                
+
             }
             else
             {
@@ -373,7 +378,7 @@ private async Task DeviceStateMonitorAsync()
         }
         public void SetGroupVelocity(int groupNum, double velocity)
         {
-            double velHigh = velocity;
+            var velHigh = velocity;
             var velLow = velHigh / 2;
             Motion.mAcm_SetProperty(_mGpHand[groupNum], (uint)PropertyID.PAR_GpVelHigh, ref velHigh, 8).CheckResult();
             Motion.mAcm_SetProperty(_mGpHand[groupNum], (uint)PropertyID.PAR_GpVelLow, ref velLow, 8).CheckResult();
@@ -408,13 +413,13 @@ private async Task DeviceStateMonitorAsync()
                 foreach (var handle in _mAxishand)
                 {
                     Motion.mAcm_AxGetState(handle, ref state);
-                    if(state == 3) Motion.mAcm_AxResetError(handle).CheckResult();
+                    if (state == 3) Motion.mAcm_AxResetError(handle).CheckResult();
                 }
             }
             else
             {
                 Motion.mAcm_AxGetState(_mAxishand[axisNum], ref state);
-                if(state == 3) Motion.mAcm_AxResetError(_mAxishand[axisNum]).CheckResult(axisNum);
+                if (state == 3) Motion.mAcm_AxResetError(_mAxishand[axisNum]).CheckResult(axisNum);
             }
 
         }
@@ -467,7 +472,7 @@ private async Task DeviceStateMonitorAsync()
             _result = Motion.mAcm_SetProperty(_mAxishand[axisNum], (uint)PropertyID.PAR_AxAcc, ref acc, 8); _errors.Add(PropertyID.PAR_AxAcc, _result);
             _result = Motion.mAcm_SetProperty(_mAxishand[axisNum], (uint)PropertyID.PAR_AxDec, ref dec, 8); _errors.Add(PropertyID.PAR_AxDec, _result);
             _result = Motion.mAcm_SetProperty(_mAxishand[axisNum], (uint)PropertyID.PAR_AxJerk, ref jerk, 8); _errors.Add(PropertyID.PAR_AxJerk, _result);
-        
+
             // result = Motion.mAcm_SetProperty(_mAxishand[axisNum], (uint)PropertyID.PAR_AxHomeVelLow, ref homeVelLow, 8); errors.Add(PropertyID.PAR_AxHomeVelLow, result);
             // result = Motion.mAcm_SetProperty(_mAxishand[axisNum], (uint)PropertyID.PAR_AxHomeVelHigh, ref homeVelHigh, 8); errors.Add(PropertyID.PAR_AxHomeVelHigh, result);
             _result = Motion.mAcm_SetProperty(_mAxishand[axisNum], (uint)PropertyID.CFG_AxSwPelEnable, ref buf, 4); _errors.Add(PropertyID.CFG_AxSwPelEnable, _result);
@@ -509,16 +514,15 @@ private async Task DeviceStateMonitorAsync()
             _result = Motion.mAcm_GetProperty(_mAxishand[axisNum], (uint)PropertyID.PAR_AxVelHigh, ref vel, ref bufLength);
             return vel;
         }
-        public virtual async Task MoveAxisPreciselyAsync(int axisNum, double lineCoefficient, double position, int rec = 0)
+        public async virtual Task MoveAxisPreciselyAsync(int axisNum, double lineCoefficient, double position, int rec = 0)
         {
-            double accuracy = _tolerance;//0.001;
-            double backlash = 1;// .03;
+            var accuracy = _tolerance;//0.001;
             ushort state = default;
-            double vel = 0.1;
-            bool gotIt = false;
+            var vel = 0.1;
+            var gotIt = false;
 
             var storedVelocity = GetAxisVelocity(axisNum);
-            
+
             await Task.Run(async () =>
             {
                 Motion.mAcm_AxMoveAbs(_mAxishand[axisNum], position).CheckResult(_mAxishand[axisNum]);
@@ -533,8 +537,8 @@ private async Task DeviceStateMonitorAsync()
                 Motion.mAcm_SetProperty(_mAxishand[axisNum], (uint)PropertyID.PAR_AxVelLow, ref vel, 8).CheckResult(axisNum);
                 Motion.mAcm_SetProperty(_mAxishand[axisNum], (uint)PropertyID.PAR_AxVelHigh, ref vel, 8).CheckResult(axisNum);
                 int recurcy = 0;
-               
-                while(!gotIt && recurcy<50)//for (recurcy = 0; recurcy < 20; recurcy++)
+
+                while (!gotIt && recurcy < 50)//for (recurcy = 0; recurcy < 20; recurcy++)
                 {
                     recurcy++;
 
@@ -548,7 +552,7 @@ private async Task DeviceStateMonitorAsync()
                         if (gotIt) Motion.mAcm_AxStopEmg(_mAxishand[axisNum]);
                         Motion.mAcm_AxGetState(_mAxishand[0], ref state);
                     } while (!gotIt && (Advantech.Motion.AxisState)state != Advantech.Motion.AxisState.STA_AX_READY);
-                    
+
                     if (state == (ushort)Advantech.Motion.AxisState.STA_AX_ERROR_STOP) ResetErrors(axisNum);
 
                     await Task.Delay(200);
@@ -590,7 +594,8 @@ private async Task DeviceStateMonitorAsync()
                 }
                 catch (Exception ex)
                 {
-                    ThrowMessage?.Invoke($"{ex.StackTrace} :\n {ex.Message}", 0);
+                    //ThrowMessage?.Invoke($"{ex.StackTrace} :\n {ex.Message}", 0);
+                    throw new MotionException($"In the {nameof(HomeMovingAsync)} method {nameof(SetAxisVelocity)} failed for the axis number {axvel.axisNum} ", ex);
                     break;
                 }
 
@@ -598,12 +603,13 @@ private async Task DeviceStateMonitorAsync()
 
                 if (!Success(_result))
                 {
-                    ThrowMessage?.Invoke($"Ось № {axvel.axisNum} прервало движение домой с ошибкой {(ErrorCode)_result}", 0);
+                    throw new MotionException($"Ось № {axvel.axisNum} прервало движение домой с ошибкой {(ErrorCode)_result}");
+                    //ThrowMessage?.Invoke($"Ось № {axvel.axisNum} прервало движение домой с ошибкой {(ErrorCode)_result}", 0);
                 }
 
                 homings.Add(Task.Run(() =>
                 {
-                    ushort st = (ushort)Advantech.Motion.AxisState.STA_AX_HOMING;
+                    var st = (ushort)Advantech.Motion.AxisState.STA_AX_HOMING;
                     while (state == (ushort)Advantech.Motion.AxisState.STA_AX_HOMING)
                     {
                         Motion.mAcm_AxGetState(_mAxishand[axvel.axisNum], ref state);
@@ -621,14 +627,14 @@ private async Task DeviceStateMonitorAsync()
             foreach (var axis in axs)
             {
                 Motion.mAcm_AxGetState(_mAxishand[axis.axisNum], ref state);
-               
+
                 if (state != (ushort)Advantech.Motion.AxisState.STA_AX_READY)
                 {
                     throw new MotionException($"Axis {axis.axisNum} isn't ready for homing");
                 }
             }
 
-            
+
 
             foreach (var axvel in axs)
             {
@@ -637,11 +643,12 @@ private async Task DeviceStateMonitorAsync()
 
                 if (!Success(_result))
                 {
-                    ThrowMessage?.Invoke($"Ось № {axvel.axisNum} прервало движение домой с ошибкой {(ErrorCode)_result}", 0);
+                    //ThrowMessage?.Invoke($"Ось № {axvel.axisNum} прервало движение домой с ошибкой {(ErrorCode)_result}", 0);
+                    throw new MotionException($"Ось № {axvel.axisNum} прервало движение домой с ошибкой {(ErrorCode)_result}");
                 }
             }
 
-            var tasks = axs.Select(ax=> Task.Run(async ()=>
+            var tasks = axs.Select(ax => Task.Run(async () =>
             {
                 ushort state = 0;
                 do
@@ -649,10 +656,10 @@ private async Task DeviceStateMonitorAsync()
                     Motion.mAcm_AxGetState(_mAxishand[ax.axisNum], ref state);
                     await Task.Delay(1).ConfigureAwait(false);
                 } while (state == (ushort)Advantech.Motion.AxisState.STA_AX_HOMING);
-            
+
             })).ToArray();
             await Task.WhenAll(tasks);
-            foreach (var axis in axs.Select(a=>a.axisNum))
+            foreach (var axis in axs.Select(a => a.axisNum))
             {
                 ResetAxisCounter(axis);
             }
@@ -660,12 +667,8 @@ private async Task DeviceStateMonitorAsync()
 
         public async Task MoveGroupAsync(int groupNum, double[] position)
         {
-            uint elements = (uint)position.Length;
+            var elements = (uint)position.Length;
             var state = new ushort();
-            //uint res = 0;
-            double vel = 20;
-            uint bufLength = 8;
-
 
             Motion.mAcm_GpResetError(_mGpHand[groupNum]);
             Motion.mAcm_GpMoveLinearAbs(_mGpHand[groupNum], position, ref elements);
@@ -681,7 +684,7 @@ private async Task DeviceStateMonitorAsync()
         public async Task MoveGroupPreciselyAsync(int groupNum, double[] position, (int axisNum, double lineCoefficient)[] gpAxes)
         {
             var buf = (uint)SwLmtEnable.SLMT_DIS;
-            for (int i = 0; i < gpAxes.Length; i++)
+            for (var i = 0; i < gpAxes.Length; i++)
             {
                 Motion.mAcm_SetProperty(_mAxishand[gpAxes[i].axisNum], (uint)PropertyID.CFG_AxSwPelEnable, ref buf, 4).CheckResult();
                 Motion.mAcm_SetProperty(_mAxishand[gpAxes[i].axisNum], (uint)PropertyID.CFG_AxSwMelEnable, ref buf, 4).CheckResult();
@@ -689,7 +692,7 @@ private async Task DeviceStateMonitorAsync()
 
 
             await MoveGroupAsync(groupNum, position);
-            for (int i = 0; i < gpAxes.Length; i++)
+            for (var i = 0; i < gpAxes.Length; i++)
             {
                 await MoveAxisPreciselyAsync(gpAxes[i].axisNum, gpAxes[i].lineCoefficient, position[i]);
             }
@@ -709,6 +712,10 @@ private async Task DeviceStateMonitorAsync()
         {
             var deviceHandle = IntPtr.Zero;
             var result = Motion.mAcm_DevOpen(device.DeviceNum, ref deviceHandle);
+            if (!Success(result))
+            {
+                throw new MotionException($"Open Device Failed With Error Code: [0x{result:X}]");
+            }
 
             result = Motion.mAcm_SetU32Property(deviceHandle, (uint)PropertyID.CFG_DevEmgLogic, (uint)EmgLogic.EMG_ACT_LOW);
 

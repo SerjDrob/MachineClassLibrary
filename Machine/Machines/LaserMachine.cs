@@ -27,7 +27,7 @@ namespace MachineClassLibrary.Machine.Machines
         public event EventHandler CameraPlugged;
         public event EventHandler<Bitmap> OnRawBitmapChanged;
 
-        public LaserMachine(ExceptionsAgregator exceptionsAgregator, IMotionDevicePCI1240U motionDevice, IMarkLaser markLaser, IVideoCapture videoCapture) : base(exceptionsAgregator, motionDevice)
+        public LaserMachine(IMotionDevicePCI1240U motionDevice, IMarkLaser markLaser, IVideoCapture videoCapture) : base(motionDevice)
         {
             Guard.IsNotNull(markLaser, nameof(markLaser));
             Guard.IsNotNull(videoCapture, nameof(videoCapture));

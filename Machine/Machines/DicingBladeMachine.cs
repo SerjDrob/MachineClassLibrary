@@ -19,7 +19,7 @@ namespace MachineClassLibrary.Machine.Machines
         private Dictionary<Sensors, (Ax axis, Di dIn, bool invertion, string name)> _sensors;
         private Dictionary<Place, (Ax axis, double pos)[]> _places;
         private Dictionary<Place, double> _singlePlaces;
-        public DicingBladeMachine(ExceptionsAgregator exceptionsAgregator, IMotionDevicePCI1240U motionDevice, IVideoCapture usbVideoCamera, ISpindle spindle) : base(exceptionsAgregator, motionDevice)
+        public DicingBladeMachine(IMotionDevicePCI1240U motionDevice, IVideoCapture usbVideoCamera, ISpindle spindle) : base(motionDevice)
         {
             _videoCamera = usbVideoCamera;
             _videoCamera.OnBitmapChanged += _videoCamera_OnBitmapChanged;

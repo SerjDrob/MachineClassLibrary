@@ -3,10 +3,11 @@ using System.Diagnostics;
 using System.IO.Ports;
 using System.Threading;
 using System.Threading.Tasks;
+using MachineClassLibrary.Miscellaneous;
 
 namespace MachineClassLibrary.Laser
 {
-    public class PWM3 : IPWM
+    public class PWM3 : WatchableDevice, IPWM
     {
 
         private SerialPort _serialPort;
@@ -25,8 +26,8 @@ namespace MachineClassLibrary.Laser
 
         public async Task<bool> FindOpen()
         {
-            var avaliablePorts = SerialPort.GetPortNames();
-            foreach (var port in avaliablePorts)
+            var availablePorts = SerialPort.GetPortNames();
+            foreach (var port in availablePorts)
             {
                 if (!OpenPort(port)) continue;
                 if (await WaitCompareResponse($"{PASSWORD}", $"{PASSED}", 200)) return true;
@@ -40,6 +41,7 @@ namespace MachineClassLibrary.Laser
             {
                 if (_serialPort.PortName == port & _serialPort.IsOpen)
                 {
+                    DeviceOK();
                     return true;
                 }
                 if (_serialPort.PortName != port & _serialPort.IsOpen)
@@ -62,9 +64,11 @@ namespace MachineClassLibrary.Laser
             try
             {
                 comPort.Open();
+                DeviceOK();
             }
-            catch (Exception)
+            catch (Exception ex)
             {
+                HasHealthProblem($"Can not open {port}", ex);
                 return false;
             }
             if (comPort.IsOpen)
@@ -73,10 +77,12 @@ namespace MachineClassLibrary.Laser
                 _serialPort.DataReceived += new SerialDataReceivedEventHandler(_serialPort_DataReceived);
                 _serialPort.DiscardOutBuffer();
                 _serialPort.DiscardInBuffer();
+                DeviceOK();
                 return true;
             }
             else
             {
+                HasHealthProblem($"{port} is not open", null);
                 return false;
             }
         }
@@ -97,8 +103,7 @@ namespace MachineClassLibrary.Laser
             }
             catch (Exception ex)
             {
-
-                //throw;
+                HasHealthProblem($"Cannot read the {_serialPort.PortName}", ex);
             }
             finally
             {
@@ -142,7 +147,6 @@ namespace MachineClassLibrary.Laser
             {
                 var debugline = $"|{assumedMessage}| / |{_response}| / {answer}";
                 if (debugline == string.Empty) debugline = "---------";
-               // Debug.WriteLine(debugline);
                 Console.WriteLine(debugline);
             }
             _isResponded = false;
@@ -166,6 +170,14 @@ namespace MachineClassLibrary.Laser
             {
                 _lastMessage = $"{START_CMD} f:{modFreq} d:{dutyCycle2} ";
                 var result = await WaitCompareResponse(_lastMessage, _lastMessage, 200);
+                if (result)
+                {
+                    DeviceOK();
+                }
+                else
+                {
+                    HasHealthProblem($"Set PWM command failed", null);
+                }
                 return result;
             }
             else
@@ -205,5 +217,7 @@ namespace MachineClassLibrary.Laser
             return false;
         }
 
+        public override void CureDevice() => throw new NotImplementedException();
+        public override void AskHealth() => throw new NotImplementedException();
     }
 }
