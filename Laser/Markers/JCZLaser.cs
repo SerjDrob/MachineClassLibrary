@@ -1,13 +1,15 @@
 ﻿using System;
 using System.IO;
+using System.Reactive.Linq;
 using System.Threading.Tasks;
 using System.Windows;
 using System.Windows.Interop;
 using MachineClassLibrary.Laser.Parameters;
+using MachineClassLibrary.Miscellaneous;
 
 namespace MachineClassLibrary.Laser.Markers
 {
-    public class JCZLaser : IMarkLaser
+    public class JCZLaser : WatchableDevice, IMarkLaser
     {
         public bool IsMarkDeviceInit
         {
@@ -35,16 +37,29 @@ namespace MachineClassLibrary.Laser.Markers
         public async Task<bool> InitMarkDevice(string initDirPath)
         {
             IntPtr Handle = new WindowInteropHelper(new Window()).Handle;
-            //var result = Lmc.lmc1_Initial(initDirPath, 0, Handle);
+
+            using var pwm = _pwm as WatchableDevice;
+            pwm?.OfType<HealthOK>()
+                .Subscribe(ok =>
+                {
+                    var t = _pwm.GetType();
+                    DeviceOK(t);
+                });
+            pwm?.OfType<HealthProblem>()
+                .Subscribe(hp =>
+                {
+                    var t = _pwm.GetType();
+                    HasHealthProblem(hp.Message, hp.Exception, t);
+                });
+
             var result = JczLmc.InitializeTotal(initDirPath, false, Handle);
             if (result != 0)
             {
-                throw new Exception($"The device opening failed with error code {(Lmc.EzCad_Error_Code)result}");
+                //throw new Exception($"The device opening failed with error code {(Lmc.EzCad_Error_Code)result}");
             }
-            //_pwm = new PWM();
             if (!await _pwm.FindOpen())
             {
-                throw new Exception($"The device opening failed. Can't open PWM device");
+                //throw new Exception($"The device opening failed. Can't open PWM device");
             }
             else IsMarkDeviceInit = true;
             return IsMarkDeviceInit;
@@ -52,6 +67,7 @@ namespace MachineClassLibrary.Laser.Markers
 
         public async Task<bool> PierceLineAsync(double x1, double y1, double x2, double y2)
         {
+            if(!IsMarkDeviceInit) return false;
             var result = JczLmc.SetPenParams(_markLaserParams.PenParams) == 0;
             result = JczLmc.MarkLine(x1, y1, x2, y2, 0) == 0;
             if (!await _pwm.StopPWM())
@@ -63,12 +79,15 @@ namespace MachineClassLibrary.Laser.Markers
 
         public async Task<bool> PierceObjectAsync(IPerforating perforator)
         {
+            if (!IsMarkDeviceInit) return false;
             await perforator.PierceObjectAsync();
             return true;
         }
 
         public async Task<bool> PierceDxfObjectAsync(string filePath)
         {
+            if (!IsMarkDeviceInit) return false;
+
             int result;
             result = JczLmc.SetPenParams(_markLaserParams.PenParams);
             result += JczLmc.SetHatchParams(_markLaserParams.HatchParams);
@@ -205,17 +224,23 @@ namespace MachineClassLibrary.Laser.Markers
 
         public async Task<bool> PiercePointAsync(double x = 0, double y = 0)
         {
+            if (!IsMarkDeviceInit) return false;
+
             return await Task.FromResult(JczLmc.MarkPoint(x, y, 0, 0) == 0);
         }
 
         public void SetExtMarkParams(ExtParamsAdapter paramsAdapter)
         {
+            if (!IsMarkDeviceInit) return;
+
             var resParams = paramsAdapter.MixParams(_markLaserParams);
             SetMarkParams(resParams);
         }
 
         public async Task<bool> MarkTextAsync(string text, double textSize, double angle)//TODO return bool or info or through exception?
         {
+            if (!IsMarkDeviceInit) return false;
+
             var result = JczLmc.SetFontParam3(
                 fontname: "Cambria",
                 CharHeight: textSize,
@@ -239,6 +264,8 @@ namespace MachineClassLibrary.Laser.Markers
 
         public void SetMarkParams(MarkLaserParams markLaserParams)
         {
+            if (!IsMarkDeviceInit) return;
+
             _markLaserParams = markLaserParams;
 
             //var result = Lmc.SetPenParams(markLaserParams.PenParams);
@@ -256,6 +283,8 @@ namespace MachineClassLibrary.Laser.Markers
         }
         public async Task<bool> PierceCircleAsync(double diameter)
         {
+            if (!IsMarkDeviceInit) return false;
+
             Lmc.lmc1_AddCircleToLib(0, 0, diameter / 2, "circle", 0);
             Lmc.lmc1_MarkEntity("circle");
             Lmc.lmc1_DeleteEnt("circle");
@@ -264,6 +293,8 @@ namespace MachineClassLibrary.Laser.Markers
 
         public async Task<bool> CancelMarkingAsync()
         {
+            if (!IsMarkDeviceInit) return false;
+
             //var result = Lmc.lmc1_CancelMark();
             var result = await Task.FromResult(JczLmc.StopMark());
             var res = true;
@@ -273,5 +304,15 @@ namespace MachineClassLibrary.Laser.Markers
         }
 
         public bool SetDevConfig() => JczLmc.SetDevCfg2(false, false) == 0;
+
+        public override void CureDevice()
+        {
+            throw new NotImplementedException();
+        }
+
+        public override void AskHealth()
+        {
+            throw new NotImplementedException();
+        }
     }
 }

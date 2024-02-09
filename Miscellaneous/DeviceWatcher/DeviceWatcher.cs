@@ -1,4 +1,5 @@
 ﻿using System;
+using System.CodeDom;
 using System.Collections.Generic;
 using System.Linq;
 using System.Reactive.Linq;
@@ -81,28 +82,29 @@ namespace MachineClassLibrary.Miscellaneous
     }
 
     public interface IDeviceInfo { }
-    public record HealthProblem(string Message, Exception Exception) : IDeviceInfo;
-    public record HealthOK() : IDeviceInfo;
+    public record HealthProblem(string Message, Exception Exception, Type DeviceType = null) : IDeviceInfo;
+    public record HealthOK(Type DeviceType = null) : IDeviceInfo;
 
     public interface IWatchableDevice : IObservable<IDeviceInfo>, IDisposable
     {
         void AskHealth();
         void CureDevice();
-        void DeviceOK();
-        void HasHealthProblem(string message, Exception exception);
+        void DeviceOK(Type deviceType);
+        void HasHealthProblem(string message, Exception exception, Type deviceType);
     }
 
     public abstract class WatchableDevice : IWatchableDevice
     {
         private ISubject<IDeviceInfo>? _subject;
         private List<IDisposable>? _subscriptions;
-        public void HasHealthProblem(string message, Exception exception)
+        public void HasHealthProblem(string message, Exception exception, Type deviceType = null)
         {
             _subject?.OnNext(new HealthProblem(message, exception));
         }
         public abstract void CureDevice();
         public abstract void AskHealth();
         public void DeviceOK() => _subject?.OnNext(new HealthOK());
+        public void DeviceOK(Type deviceType) => _subject?.OnNext(new HealthOK(deviceType));
         public void Dispose()
         {
             _subscriptions?.ForEach(x => x.Dispose());

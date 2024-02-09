@@ -30,7 +30,12 @@ namespace MachineClassLibrary.Laser
             foreach (var port in availablePorts)
             {
                 if (!OpenPort(port)) continue;
-                if (await WaitCompareResponse($"{PASSWORD}", $"{PASSED}", 200)) return true;
+                if (await WaitCompareResponse($"{PASSWORD}", $"{PASSED}", 200))
+                {
+                    DeviceOK();
+                    return true;
+                }
+                HasHealthProblem($"Cannot find the PWM", null);
                 _serialPort.Close();
             }
             return false;
@@ -41,7 +46,6 @@ namespace MachineClassLibrary.Laser
             {
                 if (_serialPort.PortName == port & _serialPort.IsOpen)
                 {
-                    DeviceOK();
                     return true;
                 }
                 if (_serialPort.PortName != port & _serialPort.IsOpen)
@@ -64,11 +68,9 @@ namespace MachineClassLibrary.Laser
             try
             {
                 comPort.Open();
-                DeviceOK();
             }
             catch (Exception ex)
             {
-                HasHealthProblem($"Can not open {port}", ex);
                 return false;
             }
             if (comPort.IsOpen)
@@ -77,12 +79,10 @@ namespace MachineClassLibrary.Laser
                 _serialPort.DataReceived += new SerialDataReceivedEventHandler(_serialPort_DataReceived);
                 _serialPort.DiscardOutBuffer();
                 _serialPort.DiscardInBuffer();
-                DeviceOK();
                 return true;
             }
             else
             {
-                HasHealthProblem($"{port} is not open", null);
                 return false;
             }
         }

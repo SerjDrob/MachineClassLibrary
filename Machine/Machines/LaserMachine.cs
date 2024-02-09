@@ -2,36 +2,104 @@
 using MachineClassLibrary.Laser;
 using MachineClassLibrary.Laser.Parameters;
 using MachineClassLibrary.Machine.MotionDevices;
+using MachineClassLibrary.Miscellaneous;
 using MachineClassLibrary.VideoCapture;
 using Microsoft.Toolkit.Diagnostics;
 using System;
 using System.Collections.Generic;
 using System.Drawing;
 using System.Linq;
+using System.Reactive.Linq;
+using System.Reactive.Subjects;
 using System.Threading.Tasks;
 
 
 
 namespace MachineClassLibrary.Machine.Machines
 {
-    public class LaserMachine : PCI124XXMachine, IHasCamera, IMarkLaser, IHasPlaces<LMPlace>, IHasValves
+    public record DeviceStateChanged();
+    public class LaserMachine : PCI124XXMachine, IMarkLaser, IHasPlaces<LMPlace>, IHasValves, IObservable<DeviceStateChanged>, IDisposable
     {
         private readonly IMarkLaser _markLaser;
         private readonly IVideoCapture _videoCapture;
         private Dictionary<LMPlace, (Ax axis, double pos)[]> _places;
         private Dictionary<LMPlace, double> _singlePlaces;
         private Dictionary<Valves, (Ax, Do)> _valves;
+        private ISubject<DeviceStateChanged> _subject;
+        private List<IDisposable> _subscriptions;
+        private bool _motionDeviceOk;
+        private bool _laserDeviceOk;
+        private bool _videoCaptureDeviceOk;
+        private bool _pwmDeviceOk;
+        private bool _laserBoardOk;
 
         public event EventHandler<VideoCaptureEventArgs> OnBitmapChanged;
         public event EventHandler<ValveEventArgs> OnValveStateChanged;
         public event EventHandler CameraPlugged;
         public event EventHandler<Bitmap> OnRawBitmapChanged;
 
+        public bool MotionDeviceOk 
+        {
+            get => _motionDeviceOk; 
+            private set 
+            {
+                _motionDeviceOk = value;
+                _subject?.OnNext(new DeviceStateChanged());
+            }
+        }
+        public bool LaserSourceOk 
+        {
+            get => _laserDeviceOk; 
+            private set
+            {
+                _laserDeviceOk = value;
+                _subject?.OnNext(new DeviceStateChanged());
+            }
+        }
+        public bool LaserBoardOk
+        {
+            get => _laserBoardOk;
+            private set
+            {
+                _laserBoardOk = value;
+                _subject?.OnNext(new DeviceStateChanged());
+            }
+        }
+        public bool VideoCaptureDeviceOk 
+        {
+            get => _videoCaptureDeviceOk; 
+            private set
+            {
+                _videoCaptureDeviceOk = value;
+                _subject?.OnNext(new DeviceStateChanged());
+            }
+        }
+        public bool PWMDeviceOk 
+        {
+            get => _pwmDeviceOk;
+            private set
+            {
+                _pwmDeviceOk = value;
+                _subject.OnNext(new DeviceStateChanged());
+            }
+        }
+
         public LaserMachine(IMotionDevicePCI1240U motionDevice, IMarkLaser markLaser, IVideoCapture videoCapture) : base(motionDevice)
         {
             Guard.IsNotNull(markLaser, nameof(markLaser));
             Guard.IsNotNull(videoCapture, nameof(videoCapture));
             _markLaser = markLaser;
+            var watchableDevice = _markLaser as WatchableDevice;
+            watchableDevice.OfType<HealthOK>()
+                .Subscribe(ok =>
+                {
+
+                });
+            watchableDevice.OfType<HealthProblem>()
+                .Subscribe(problem =>
+                {
+
+                });
             _videoCapture = videoCapture;
             _videoCapture.OnBitmapChanged += _videoCapture_OnBitmapChanged;
             _videoCapture.CameraPlugged += _videoCapture_CameraPlugged;
@@ -366,6 +434,20 @@ namespace MachineClassLibrary.Machine.Machines
         public bool SetDevConfig()
         {
             return _markLaser.SetDevConfig();
+        }
+
+        public void Dispose()
+        {
+            _subscriptions?.ForEach(x => x.Dispose());
+        }
+
+        public IDisposable Subscribe(IObserver<DeviceStateChanged> observer)
+        {
+            _subject ??= new Subject<DeviceStateChanged>();
+            _subscriptions ??= new List<IDisposable>();
+            var subscription = _subject.Subscribe(observer);
+            _subscriptions.Add(subscription);
+            return subscription;
         }
 
         public class GeometryBuilder<TPlace> : IGeometryBuilder<TPlace> where TPlace : Enum
