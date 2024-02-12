@@ -52,7 +52,8 @@ namespace MachineClassLibrary.Laser.Markers
 
             var result = JczLmc.InitializeTotal(initDirPath, false, Handle);
             var markerInit = true;
-            if (result != 0)
+            if ((JczLmc.EzCad_Error_Code)result == JczLmc.EzCad_Error_Code.LMC1_ERR_SUCCESS) DeviceOK(this);
+            else
             {
                 var ex = new Exception($"The device opening failed with error code {(Lmc.EzCad_Error_Code)result}");
                 HasHealthProblem("",ex,this);

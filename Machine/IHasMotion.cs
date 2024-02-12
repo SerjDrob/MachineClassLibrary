@@ -53,5 +53,8 @@ namespace MachineClassLibrary.Machine
         Task GoHomeAsync();
         IHomingBuilder ConfigureHomingForAxis(Ax axis);
         IAxisBuilder AddAxis(Ax ax, double lineCoefficient);
+
+
+        void MotionDevInitialized();
     }
 }

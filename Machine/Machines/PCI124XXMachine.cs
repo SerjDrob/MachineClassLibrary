@@ -23,6 +23,7 @@ namespace MachineClassLibrary.Machine.Machines
             IsMotionDeviceInit = _motionDevice.DevicesConnection();
             if (IsMotionDeviceInit)
             {
+                MotionDevInitialized();
                 _motionDevice.TransmitAxState += MotionDevice_TransmitAxState;
             }
         }
@@ -461,5 +462,8 @@ namespace MachineClassLibrary.Machine.Machines
         }
 
         public void SetPrecision(double tolerance) => _motionDevice.SetPrecision(tolerance);
+
+        public abstract void MotionDevInitialized();
+       
     }
 }

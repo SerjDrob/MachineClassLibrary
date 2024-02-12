@@ -408,6 +408,11 @@ namespace MachineClassLibrary.Machine.Machines
 
         public Task<bool> ChangeSpindleFreqOnFlyAsync(ushort rpm, int delay) => _spindle.ChangeSpeedAsync(rpm, delay);
 
+        public override void MotionDevInitialized()
+        {
+            //throw new NotImplementedException();
+        }
+
         public class GeometryBuilder<TPlace> : IGeometryBuilder<TPlace> where TPlace : Enum
         {
             private Dictionary<TPlace, (Ax axis, double pos)[]> _places;

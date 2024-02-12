@@ -143,6 +143,8 @@ namespace MachineClassLibrary.Machine.Machines
                 });
         }
 
+        public override void MotionDevInitialized() => MotionDeviceOk = true;
+
         private void _videoCapture_CameraPlugged(object sender, EventArgs e) => CameraPlugged?.Invoke(sender, e);
 
         public void ConfigureGeometry(Dictionary<LMPlace, (Ax, double)[]> places)
@@ -487,7 +489,6 @@ namespace MachineClassLibrary.Machine.Machines
             _subscriptions.Add(subscription);
             return subscription;
         }
-
         public class GeometryBuilder<TPlace> : IGeometryBuilder<TPlace> where TPlace : Enum
         {
             private Dictionary<TPlace, (Ax axis, double pos)[]> _places;
