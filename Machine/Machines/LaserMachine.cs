@@ -6,12 +6,14 @@ using MachineClassLibrary.Miscellaneous;
 using MachineClassLibrary.VideoCapture;
 using Microsoft.Toolkit.Diagnostics;
 using System;
+using System.CodeDom;
 using System.Collections.Generic;
 using System.Drawing;
 using System.Linq;
 using System.Reactive.Linq;
 using System.Reactive.Subjects;
 using System.Threading.Tasks;
+using System.Threading.Tasks.Dataflow;
 
 
 
@@ -89,20 +91,56 @@ namespace MachineClassLibrary.Machine.Machines
             Guard.IsNotNull(markLaser, nameof(markLaser));
             Guard.IsNotNull(videoCapture, nameof(videoCapture));
             _markLaser = markLaser;
-            var watchableDevice = _markLaser as WatchableDevice;
-            watchableDevice.OfType<HealthOK>()
+            var watchableLaser = _markLaser as WatchableDevice;
+            watchableLaser.OfType<HealthOK>()
                 .Subscribe(ok =>
                 {
-
+                    switch (ok.Device)
+                    {
+                        case IPWM:
+                            PWMDeviceOk = true;
+                            break;
+                        case IMarkLaser:
+                            LaserBoardOk = true;
+                            break;
+                    }
+                    _subject?.OnNext(new DeviceStateChanged());
                 });
-            watchableDevice.OfType<HealthProblem>()
+            watchableLaser.OfType<HealthProblem>()
                 .Subscribe(problem =>
                 {
-
+                    switch (problem.Device) 
+                    {
+                        case IPWM:
+                            PWMDeviceOk = false;
+                            break;
+                        case IMarkLaser:
+                            LaserBoardOk = false;
+                            break;
+                    }
+                    _subject.OnNext(new DeviceStateChanged());
                 });
+            
             _videoCapture = videoCapture;
             _videoCapture.OnBitmapChanged += _videoCapture_OnBitmapChanged;
             _videoCapture.CameraPlugged += _videoCapture_CameraPlugged;
+
+
+            var watchableCamera = _videoCapture as WatchableDevice;
+            watchableCamera?.WatchMe("VID_AA47", "PID_210", () =>
+            {
+                watchableCamera.CureDevice();
+            });
+            watchableCamera?.OfType<HealthOK>()
+                .Subscribe(ok =>
+                {
+                    VideoCaptureDeviceOk = true;
+                });
+            watchableCamera?.OfType<HealthProblem>()
+                .Subscribe(problem =>
+                {
+                    VideoCaptureDeviceOk = false;
+                });
         }
 
         private void _videoCapture_CameraPlugged(object sender, EventArgs e) => CameraPlugged?.Invoke(sender, e);

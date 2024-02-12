@@ -14,7 +14,7 @@ using Microsoft.Toolkit.Diagnostics;
 
 namespace MachineClassLibrary.VideoCapture
 {
-    public class USBCamera : PlugMeWatcher, IVideoCapture
+    public class USBCamera : WatchableDevice, /*PlugMeWatcher,*/ IVideoCapture
     {
         private VideoCaptureDevice _localCamera;
         private int _localCameraIndex;
@@ -35,15 +35,15 @@ namespace MachineClassLibrary.VideoCapture
         private bool _freezeImage;
         private BitmapImage _bitmap;
 
-        public USBCamera() : base("VID_AA47", "PID_1301")
+        public USBCamera() //: base("VID_AA47", "PID_1301")
         {
             _videoCaptureDevices = GetVideoCaptureDevices();
-            WaitAndPlugMe(() =>
-            {
-                _videoCaptureDevices = GetVideoCaptureDevices();
-                //StartCamera(_localCameraIndex, _localCameraCapabilities);
-            });
-            DevicePlugged += USBCamera_DevicePlugged;
+            //WaitAndPlugMe(() =>
+            //{
+            //    _videoCaptureDevices = GetVideoCaptureDevices();
+            //    //StartCamera(_localCameraIndex, _localCameraCapabilities);
+            //});
+            //DevicePlugged += USBCamera_DevicePlugged;
         }
 
         private void USBCamera_DevicePlugged(object sender, EventArgs e) => CameraPlugged?.Invoke(sender,e);
@@ -68,7 +68,7 @@ namespace MachineClassLibrary.VideoCapture
                         for (int n = 0; n < device.VideoCapabilities.Length; n++)
                         {
                             var cap = device.VideoCapabilities[n];
-                            caps[n] = $"{cap.FrameSize.Width} X {cap.FrameSize.Height} {cap.FrameRate}fps";
+                            caps[n] = $"{cap.FrameSize.Width} X {cap.FrameSize.Height} {cap.AverageFrameRate}fps";
                         }
                         AvailableVideoCaptureDevices.Add(i, (devices[i].MonikerString, caps));
                     }
@@ -116,7 +116,7 @@ namespace MachineClassLibrary.VideoCapture
                 _localCamera.PlayingFinished += _localCamera_PlayingFinished;
                 _localCamera.NewFrame += HandleNewFrame;
                 _localCamera.Start();
-
+                DeviceOK(this);
                 IsVideoCaptureConnected = true;
                 _errorMessage = string.Empty;
                 _localCameraIndex = ind;
@@ -133,6 +133,7 @@ namespace MachineClassLibrary.VideoCapture
             _localCamera.NewFrame -= HandleNewFrame;
             IsVideoCaptureConnected = false;
             _errorMessage = "Device has been switched off";
+            HasHealthProblem(_errorMessage, null, this);
             OnBitmapChanged?.Invoke(this, new VideoCaptureEventArgs(null, _errorMessage));
         }
 
@@ -201,6 +202,17 @@ namespace MachineClassLibrary.VideoCapture
         public void InvokeSettings()
         {
             _localCamera?.DisplayPropertyPage(IntPtr.Zero);
+        }
+
+        public override void CureDevice()
+        {
+            _videoCaptureDevices = GetVideoCaptureDevices();
+            StartCamera(_localCameraIndex, _localCameraCapabilities);
+        }
+
+        public override void AskHealth()
+        {
+            throw new NotImplementedException();
         }
     }
 }

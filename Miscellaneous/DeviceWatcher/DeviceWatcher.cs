@@ -82,29 +82,37 @@ namespace MachineClassLibrary.Miscellaneous
     }
 
     public interface IDeviceInfo { }
-    public record HealthProblem(string Message, Exception Exception, Type DeviceType = null) : IDeviceInfo;
-    public record HealthOK(Type DeviceType = null) : IDeviceInfo;
+    public record HealthProblem(string Message, Exception Exception, object Device = null) : IDeviceInfo;
+    public record HealthOK(object Device = null) : IDeviceInfo;
 
     public interface IWatchableDevice : IObservable<IDeviceInfo>, IDisposable
     {
         void AskHealth();
         void CureDevice();
-        void DeviceOK(Type deviceType);
-        void HasHealthProblem(string message, Exception exception, Type deviceType);
+        void DeviceOK(object device);
+        void HasHealthProblem(string message, Exception exception, object deviceType);
     }
 
     public abstract class WatchableDevice : IWatchableDevice
     {
         private ISubject<IDeviceInfo>? _subject;
         private List<IDisposable>? _subscriptions;
-        public void HasHealthProblem(string message, Exception exception, Type deviceType = null)
+        private PlugMeWatcher _plugMeWatcher;
+        public void HasHealthProblem(string message, Exception exception, object device = null)
         {
-            _subject?.OnNext(new HealthProblem(message, exception));
+            _subject?.OnNext(new HealthProblem(message, exception, device));
         }
         public abstract void CureDevice();
         public abstract void AskHealth();
         public void DeviceOK() => _subject?.OnNext(new HealthOK());
-        public void DeviceOK(Type deviceType) => _subject?.OnNext(new HealthOK(deviceType));
+        public void DeviceOK(object device) => _subject?.OnNext(new HealthOK(device));
+        
+        public void WatchMe(string vid, string pid, Action doWhenPlugged)
+        {
+            _plugMeWatcher ??= new(vid, pid);
+            _plugMeWatcher.WaitAndPlugMe(doWhenPlugged);
+        }
+        
         public void Dispose()
         {
             _subscriptions?.ForEach(x => x.Dispose());

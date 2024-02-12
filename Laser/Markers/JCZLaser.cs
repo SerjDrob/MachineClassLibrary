@@ -42,26 +42,28 @@ namespace MachineClassLibrary.Laser.Markers
             pwm?.OfType<HealthOK>()
                 .Subscribe(ok =>
                 {
-                    var t = _pwm.GetType();
-                    DeviceOK(t);
+                    DeviceOK(_pwm);
                 });
             pwm?.OfType<HealthProblem>()
                 .Subscribe(hp =>
                 {
-                    var t = _pwm.GetType();
-                    HasHealthProblem(hp.Message, hp.Exception, t);
+                    HasHealthProblem(hp.Message, hp.Exception, _pwm);
                 });
 
             var result = JczLmc.InitializeTotal(initDirPath, false, Handle);
+            var markerInit = true;
             if (result != 0)
             {
+                var ex = new Exception($"The device opening failed with error code {(Lmc.EzCad_Error_Code)result}");
+                HasHealthProblem("",ex,this);
+                markerInit = false;
                 //throw new Exception($"The device opening failed with error code {(Lmc.EzCad_Error_Code)result}");
             }
             if (!await _pwm.FindOpen())
             {
                 //throw new Exception($"The device opening failed. Can't open PWM device");
             }
-            else IsMarkDeviceInit = true;
+            else IsMarkDeviceInit = true && markerInit;
             return IsMarkDeviceInit;
         }
 
