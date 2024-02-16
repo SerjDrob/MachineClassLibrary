@@ -32,10 +32,10 @@ namespace MachineClassLibrary.Laser
                 if (!OpenPort(port)) continue;
                 if (await WaitCompareResponse($"{PASSWORD}", $"{PASSED}", 200))
                 {
-                    DeviceOK();
+                    DeviceOK(this);
                     return true;
                 }
-                HasHealthProblem($"Cannot find the PWM", null);
+                HasHealthProblem($"Cannot find the PWM", null, this);
                 _serialPort.Close();
             }
             return false;
@@ -103,7 +103,7 @@ namespace MachineClassLibrary.Laser
             }
             catch (Exception ex)
             {
-                HasHealthProblem($"Cannot read the {_serialPort.PortName}", ex);
+                HasHealthProblem($"Cannot read the {_serialPort.PortName}", ex, this);
             }
             finally
             {
@@ -172,11 +172,11 @@ namespace MachineClassLibrary.Laser
                 var result = await WaitCompareResponse(_lastMessage, _lastMessage, 200);
                 if (result)
                 {
-                    DeviceOK();
+                    DeviceOK(this);
                 }
                 else
                 {
-                    HasHealthProblem($"Set PWM command failed", null);
+                    HasHealthProblem($"Set PWM command failed", null, this);
                 }
                 return result;
             }
