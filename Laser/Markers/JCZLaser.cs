@@ -201,10 +201,10 @@ namespace MachineClassLibrary.Laser.Markers
                 var dutyCycle = freq * penParams.QPulseWidth * 1e-6 * 100;
                 var modFreq = penParams.ModFreq;
                 var modDutyCycle = penParams.ModDutyCycle;
-                bool pwmResult = true;
                 try
                 {
-                    pwmResult = await _pwm.SetPWM(freq, (int)Math.Round(dutyCycle), modFreq, modDutyCycle);
+                    var pwmResult = await _pwm.SetPWM(freq, (int)Math.Round(dutyCycle), modFreq, modDutyCycle);
+                    if (!pwmResult) throw new MarkerException("PWM is failed. Cannot get the response.");
                 }
                 catch (InvalidOperationException ex)
                 {
@@ -217,10 +217,6 @@ namespace MachineClassLibrary.Laser.Markers
                 catch (Exception ex)
                 {
                     throw new MarkerException(ex.Message, ex);
-                }
-                finally
-                {
-                    if (!pwmResult) throw new MarkerException("PWM is failed. Cannot get the response.");
                 }
             }
         }

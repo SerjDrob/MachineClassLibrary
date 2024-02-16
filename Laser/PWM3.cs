@@ -77,6 +77,7 @@ namespace MachineClassLibrary.Laser
             {
                 _serialPort = comPort;
                 _serialPort.DataReceived += new SerialDataReceivedEventHandler(_serialPort_DataReceived);
+                _serialPort.ErrorReceived += _serialPort_ErrorReceived;
                 _serialPort.DiscardOutBuffer();
                 _serialPort.DiscardInBuffer();
                 return true;
@@ -85,6 +86,11 @@ namespace MachineClassLibrary.Laser
             {
                 return false;
             }
+        }
+
+        private void _serialPort_ErrorReceived(object sender, SerialErrorReceivedEventArgs e)
+        {
+            HasHealthProblem($"PWM's com-port got the error. {e}",null,this);
         }
 
         private void _serialPort_DataReceived(object sender, SerialDataReceivedEventArgs e)
@@ -96,7 +102,7 @@ namespace MachineClassLibrary.Laser
                     var bytesCount = _serialPort.BytesToRead;
                     var message = new char[bytesCount];
                     var count = _serialPort.Read(message, 0, bytesCount);
-                    _response = new String(message);
+                    _response = new string(message);
                     _serialPort.DiscardInBuffer();
                     _serialPort.DiscardOutBuffer();
                 }
@@ -110,21 +116,6 @@ namespace MachineClassLibrary.Laser
                 _isResponded = true;
             }
             _isResponded = true;
-        }
-
-        private async Task<bool> WaitCompareResponse(string assumedMessage, int waitingTime)
-        {
-            var token = new CancellationTokenSource(waitingTime).Token;
-
-            var task = Task.Run(() =>
-            {
-                while (!_isResponded && !token.IsCancellationRequested) ;
-                return _isResponded;
-            }, token);
-            var answer = await task && _response.Contains(assumedMessage);//assumedMessage.Equals(resp);
-            _isResponded = false;
-            _response = String.Empty;
-            return answer;
         }
 
         private async Task<bool> WaitCompareResponse(string message, string assumedMessage, int waitingTime)
