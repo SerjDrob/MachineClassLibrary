@@ -100,10 +100,13 @@ namespace MachineClassLibrary.Laser
                 if (_contourOffset != 0 || _contourWidth > 0)
                 {
                     var outerCurves = _contourOffset != 0 ? initialCurve.InflateCurve(_contourOffset) : Enumerable.Repeat(initialCurve, 1);
-                    var innerCurves = outerCurves.SelectMany(curve => curve.InflateCurve(-_contourWidth));
-                    var resultCurves = outerCurves.Concat(innerCurves).ToList();
-
-                    return new ContourRing { Curves = resultCurves };
+                    if (_contourWidth >= 0.001d)
+                    {
+                        var innerCurves = outerCurves.SelectMany(curve => curve.InflateCurve(-_contourWidth));
+                        var resultCurves = outerCurves.Concat(innerCurves).ToList();
+                        return new ContourRing { Curves = resultCurves }; 
+                    }
+                    return new ContourRing { Curves = outerCurves };
                 }
                 else
                 {
