@@ -34,6 +34,8 @@ namespace MachineClassLibrary.VideoCapture
         private List<VideoCaptureDevice> _videoCaptureDevices;
         private bool _freezeImage;
         private BitmapImage _bitmap;
+        private bool _mirrorX;
+        private bool _mirrorY;
 
         public USBCamera() //: base("VID_AA47", "PID_1301")
         {
@@ -156,11 +158,12 @@ namespace MachineClassLibrary.VideoCapture
         {
             get; set;
         }
-
+        public void SetCameraMirror(bool mirrorX, bool mirrorY) => (_mirrorX, _mirrorY) = (mirrorX, mirrorY);
         private async void HandleNewFrame(object sender, NewFrameEventArgs eventArgs)
         {
 
             var filter = new ContrastCorrection();
+            var mirror = new Mirror(_mirrorX, _mirrorY);
 
             Bitmap ApplyAdjustWidthIfEnable(Bitmap bitmap)
             {
@@ -178,6 +181,7 @@ namespace MachineClassLibrary.VideoCapture
                 {
                     using var img = ApplyAdjustWidthIfEnable((Bitmap)eventArgs.Frame.Clone());
                     filter.ApplyInPlace(img);
+                    mirror.ApplyInPlace(img);
                     OnRawBitmapChanged?.Invoke(this, img);
                     var ms = new MemoryStream();
                     img.Save(ms, ImageFormat.Bmp);

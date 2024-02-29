@@ -405,6 +405,8 @@ namespace MachineClassLibrary.Machine.Machines
 
         public int GetVideoCapabilitiesCount() => _videoCapture.GetVideoCapabilitiesCount();
 
+        public void SetVideoMirror(bool xmirror, bool ymirror) => _videoCapture.SetCameraMirror(xmirror, ymirror);
+
         public Task<bool> PierceCircleAsync(double diameter)
         {
             return _markLaser.PierceCircleAsync(diameter);
@@ -439,25 +441,35 @@ namespace MachineClassLibrary.Machine.Machines
 
         public void SwitchOnValve(Valves valve)
         {
-            var axisNum = _axes[_valves[valve].Item1].AxisNum;
-            var dOut = _valves[valve].Item2;
-            
-            _motionDevice.SetAxisDout(axisNum, (ushort)dOut, true);
+            if (_valves.TryGetValue(valve, out var axOut))
+            {
+                var axisNum = _axes[axOut.Item1].AxisNum;
+                var dOut = _valves[valve].Item2;
+
+                _motionDevice.SetAxisDout(axisNum, (ushort)dOut, true);
+            }
         }
 
         public void SwitchOffValve(Valves valve)
         {
-            var axisNum = _axes[_valves[valve].Item1].AxisNum;
-            var dOut = _valves[valve].Item2;
+            if (_valves.TryGetValue(valve, out var axOut))
+            {
+                var axisNum = _axes[axOut.Item1].AxisNum;
+                var dOut = _valves[valve].Item2;
 
-            _motionDevice.SetAxisDout(axisNum, (ushort)dOut, false);
+                _motionDevice.SetAxisDout(axisNum, (ushort)dOut, false);
+            }
         }
 
         public bool GetValveState(Valves valve)
         {
-            var axisNum = _axes[_valves[valve].Item1].AxisNum;
-            var dOut = _valves[valve].Item2;
-            return _motionDevice.GetAxisDout(axisNum, (ushort)dOut);
+            if(_valves.TryGetValue(valve, out var axOut))
+            {
+                var axisNum = _axes[axOut.Item1].AxisNum;
+                var dOut = _valves[valve].Item2;
+                return _motionDevice.GetAxisDout(axisNum, (ushort)dOut);
+            }
+            return false;
         }
 
         public IGeometryBuilder<LMPlace> ConfigureGeometryFor(LMPlace place)

@@ -413,6 +413,11 @@ namespace MachineClassLibrary.Machine.Machines
             //throw new NotImplementedException();
         }
 
+        public void SetCameraMirror(bool mirrorX, bool mirrorY)
+        {
+            _videoCamera.SetCameraMirror(mirrorX, mirrorY);
+        }
+
         public class GeometryBuilder<TPlace> : IGeometryBuilder<TPlace> where TPlace : Enum
         {
             private Dictionary<TPlace, (Ax axis, double pos)[]> _places;
