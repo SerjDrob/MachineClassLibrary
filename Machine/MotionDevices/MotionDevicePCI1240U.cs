@@ -518,7 +518,7 @@ private async Task DeviceStateMonitorAsync()
         {
             var accuracy = _tolerance;//0.001;
             ushort state = default;
-            var vel = 0.1;
+            var vel = 0.5;// 0.1;
             var gotIt = false;
 
             var storedVelocity = GetAxisVelocity(axisNum);
@@ -534,8 +534,11 @@ private async Task DeviceStateMonitorAsync()
                 var diff = position - CalcActualPosition(axisNum, lineCoefficient);
                 if (lineCoefficient == 0 || Math.Abs(diff) <= accuracy) return;
 
-                Motion.mAcm_SetProperty(_mAxishand[axisNum], (uint)PropertyID.PAR_AxVelLow, ref vel, 8).CheckResult(axisNum);
-                Motion.mAcm_SetProperty(_mAxishand[axisNum], (uint)PropertyID.PAR_AxVelHigh, ref vel, 8).CheckResult(axisNum);
+
+                SetAxisVelocity(axisNum, vel);
+
+                //Motion.mAcm_SetProperty(_mAxishand[axisNum], (uint)PropertyID.PAR_AxVelHigh, ref vel, 8).CheckResult(axisNum);
+                //Motion.mAcm_SetProperty(_mAxishand[axisNum], (uint)PropertyID.PAR_AxVelLow, ref vel, 8).CheckResult(axisNum);
                 int recurcy = 0;
 
                 while (!gotIt && recurcy < 50)//for (recurcy = 0; recurcy < 20; recurcy++)
@@ -716,14 +719,14 @@ private async Task DeviceStateMonitorAsync()
             {
                 throw new MotionException($"Open Device Failed With Error Code: [0x{result:X}]");
             }
-
+            /*
             result = Motion.mAcm_SetU32Property(deviceHandle, (uint)PropertyID.CFG_DevEmgLogic, (uint)EmgLogic.EMG_ACT_LOW);
 
             if (!Success(result))
             {
                 throw new MotionException($"Open Device Failed With Error Code: [0x{result:X}]");
             }
-
+            */
             return deviceHandle;
         }
         private static IEnumerable<DEV_LIST> GetAvailableDevs()
