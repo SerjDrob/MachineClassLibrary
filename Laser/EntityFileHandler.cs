@@ -73,7 +73,7 @@ namespace MachineClassLibrary.Laser
         {
             var filename = $"{CURVE_PREFIX}{Guid.NewGuid()}.dxf";
             var filePath = Path.Combine(_folderPath, filename);
-            _dxfReader.WriteCurveToFile(filePath, curve, true);
+            _dxfReader.WriteCurveToFile(filePath, curve, curve.IsClosed);
             return filePath;
         }
 
