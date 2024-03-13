@@ -113,7 +113,7 @@ namespace MachineClassLibrary.Laser.Markers
                 return 0;
             };
 
-
+            /*
             result += JczLmc.SetHatchEntParam2(
                 HatchName: "Entity",
                 bEnableContour: hatch.EnableContour,//<---------------
@@ -138,8 +138,35 @@ namespace MachineClassLibrary.Laser.Markers
                 dHatchRotateAngle: hatch.HatchRotateAngle,//<---------
                 bHatchCrossMode: (hatch.HatchAttribute & JczLmc.HATCHATTRIB_CROSSLINE) != 0,
                 dCycCount: 1
+                );*/
+
+            result += Lmc.lmc1_SetHatchParam(
+                bEnableContour: hatch.EnableContour,    //enable the contour of object to be marked
+                bEnableHatch1: hatch.EnableHatch, //enable hatch NO. 1
+                nPenNo1: _markLaserParams.PenParams.PenNo, //set the pen of hatch NO. 1
+                nHatchAttrib1: hatch.HatchAttribute, //set the attribute of hatch NO. 1
+                dHatchEdgeDist1: 0.0001, //set the distance between hatch line and contour of hatch NO. 1
+                dHatchLineDist1: hatch.HatchLineDist, //set the distance between two line of hatch NO. 1 .
+                dHatchStartOffset1: hatch.HatchStartOffset, //set the start offset of hatch NO. 1
+                dHatchEndOffset1: hatch.HatchEndOffset, //set the end offset of hatch NO. 1
+                dHatchAngle1: 0d, //set the hatch angle of hatch NO. 1
+                bEnableHatch2: false, //enable hatch1 NO.2
+                nPenNo2: 0,
+                nHatchAttrib2: hatch.HatchAttribute,
+                dHatchEdgeDist2: 0.0001,
+                dHatchLineDist2: hatch.HatchLineDist,
+                dHatchStartOffset2: hatch.HatchStartOffset,
+                dHatchEndOffset2: hatch.HatchEndOffset,
+                dHatchAngle2: 0d
                 );
-            if(result!=0) Console.WriteLine($"In the{nameof(PierceDxfObjectAsync)} JczLmc has result = {result} is {(JczLmc.EzCad_Error_Code)result}");
+
+            result += Lmc.lmc1_HatchEnt("Entity", "Entity");
+
+            if (result != 0)
+            {
+                Console.WriteLine($"In the{nameof(PierceDxfObjectAsync)} JczLmc has result = {result} is {(JczLmc.EzCad_Error_Code)result}");
+                throw new Exception($"In the{nameof(PierceDxfObjectAsync)} JczLmc has result = {result} is {(JczLmc.EzCad_Error_Code)result}");
+            }
 
             //result = JczLmc.SetHatchEntParam2(
             //   HatchName: "Entity",
