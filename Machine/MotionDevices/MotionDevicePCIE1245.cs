@@ -17,14 +17,7 @@ namespace MachineClassLibrary.Machine.MotionDevices
         {
             _bridges = new Dictionary<int, int>();
             _tolerance = 0.001;
-            //var device = GetAvailableDevs().First();
-            //DeviceHandle = OpenDevice(device);
-
-            var result = Motion2.mAcm2_DevInitialize();
-            if (!Success(result))
-            {
-                throw new MotionException("Device Initialize Failed With Error Code: [0x" + Convert.ToString(result, 16) + "]");
-            }
+            Motion2.mAcm2_DevInitialize().CheckResult2();
         }
 
         private uint _devID;
@@ -241,15 +234,14 @@ namespace MachineClassLibrary.Machine.MotionDevices
         public int FormAxesGroup(int[] axisNums)
         {
             _mGpHand ??= new List<AxGroup>();
-            uint hand = default;
+            var hand = (uint)_mGpHand.Count;
+            var axesCount = (uint)axisNums.Count();
             var axes = axisNums.Select(n => _axisLogicalIDList[n].ID).ToArray();
-            var result = Motion2.mAcm2_GpCreate(hand, axes);
-            if (!Success(result))
-            {
-                var sb = new StringBuilder();
-                Motion2.mAcm2_GetErrorMessage(result, sb, 50);
-                throw new MotionException($"{sb} Error Code: [0x{result:X}]");
-            }
+            //clear axes count in the group
+            Motion2.mAcm2_GpCreate(hand, axes, 0u).CheckResult2();
+            Motion2.mAcm2_AxResetAllError();
+            //create group
+            Motion2.mAcm2_GpCreate(hand, axes, axesCount).CheckResult2();
             var group = new AxGroup(hand, axisNums.Select(num => _axisLogicalIDList[num].ID).ToArray());
             _mGpHand.Add(group);
             return _mGpHand.IndexOf(group);
@@ -451,15 +443,17 @@ namespace MachineClassLibrary.Machine.MotionDevices
             Motion2.mAcm2_SetProperty(id, (uint)PropertyID2.PAR_AxJerk, jerk).CheckResult2(axisNum);
 
             Motion2.mAcm2_AxSetSpeedProfile(id, speedProfile).CheckResult2(axisNum);
-            Motion2.mAcm2_AxSetHomeSpeedProfile(id, speedProfile).CheckResult2(axisNum);
+            //Motion2.mAcm2_AxSetHomeSpeedProfile(id, speedProfile).CheckResult2(axisNum);
 
             Motion2.mAcm2_SetProperty(id, (uint)PropertyID2.CFG_AxSwPelEnable, buf).CheckResult2(axisNum);
             Motion2.mAcm2_SetProperty(id, (uint)PropertyID2.CFG_AxElLogic, configs.hLmtLogic).CheckResult2(axisNum);
 
-            Motion2.mAcm2_SetProperty(id, (uint)PropertyID2.CFG_AxPPUDenominator, denominator).CheckResult2(axisNum);
+            //Motion2.mAcm2_SetProperty(id, (uint)PropertyID2.CFG_AxPPUDenominator, denominator).CheckResult2(axisNum);
             Motion2.mAcm2_SetProperty(id, (uint)PropertyID2.CFG_AxPulseInLogic, configs.plsInLogic).CheckResult2(axisNum);
             Motion2.mAcm2_SetProperty(id, (uint)PropertyID2.PAR_AxHomeVelLow, homeVelLow).CheckResult2(axisNum);
             Motion2.mAcm2_SetProperty(id, (uint)PropertyID2.PAR_AxHomeVelHigh, homeVelHigh).CheckResult2(axisNum);
+
+            _axisLogicalIDList[axisNum].AxVel = speedProfile;
 
             _initErrorsDictionaryInBaseClass = true;
         }
