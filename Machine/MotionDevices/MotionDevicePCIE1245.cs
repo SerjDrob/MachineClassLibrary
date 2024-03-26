@@ -386,19 +386,12 @@ namespace MachineClassLibrary.Machine.MotionDevices
             }
 
         }
-        public void SetAxisDout(int axisNum, ushort dOut, bool val)
+        public void SetAxisDout(int axisNum, ushort ch, bool val) => Motion2.mAcm2_ChSetDOBit(ch, val ? 1u : 0u).CheckResult2();
+        public bool GetAxisDout(int axisNum, ushort ch)
         {
-            throw new NotImplementedException(nameof(SetAxisDout));
-            //var b = val ? (byte)1 : (byte)0;
-            //Motion2.mAcm_AxDoSetBit(_mAxishand[axisNum], dOut, b).CheckResult();
-
-        }
-        public bool GetAxisDout(int axisNum, ushort dOut)
-        {
-            throw new NotImplementedException(nameof(GetAxisDout));
-            //var data = new byte();
-            //Motion2.mAcm_AxDoGetBit(_mAxishand[axisNum], dOut, ref data);
-            //return data != 0;
+            uint data = default;
+            Motion2.mAcm2_ChGetDOBit(ch, ref data).CheckResult2();
+            return data != 0;
         }
         public virtual void SetAxisConfig(int axisNum, MotionDeviceConfigs configs)
         {
