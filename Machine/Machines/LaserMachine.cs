@@ -432,16 +432,7 @@ namespace MachineClassLibrary.Machine.Machines
 
         public void SwitchOffValve(Valves valve) => _valveSwitcher?.SwitchValve(_motionDevice, valve, false, ax => _axes[ax].AxisNum);
 
-        public bool GetValveState(Valves valve)
-        {
-            if (_valves.TryGetValue(valve, out var axOut))
-            {
-                var axisNum = _axes[axOut.Item1].AxisNum;
-                var dOut = _valves[valve].Item2;
-                return _motionDevice.GetAxisDout(axisNum, (ushort)dOut);
-            }
-            return false;
-        }
+        public bool GetValveState(Valves valve) => _valveSwitcher.GetValveState(_motionDevice, valve, ax => _axes[ax].AxisNum);
 
         public IGeometryBuilder<LMPlace> ConfigureGeometryFor(LMPlace place)
         {

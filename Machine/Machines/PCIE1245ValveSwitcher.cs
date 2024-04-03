@@ -39,5 +39,14 @@ namespace MachineClassLibrary.Machine.Machines
                 motionDevice.SetAxisDout(0, (ushort)axDo, val);
             }
         }
+
+        public bool GetValveState(IMotionDevicePCI1240U motionDevice, Valves valve, Func<Ax, int> getAxNum)
+        {
+            if (_valves.TryGetValue(valve, out var ch))
+            {
+                return motionDevice.GetAxisDout(0, (ushort)ch);   
+            }
+            throw new ArgumentException($"The valve {nameof(valve)} is not assigned");
+        }
     }
 }

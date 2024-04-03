@@ -39,5 +39,13 @@ namespace MachineClassLibrary.Machine.Machines
                 motionDevice.SetAxisDout(getAxNum?.Invoke(axDo.Item1) ?? throw new ArgumentException($"{nameof(getAxNum)} is not assigned"), (ushort)axDo.Item2, val);
             }
         }
+        public bool GetValveState(IMotionDevicePCI1240U motionDevice, Valves valve, Func<Ax, int> getAxNum)
+        {
+            if (_valves.TryGetValue(valve, out var val))
+            {
+                return motionDevice.GetAxisDout(getAxNum?.Invoke(val.Item1) ?? throw new ArgumentException($"The valve {nameof(getAxNum)} is not assigned"), (ushort)val.Item2); 
+            }
+            throw new ArgumentException($"The valve {nameof(valve)} is not assigned");
+        }
     }
 }

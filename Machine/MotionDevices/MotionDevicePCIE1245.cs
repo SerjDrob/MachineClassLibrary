@@ -18,6 +18,7 @@ namespace MachineClassLibrary.Machine.MotionDevices
             _bridges = new Dictionary<int, int>();
             _tolerance = 0.001;
             Motion2.mAcm2_DevInitialize().CheckResult2();
+            Motion2.mAcm2_SetProperty(_devID, (uint)PropertyID2.CFG_DevEmgLogic, 0d).CheckResult2();
         }
 
         private uint _devID;
