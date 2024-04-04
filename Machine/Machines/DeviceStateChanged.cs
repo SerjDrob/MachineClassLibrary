@@ -2,5 +2,5 @@
 {
     public interface IDeviceStateChanged { };
     public record DeviceStateChanged():IDeviceStateChanged;
-    public record SensorStateChanged(Sensors Sensor, bool state):IDeviceStateChanged;
+    public record SensorStateChanged(LaserSensor Sensor, bool state):IDeviceStateChanged;
 }

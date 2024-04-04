@@ -7,19 +7,19 @@ namespace MachineClassLibrary.Machine.Machines
 {
     public class PCIE1245SensorsDetector : ISensorsDetector
     {
-        private readonly Dictionary<uint, Sensors> _sensors;
+        private readonly Dictionary<uint, LaserSensor> _sensors;
 
         private PCIE1245SensorsDetector() { }
-        private PCIE1245SensorsDetector(Dictionary<uint, Sensors> sensors)
+        private PCIE1245SensorsDetector(Dictionary<uint, LaserSensor> sensors)
         {
             _sensors = sensors;
         }
         public static SensorsDetectorBuilder GetSensorsDetectorBuilder() => new SensorsDetectorBuilder();
         public class SensorsDetectorBuilder
         {
-            private Dictionary<uint, Sensors> _sensors;
+            private Dictionary<uint, LaserSensor> _sensors;
 
-            public SensorsDetectorBuilder AddSensor(Sensors sensor, uint channel)
+            public SensorsDetectorBuilder AddSensor(LaserSensor sensor, uint channel)
             {
                 _sensors ??= new();
                 _sensors[channel] = sensor;
@@ -30,9 +30,9 @@ namespace MachineClassLibrary.Machine.Machines
                 return new PCIE1245SensorsDetector(_sensors);
             }
         }
-        public (Sensors, bool)[] GetSensorState(Ax ax, int ins)
+        public (LaserSensor, bool)[] GetSensorState(Ax ax, int ins)
         {
-            var arr = new List<(Sensors, bool)>();
+            var arr = new List<(LaserSensor, bool)>();
             foreach (var item in _sensors.Keys)
             {
                 var res = (ins & 1 << (int)item) > 0;

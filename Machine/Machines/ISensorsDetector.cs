@@ -4,6 +4,6 @@ namespace MachineClassLibrary.Machine.Machines
 {
     public interface ISensorsDetector
     {
-        (Sensors, bool)[] GetSensorState(Ax ax, int ins);
+        (LaserSensor, bool)[] GetSensorState(Ax ax, int ins);
     }
 }
