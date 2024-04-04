@@ -1,7 +1,7 @@
-﻿using MachineClassLibrary.Classes;
-using MachineClassLibrary.Machine.MotionDevices;
-using System;
+﻿using System;
 using System.Collections.Generic;
+using MachineClassLibrary.Classes;
+using MachineClassLibrary.Machine.MotionDevices;
 
 
 
@@ -44,7 +44,7 @@ namespace MachineClassLibrary.Machine.Machines
         {
             if (_valves.TryGetValue(valve, out var ch))
             {
-                return motionDevice.GetAxisDout(0, (ushort)ch);   
+                return motionDevice.GetAxisDout(0, (ushort)ch);
             }
             throw new ArgumentException($"The valve {nameof(valve)} is not assigned");
         }
