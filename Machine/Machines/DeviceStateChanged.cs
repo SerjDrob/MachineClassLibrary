@@ -1,4 +1,6 @@
 ﻿namespace MachineClassLibrary.Machine.Machines
 {
-    public record DeviceStateChanged();
+    public interface IDeviceStateChanged { };
+    public record DeviceStateChanged():IDeviceStateChanged;
+    public record SensorStateChanged(Sensors Sensor, bool state):IDeviceStateChanged;
 }

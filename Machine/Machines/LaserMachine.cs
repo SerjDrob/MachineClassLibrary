@@ -17,14 +17,14 @@ using Microsoft.Toolkit.Diagnostics;
 
 namespace MachineClassLibrary.Machine.Machines
 {
-    public class LaserMachine : PCI124XXMachine, IMarkLaser, IHasPlaces<LMPlace>, IHasValves, IObservable<DeviceStateChanged>, IDisposable
+    public class LaserMachine : PCI124XXMachine, IMarkLaser, IHasPlaces<LMPlace>, IHasValves, IObservable<IDeviceStateChanged>, IDisposable
     {
         private readonly IMarkLaser _markLaser;
         private readonly IVideoCapture _videoCapture;
         private Dictionary<LMPlace, (Ax axis, double pos)[]> _places;
         private Dictionary<LMPlace, double> _singlePlaces;
         private Dictionary<Valves, (Ax, Do)> _valves;
-        private ISubject<DeviceStateChanged> _subject;
+        private ISubject<IDeviceStateChanged> _subject;
         private List<IDisposable> _subscriptions;
         private bool _motionDeviceOk;
         private bool _laserDeviceOk;
@@ -142,7 +142,20 @@ namespace MachineClassLibrary.Machine.Machines
                     VideoCaptureDeviceOk = false;
                 });
         }
+        private ISensorsDetector _sensorDetector;
+        protected override void GetAxOutNIn(Ax ax, int outs, int ins)
+        {
+            var sensors = _sensorDetector?.GetSensorState(ax, ins);
+            if (sensors != null) 
+            {
+                foreach (var item in sensors)
+                {
+                    _subject?.OnNext(new SensorStateChanged(item.Item1, item.Item2));
+                }
+            }
+        }
 
+        public void ConfigureSensors(ISensorsDetector sensorsDetector) => _sensorDetector = sensorsDetector;
         public override void MotionDevInitialized() => MotionDeviceOk = true;
 
         private void _videoCapture_CameraPlugged(object sender, EventArgs e) => CameraPlugged?.Invoke(sender, e);
@@ -455,9 +468,9 @@ namespace MachineClassLibrary.Machine.Machines
             _subscriptions?.ForEach(x => x.Dispose());
         }
 
-        public IDisposable Subscribe(IObserver<DeviceStateChanged> observer)
+        public IDisposable Subscribe(IObserver<IDeviceStateChanged> observer)
         {
-            _subject ??= new Subject<DeviceStateChanged>();
+            _subject ??= new Subject<IDeviceStateChanged>();
             _subscriptions ??= new List<IDisposable>();
             var subscription = _subject.Subscribe(observer);
             _subscriptions.Add(subscription);
