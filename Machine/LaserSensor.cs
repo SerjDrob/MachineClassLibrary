@@ -3,6 +3,8 @@
     public enum LaserSensor
     {
         Air,
-        LaserSourceFault
+        LaserSourceFault,
+        LaserCoolantFault,
+        LaserOnEmission
     }
 }
