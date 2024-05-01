@@ -3,7 +3,7 @@ using System.Collections.Generic;
 
 namespace MachineClassLibrary.Machine
 {
-
+    [Obsolete]
     public class ExceptionsAgregator
     {
         private readonly List<Action<string>> _messagesActions = new();

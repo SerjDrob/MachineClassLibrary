@@ -6,11 +6,10 @@ namespace MachineClassLibrary.Machine.MotionDevices
 {
 
 
-    public interface IMotionDevicePCI1240U:IDisposable,IMessager
+    public interface IMotionDevicePCI1240U:IDisposable
     {
         int AxisCount { get; }
 
-        event Action<string, int> ThrowMessage;
         event EventHandler<AxNumEventArgs> TransmitAxState;
         double GetAxActual(int axNum);
         bool DevicesConnection();

@@ -1,39 +1,162 @@
-﻿using MachineClassLibrary.Classes;
+﻿using System;
+using System.Collections.Generic;
+using System.Drawing;
+using System.Linq;
+using System.Reactive.Linq;
+using System.Reactive.Subjects;
+using System.Threading.Tasks;
+using MachineClassLibrary.Classes;
 using MachineClassLibrary.Laser;
 using MachineClassLibrary.Laser.Parameters;
 using MachineClassLibrary.Machine.MotionDevices;
+using MachineClassLibrary.Miscellaneous;
 using MachineClassLibrary.VideoCapture;
 using Microsoft.Toolkit.Diagnostics;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Threading.Tasks;
 
 
 
 namespace MachineClassLibrary.Machine.Machines
 {
-    public class LaserMachine : PCI124XXMachine, IHasCamera, IMarkLaser, IHasPlaces<LMPlace>, IHasValves
+    public class LaserMachine : PCI124XXMachine, IMarkLaser, IHasPlaces<LMPlace>, IHasValves, IObservable<IDeviceStateChanged>, IDisposable
     {
         private readonly IMarkLaser _markLaser;
         private readonly IVideoCapture _videoCapture;
         private Dictionary<LMPlace, (Ax axis, double pos)[]> _places;
         private Dictionary<LMPlace, double> _singlePlaces;
         private Dictionary<Valves, (Ax, Do)> _valves;
+        private ISubject<IDeviceStateChanged> _subject;
+        private List<IDisposable> _subscriptions;
+        private bool _motionDeviceOk;
+        private bool _laserDeviceOk;
+        private bool _videoCaptureDeviceOk;
+        private bool _pwmDeviceOk;
+        private bool _laserBoardOk;
 
         public event EventHandler<VideoCaptureEventArgs> OnBitmapChanged;
         public event EventHandler<ValveEventArgs> OnValveStateChanged;
         public event EventHandler CameraPlugged;
+        public event EventHandler<Bitmap> OnRawBitmapChanged;
 
-        public LaserMachine(ExceptionsAgregator exceptionsAgregator, IMotionDevicePCI1240U motionDevice, IMarkLaser markLaser, IVideoCapture videoCapture) : base(exceptionsAgregator, motionDevice)
+        public bool MotionDeviceOk
+        {
+            get => _motionDeviceOk;
+            private set
+            {
+                _motionDeviceOk = value;
+                _subject?.OnNext(new DeviceStateChanged());
+            }
+        }
+        public bool LaserSourceOk
+        {
+            get => _laserDeviceOk;
+            private set
+            {
+                _laserDeviceOk = value;
+                _subject?.OnNext(new DeviceStateChanged());
+            }
+        }
+        public bool LaserBoardOk
+        {
+            get => _laserBoardOk;
+            private set
+            {
+                _laserBoardOk = value;
+                _subject?.OnNext(new DeviceStateChanged());
+            }
+        }
+        public bool VideoCaptureDeviceOk
+        {
+            get => _videoCaptureDeviceOk;
+            private set
+            {
+                _videoCaptureDeviceOk = value;
+                _subject?.OnNext(new DeviceStateChanged());
+            }
+        }
+        public bool PWMDeviceOk
+        {
+            get => _pwmDeviceOk;
+            private set
+            {
+                _pwmDeviceOk = value;
+                _subject.OnNext(new DeviceStateChanged());
+            }
+        }
+
+        protected double _x;
+        private IValveSwitcher _valveSwitcher;
+
+        public LaserMachine(IMotionDevicePCI1240U motionDevice, IMarkLaser markLaser, IVideoCapture videoCapture) : base(motionDevice)
         {
             Guard.IsNotNull(markLaser, nameof(markLaser));
             Guard.IsNotNull(videoCapture, nameof(videoCapture));
             _markLaser = markLaser;
+            var watchableLaser = _markLaser as WatchableDevice;
+            watchableLaser.OfType<HealthOK>()
+                .Subscribe(ok =>
+                {
+                    switch (ok.Device)
+                    {
+                        case IPWM:
+                            PWMDeviceOk = true;
+                            break;
+                        case IMarkLaser:
+                            LaserBoardOk = true;
+                            break;
+                    }
+                    _subject?.OnNext(new DeviceStateChanged());
+                });
+            watchableLaser.OfType<HealthProblem>()
+                .Subscribe(problem =>
+                {
+                    switch (problem.Device)
+                    {
+                        case IPWM:
+                            PWMDeviceOk = false;
+                            break;
+                        case IMarkLaser:
+                            LaserBoardOk = false;
+                            break;
+                    }
+                    _subject.OnNext(new DeviceStateChanged());
+                });
+
             _videoCapture = videoCapture;
             _videoCapture.OnBitmapChanged += _videoCapture_OnBitmapChanged;
             _videoCapture.CameraPlugged += _videoCapture_CameraPlugged;
+
+
+            var watchableCamera = _videoCapture as WatchableDevice;
+            watchableCamera?.WatchMe("VID_AA47", "PID_210", () =>
+            {
+                watchableCamera.CureDevice();
+            });
+            watchableCamera?.OfType<HealthOK>()
+                .Subscribe(ok =>
+                {
+                    VideoCaptureDeviceOk = true;
+                });
+            watchableCamera?.OfType<HealthProblem>()
+                .Subscribe(problem =>
+                {
+                    VideoCaptureDeviceOk = false;
+                });
         }
+        private ISensorsDetector _sensorDetector;
+        protected override void GetAxOutNIn(Ax ax, int outs, int ins)
+        {
+            var sensors = _sensorDetector?.GetSensorState(ax, ins);
+            if (sensors != null) 
+            {
+                foreach (var item in sensors)
+                {
+                    _subject?.OnNext(new SensorStateChanged(item.Item1, item.Item2));
+                }
+            }
+        }
+
+        public void ConfigureSensors(ISensorsDetector sensorsDetector) => _sensorDetector = sensorsDetector;
+        public override void MotionDevInitialized() => MotionDeviceOk = true;
 
         private void _videoCapture_CameraPlugged(object sender, EventArgs e) => CameraPlugged?.Invoke(sender, e);
 
@@ -96,11 +219,11 @@ namespace MachineClassLibrary.Machine.Machines
                     (_axes[Ax.Y].AxisNum, _velRegimes[Ax.Y][Velocity.Service], 5),
                     (_axes[Ax.Z].AxisNum, _velRegimes[Ax.Z][Velocity.Service], 1)
                 };
-                
+
                 await _motionDevice.HomeMovingAsync(arr).ConfigureAwait(false);
 
-                foreach (var axis in _axes.Keys) _motionDevice.ResetAxisCounter(_axes[axis].AxisNum);                
-                
+                foreach (var axis in _axes.Keys) _motionDevice.ResetAxisCounter(_axes[axis].AxisNum);
+
             }
         }
         public async Task MoveGpInPlaceAsync(Groups group, LMPlace place, bool precisely = false)
@@ -189,11 +312,9 @@ namespace MachineClassLibrary.Machine.Machines
 
         public double GetGeometry(LMPlace place, int arrNum)
         {
-            var pl = new double();
-
             try
             {
-                pl = _places[place][arrNum].pos;
+                return _places[place][arrNum].pos;
             }
             catch (KeyNotFoundException)
             {
@@ -203,31 +324,25 @@ namespace MachineClassLibrary.Machine.Machines
             {
                 throw new MachineException($"Для места {place} не обозначена координата № {arrNum}");
             }
-
-            return pl;
         }
 
         public double GetGeometry(LMPlace place, Ax axis)
         {
-            var pl = new double();
             var arrNum = new int();
-
             if (!_places.ContainsKey(place))
                 throw new MachineException("Запрашиваемое место отсутствует");
             try
             {
-                pl = _places[place].Where(a => a.axis == axis).First().pos;
+                return _places[place].Where(a => a.axis == axis).First().pos;
             }
             catch (KeyNotFoundException)
             {
-                throw new MachineException($"Ось {axis} не сконфигурированна");
+                throw new MachineException($"Ось {axis} не сконфигурирована");
             }
             catch (ArgumentOutOfRangeException ex)
             {
                 throw new MachineException($"Координаты в позиции {arrNum} места {place} не существует");
             }
-
-            return pl;
         }
         private void _videoCapture_OnBitmapChanged(object sender, VideoCaptureEventArgs eventArgs)
         {
@@ -295,16 +410,18 @@ namespace MachineClassLibrary.Machine.Machines
 
         public int GetVideoCapabilitiesCount() => _videoCapture.GetVideoCapabilitiesCount();
 
+        public void SetVideoMirror(bool xmirror, bool ymirror) => _videoCapture.SetCameraMirror(xmirror, ymirror);
+
         public Task<bool> PierceCircleAsync(double diameter)
         {
             return _markLaser.PierceCircleAsync(diameter);
         }
-        
+
         public void SetMarkParams(MarkLaserParams markLaserParams)
         {
             _markLaser.SetMarkParams(markLaserParams);
         }
-        
+
         public void SetExtMarkParams(ExtParamsAdapter paramsAdapter)
         {
             _markLaser.SetExtMarkParams(paramsAdapter);
@@ -322,33 +439,13 @@ namespace MachineClassLibrary.Machine.Machines
 
         public async Task<bool> MarkTextAsync(string text, double textSize, double angle) => await _markLaser.MarkTextAsync(text, textSize, angle);
 
-        public void ConfigureValves(Dictionary<Valves, (Ax, Do)> valves)
-        {
-            _valves = valves;
-        }
+        public void ConfigureValves(IValveSwitcher valveSwitcher) => _valveSwitcher = valveSwitcher;
 
-        public void SwitchOnValve(Valves valve)
-        {
-            var axisNum = _axes[_valves[valve].Item1].AxisNum;
-            var dOut = _valves[valve].Item2;
-            
-            _motionDevice.SetAxisDout(axisNum, (ushort)dOut, true);
-        }
+        public void SwitchOnValve(Valves valve) => _valveSwitcher?.SwitchValve(_motionDevice, valve, true, ax => _axes[ax].AxisNum);
 
-        public void SwitchOffValve(Valves valve)
-        {
-            var axisNum = _axes[_valves[valve].Item1].AxisNum;
-            var dOut = _valves[valve].Item2;
+        public void SwitchOffValve(Valves valve) => _valveSwitcher?.SwitchValve(_motionDevice, valve, false, ax => _axes[ax].AxisNum);
 
-            _motionDevice.SetAxisDout(axisNum, (ushort)dOut, false);
-        }
-
-        public bool GetValveState(Valves valve)
-        {
-            var axisNum = _axes[_valves[valve].Item1].AxisNum;
-            var dOut = _valves[valve].Item2;
-            return _motionDevice.GetAxisDout(axisNum, (ushort)dOut);
-        }
+        public bool GetValveState(Valves valve) => _valveSwitcher.GetValveState(_motionDevice, valve, ax => _axes[ax].AxisNum);
 
         public IGeometryBuilder<LMPlace> ConfigureGeometryFor(LMPlace place)
         {
@@ -366,6 +463,19 @@ namespace MachineClassLibrary.Machine.Machines
             return _markLaser.SetDevConfig();
         }
 
+        public void Dispose()
+        {
+            _subscriptions?.ForEach(x => x.Dispose());
+        }
+
+        public IDisposable Subscribe(IObserver<IDeviceStateChanged> observer)
+        {
+            _subject ??= new Subject<IDeviceStateChanged>();
+            _subscriptions ??= new List<IDisposable>();
+            var subscription = _subject.Subscribe(observer);
+            _subscriptions.Add(subscription);
+            return subscription;
+        }
         public class GeometryBuilder<TPlace> : IGeometryBuilder<TPlace> where TPlace : Enum
         {
             private Dictionary<TPlace, (Ax axis, double pos)[]> _places;
@@ -387,13 +497,5 @@ namespace MachineClassLibrary.Machine.Machines
                 _places[_configuringPlace] = ps;
             }
         }
-
-
-
-        //public void StartVideoCapture(int ind, int capabilitiesInd = 0) => _videoCapture.StartCamera(ind, capabilitiesInd);
-
-        //public void StopVideoCapture() => _videoCapture.StopCamera();
-        //public int GetCamerasCount() => _videoCapture.GetVideoCaptureDevicesCount();
-        //public int GetCameraCapabilitiesCount() => _videoCapture.GetVideoCapabilitiesCount();
     }
 }

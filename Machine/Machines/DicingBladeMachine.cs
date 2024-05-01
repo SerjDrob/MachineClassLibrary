@@ -4,6 +4,7 @@ using MachineClassLibrary.SFC;
 using MachineClassLibrary.VideoCapture;
 using System;
 using System.Collections.Generic;
+using System.Drawing;
 using System.Linq;
 using System.Threading.Tasks;
 
@@ -18,7 +19,7 @@ namespace MachineClassLibrary.Machine.Machines
         private Dictionary<Sensors, (Ax axis, Di dIn, bool invertion, string name)> _sensors;
         private Dictionary<Place, (Ax axis, double pos)[]> _places;
         private Dictionary<Place, double> _singlePlaces;
-        public DicingBladeMachine(ExceptionsAgregator exceptionsAgregator, IMotionDevicePCI1240U motionDevice, IVideoCapture usbVideoCamera, ISpindle spindle) : base(exceptionsAgregator, motionDevice)
+        public DicingBladeMachine(IMotionDevicePCI1240U motionDevice, IVideoCapture usbVideoCamera, ISpindle spindle) : base(motionDevice)
         {
             _videoCamera = usbVideoCamera;
             _videoCamera.OnBitmapChanged += _videoCamera_OnBitmapChanged;
@@ -44,6 +45,7 @@ namespace MachineClassLibrary.Machine.Machines
         public event EventHandler<SpindleEventArgs> OnSpindleStateChanging;
         public event EventHandler<VideoCaptureEventArgs> OnBitmapChanged;
         public event EventHandler CameraPlugged;
+        public event EventHandler<Bitmap> OnRawBitmapChanged;
 
         public void ConfigureGeometry(Dictionary<Place, (Ax, double)[]> places)
         {
@@ -405,6 +407,16 @@ namespace MachineClassLibrary.Machine.Machines
         }
 
         public Task<bool> ChangeSpindleFreqOnFlyAsync(ushort rpm, int delay) => _spindle.ChangeSpeedAsync(rpm, delay);
+
+        public override void MotionDevInitialized()
+        {
+            //throw new NotImplementedException();
+        }
+
+        public void SetCameraMirror(bool mirrorX, bool mirrorY)
+        {
+            _videoCamera.SetCameraMirror(mirrorX, mirrorY);
+        }
 
         public class GeometryBuilder<TPlace> : IGeometryBuilder<TPlace> where TPlace : Enum
         {

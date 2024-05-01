@@ -3,6 +3,7 @@ using AForge.Video;
 using AForge.Video.DirectShow;
 using System;
 using System.Collections.Generic;
+using System.Drawing;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
@@ -31,7 +32,10 @@ namespace MachineClassLibrary.VideoCapture
         int GetVideoCaptureDevicesCount();
         int GetVideoCapabilitiesCount();
         void InvokeSettings();
+        void SetCameraMirror(bool mirrorX, bool mirrorY);
+
         event EventHandler<VideoCaptureEventArgs> OnBitmapChanged;
         event EventHandler CameraPlugged;
+        event EventHandler<Bitmap> OnRawBitmapChanged;
     }
 }

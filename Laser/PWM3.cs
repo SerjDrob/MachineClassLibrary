@@ -1,17 +1,19 @@
 ﻿using System;
+using System.Diagnostics;
 using System.IO.Ports;
 using System.Threading;
 using System.Threading.Tasks;
+using MachineClassLibrary.Miscellaneous;
 
 namespace MachineClassLibrary.Laser
 {
-    public class PWM3 : IPWM
+    public class PWM3 : WatchableDevice, IPWM
     {
 
         private SerialPort _serialPort;
         private string _lastMessage;
         private const string START_CMD = "START";
-        private const string STOP_CMD = "STOP ,";
+        private const string STOP_CMD = "STOP ";
 
         private (int bottom, int top) FREQ_RANGE = (10000, 150000);
         private (int bottom, int top) MODFREQ_RANGE = (50, 2000);
@@ -24,11 +26,16 @@ namespace MachineClassLibrary.Laser
 
         public async Task<bool> FindOpen()
         {
-            var avaliablePorts = SerialPort.GetPortNames();
-            foreach (var port in avaliablePorts)
+            var availablePorts = SerialPort.GetPortNames();
+            foreach (var port in availablePorts)
             {
                 if (!OpenPort(port)) continue;
-                if (await WaitCompareResponse($"{PASSWORD}", $"{PASSED}", 200)) return true;
+                if (await WaitCompareResponse($"{PASSWORD}", $"{PASSED}", 200))
+                {
+                    DeviceOK(this);
+                    return true;
+                }
+                HasHealthProblem($"Cannot find the PWM", null, this);
                 _serialPort.Close();
             }
             return false;
@@ -49,7 +56,7 @@ namespace MachineClassLibrary.Laser
             var comPort = new SerialPort
             {
                 PortName = port,
-                BaudRate = 9600,
+                BaudRate = 57600,//9600,
                 Parity = Parity.None,
                 DataBits = 8,
                 StopBits = StopBits.One,
@@ -62,7 +69,7 @@ namespace MachineClassLibrary.Laser
             {
                 comPort.Open();
             }
-            catch (Exception)
+            catch (Exception ex)
             {
                 return false;
             }
@@ -70,6 +77,9 @@ namespace MachineClassLibrary.Laser
             {
                 _serialPort = comPort;
                 _serialPort.DataReceived += new SerialDataReceivedEventHandler(_serialPort_DataReceived);
+                _serialPort.ErrorReceived += _serialPort_ErrorReceived;
+                _serialPort.DiscardOutBuffer();
+                _serialPort.DiscardInBuffer();
                 return true;
             }
             else
@@ -78,46 +88,43 @@ namespace MachineClassLibrary.Laser
             }
         }
 
+        private void _serialPort_ErrorReceived(object sender, SerialErrorReceivedEventArgs e)
+        {
+            HasHealthProblem($"PWM's com-port got the error. {e}",null,this);
+        }
+
         private void _serialPort_DataReceived(object sender, SerialDataReceivedEventArgs e)
         {
             try
             {
-                var bytesCount = _serialPort.BytesToRead;
-                var message = new char[bytesCount];
-                var count = _serialPort.Read(message, 0, bytesCount);
-                _response = new String(message);
+                lock (this)
+                {
+                    var bytesCount = _serialPort.BytesToRead;
+                    var message = new char[bytesCount];
+                    var count = _serialPort.Read(message, 0, bytesCount);
+                    _response = new string(message);
+                    _serialPort.DiscardInBuffer();
+                    _serialPort.DiscardOutBuffer();
+                }
             }
             catch (Exception ex)
             {
-
-                //throw;
+                HasHealthProblem($"Cannot read the {_serialPort.PortName}", ex, this);
             }
             finally
             {
                 _isResponded = true;
-            }            
+            }
             _isResponded = true;
-        }
-
-        private async Task<bool> WaitCompareResponse(string assumedMessage, int waitingTime)
-        {
-            var token = new CancellationTokenSource(waitingTime).Token;
-
-            var task = Task.Run(() =>
-            {
-                while (!_isResponded && !token.IsCancellationRequested) ;
-                return _isResponded;
-            }, token);
-            var answer = await task && _response.Contains(assumedMessage);//assumedMessage.Equals(resp);
-            _isResponded = false;
-            _response = String.Empty;
-            return answer;
         }
 
         private async Task<bool> WaitCompareResponse(string message, string assumedMessage, int waitingTime)
         {
-            _serialPort.ReceivedBytesThreshold = assumedMessage.Length;
-            _serialPort.Write(message);
+            lock (this)
+            {
+                _serialPort.ReceivedBytesThreshold = assumedMessage.Length;
+                _serialPort.Write(message);
+            }
             var token = new CancellationTokenSource(waitingTime).Token;
 
             var task = Task.Run(() =>
@@ -125,7 +132,14 @@ namespace MachineClassLibrary.Laser
                 while (!_isResponded && !token.IsCancellationRequested) ;
                 return _isResponded;
             }, token);
-            var answer = await task && _response.Contains(assumedMessage);//assumedMessage.Equals(resp);
+
+            var answer = await task && _response.Contains(assumedMessage);
+            lock (this)
+            {
+                var debugline = $"|{assumedMessage}| / |{_response}| / {answer}";
+                if (debugline == string.Empty) debugline = "---------";
+                Console.WriteLine(debugline);
+            }
             _isResponded = false;
             _response = String.Empty;
             return answer;
@@ -147,6 +161,14 @@ namespace MachineClassLibrary.Laser
             {
                 _lastMessage = $"{START_CMD} f:{modFreq} d:{dutyCycle2} ";
                 var result = await WaitCompareResponse(_lastMessage, _lastMessage, 200);
+                if (result)
+                {
+                    DeviceOK(this);
+                }
+                else
+                {
+                    HasHealthProblem($"Set PWM command failed", null, this);
+                }
                 return result;
             }
             else
@@ -177,7 +199,7 @@ namespace MachineClassLibrary.Laser
         {
             if (_serialPort?.IsOpen ?? false)
             {
-                return await WaitCompareResponse($"{STOP_CMD}", $"{ STOP_CMD}", 200);
+                return await WaitCompareResponse($"{STOP_CMD}", $"{STOP_CMD}", 200);
             }
             //else
             //{
@@ -186,5 +208,7 @@ namespace MachineClassLibrary.Laser
             return false;
         }
 
+        public override void CureDevice() => throw new NotImplementedException();
+        public override void AskHealth() => throw new NotImplementedException();
     }
 }

@@ -3,7 +3,7 @@ using System.Management;
 
 namespace MachineClassLibrary.Miscellaneous
 {
-    public abstract class PlugMeWatcher
+    public /*abstract*/ class PlugMeWatcher
     {
         private readonly string VID;// = "VID_AA47";
         private readonly string PID;// = "PID_1301";

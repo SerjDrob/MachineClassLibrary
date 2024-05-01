@@ -18,6 +18,19 @@ namespace MachineClassLibrary.Machine.MotionDevices
                 throw new MotionException($"{sb} Error Code: [0x{result:X}] {axisName}");
             }
         }
+
+        public static void CheckResult2(this uint result, int axisNum = -1)
+        {
+            if (result != 0)
+            {
+                var sb = new StringBuilder(50);
+                Motion2.mAcm2_GetErrorMessage(result, sb, 50);
+                var axisName = axisNum != -1 ? $"in axis number {axisNum}" : string.Empty;
+
+                throw new MotionException($"{sb} Error Code: [0x{result:X}] {axisName}");
+            }
+        }
+
         public static void CheckResult(this uint result, IntPtr handle)
         {
             if (result != 0 && result != 2147483690)//TODO fix this error result

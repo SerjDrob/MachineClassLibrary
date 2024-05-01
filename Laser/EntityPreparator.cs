@@ -1,13 +1,11 @@
-﻿using MachineClassLibrary.Classes;
-using MachineClassLibrary.Laser.Entities;
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.Drawing;
 using System.Drawing.Drawing2D;
-using System.IO;
 using System.Linq;
 using System.Numerics;
-using System.Security.Cryptography;
+using MachineClassLibrary.Classes;
+using MachineClassLibrary.Laser.Entities;
 
 namespace MachineClassLibrary.Laser
 {
@@ -59,7 +57,7 @@ namespace MachineClassLibrary.Laser
 
         public EntityFileHandler GetPreparedEntityDxfHandler(IProcObject procObject)
         {
-            if(procObject is not PCluster) return new EntityFileHandler(_dxfReader, _folderPath).SaveEntityToFile(PrepareShape(procObject));
+            if (procObject is not PCluster) return new EntityFileHandler(_dxfReader, _folderPath).SaveEntityToFile(PrepareShape(procObject));
             else if (procObject is PCluster cluster)
             {
                 var shapes = cluster.ProcObjects.Select(p => PrepareShape(p, false)).ToArray();
@@ -79,15 +77,15 @@ namespace MachineClassLibrary.Laser
 
                 var r1 = rotatedCircle.Radius + _contourOffset;
                 var r2 = r1 - _contourWidth;
-                if (r2 < 0.02) return new Circle 
+                if (r2 < 0.02) return new Circle
                 {
-                    Radius = r1, 
+                    Radius = r1,
                     CenterX = rotatedCircle.CenterX,
                     CenterY = rotatedCircle.CenterY
                 };
-                return new Ring 
+                return new Ring
                 {
-                    Radius1 = r1, 
+                    Radius1 = r1,
                     Radius2 = r2,
                     CenterX = rotatedCircle.CenterX,
                     CenterY = rotatedCircle.CenterY
@@ -100,10 +98,13 @@ namespace MachineClassLibrary.Laser
                 if (_contourOffset != 0 || _contourWidth > 0)
                 {
                     var outerCurves = _contourOffset != 0 ? initialCurve.InflateCurve(_contourOffset) : Enumerable.Repeat(initialCurve, 1);
-                    var innerCurves = outerCurves.SelectMany(curve => curve.InflateCurve(-_contourWidth));
-                    var resultCurves = outerCurves.Concat(innerCurves).ToList();
-
-                    return new ContourRing { Curves = resultCurves };
+                    if (_contourWidth >= 0.001d)
+                    {
+                        var innerCurves = outerCurves.SelectMany(curve => curve.InflateCurve(-_contourWidth));
+                        var resultCurves = outerCurves.Concat(innerCurves).ToList();
+                        return new ContourRing { Curves = resultCurves };
+                    }
+                    return new ContourRing { Curves = outerCurves };
                 }
                 else
                 {
@@ -139,7 +140,7 @@ namespace MachineClassLibrary.Laser
             return new Circle()
             {
                 CenterX = points[0].X,
-                CenterY = points[0].Y,  
+                CenterY = points[0].Y,
                 Radius = pCircle.PObject.Radius
             };//TODO now bounds are incorrect
         }

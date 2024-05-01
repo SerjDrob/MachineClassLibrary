@@ -1,6 +1,4 @@
-﻿using System;
-
-namespace MachineClassLibrary.Laser
+﻿namespace MachineClassLibrary.Laser
 {
     public interface IPerforatorBuilder
     {

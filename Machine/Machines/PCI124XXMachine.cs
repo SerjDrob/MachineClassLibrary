@@ -10,23 +10,20 @@ namespace MachineClassLibrary.Machine.Machines
 {
     public abstract class PCI124XXMachine : IHasMotion
     {
-        protected readonly ExceptionsAgregator _exceptionsAgregator;
         protected readonly IMotionDevicePCI1240U _motionDevice;
 
         protected Dictionary<Ax, IAxis> _axes;
         private Dictionary<Groups, (int groupNum, Ax[] axes)> _axesGroups;
         private Dictionary<MFeatures, double> _doubleFeatures;
         protected Dictionary<Ax, Dictionary<Velocity, double>> _velRegimes;
-        private Dictionary<Ax, (AxDir direction, HomeRst homeRst, HmMode homeMode, double velocity, double positionAfterHoming)> _homingConfigs = new();
-        public PCI124XXMachine(ExceptionsAgregator exceptionsAgregator, IMotionDevicePCI1240U motionDevice)
+        private readonly Dictionary<Ax, (AxDir direction, HomeRst homeRst, HmMode homeMode, double velocity, double positionAfterHoming)> _homingConfigs = new();
+        public PCI124XXMachine(IMotionDevicePCI1240U motionDevice)
         {
-            _exceptionsAgregator = exceptionsAgregator;
-
             _motionDevice = motionDevice;
-            _exceptionsAgregator.RegisterMessager(_motionDevice);
             IsMotionDeviceInit = _motionDevice.DevicesConnection();
             if (IsMotionDeviceInit)
             {
+                MotionDevInitialized();
                 _motionDevice.TransmitAxState += MotionDevice_TransmitAxState;
             }
         }
@@ -34,10 +31,9 @@ namespace MachineClassLibrary.Machine.Machines
         public void StartMonitoringState()
         {
             /*_monitoringMachineState = */
-            if (IsMotionDeviceInit) _motionDevice.StartMonitoringAsync();
+            if (IsMotionDeviceInit) _ = _motionDevice.StartMonitoringAsync();
         }
 
-        private Task _monitoringMachineState;
         public event EventHandler<AxisStateEventArgs> OnAxisMotionStateChanged;
 
         public Velocity VelocityRegime { get; set; }
@@ -170,25 +166,7 @@ namespace MachineClassLibrary.Machine.Machines
             else
                 _motionDevice.ResetErrors(_axes[axis].AxisNum);
         }
-
-        //public void SetConfigs((Ax axis, MotionDeviceConfigs configs)[] axesConfigs)
-        //{
-        //    var count = axesConfigs.Length <= 4 ? axesConfigs.Length : 4;
-        //    for (var i = 0; i < count; i++)
-        //    {
-        //        var ax = axesConfigs[i].axis;
-        //        var configs = axesConfigs[i].configs;
-        //        _motionDevice.SetAxisConfig(_axes[ax].AxisNum, configs);
-        //    }
-        //}
-
-
-        //public IHasMotion SetConfigs(Ax axis, MotionDeviceConfigs configs)
-        //{
-        //    _motionDevice.SetAxisConfig(_axes[axis].AxisNum, configs);
-        //    return this;
-        //}
-
+        
         public void SetGroupConfig(int gpNum, MotionDeviceConfigs configs)
         {
             _motionDevice.SetGroupConfig(gpNum, configs);
@@ -484,5 +462,8 @@ namespace MachineClassLibrary.Machine.Machines
         }
 
         public void SetPrecision(double tolerance) => _motionDevice.SetPrecision(tolerance);
+
+        public abstract void MotionDevInitialized();
+       
     }
 }
