@@ -292,16 +292,17 @@ namespace MachineClassLibrary.Machine.Machines
 
             await _motionDevice.HomeMovingAsync(par);
 
-            
+
 
             var tasks = _homingConfigs
                 .Select(p =>
-           
+
                 MoveAxInPosAsync(p.Key, p.Value.positionAfterHoming, true)
             ).ToArray();
 
-            await Task.WhenAll(tasks);//.ConfigureAwait(false);
+            await Task.WhenAll(tasks).ConfigureAwait(false);
 
+            //await MoveAxInPosAsync(Ax.X, 10, true).ConfigureAwait(false);
         }
 
         public IHomingBuilder ConfigureHomingForAxis(Ax axis)
@@ -417,7 +418,7 @@ namespace MachineClassLibrary.Machine.Machines
                 if (axisNum < _axes.Count && _axes.Count > 0)
                 {
                     var axis = _axes.ToList().Where(a => a.Value.AxisNum == axisNum).First().Key;
-                    _axes[axis].ActualPosition = _axes[axis].LineCoefficient == 0 ? state.cmdPos : state.actPos * _axes[axis].LineCoefficient;
+                    _axes[axis].ActualPosition = _axes[axis].LineCoefficient == 0 ? state.cmdPos : state.actPos /** _axes[axis].LineCoefficient*/;
                     _axes[axis].CmdPosition = state.cmdPos;
                     _axes[axis].DIs = state.sensors;
                     _axes[axis].DOs = state.outs;
@@ -436,7 +437,8 @@ namespace MachineClassLibrary.Machine.Machines
                         nLmt: _axes[axis].LmtN,
                         pLmt: _axes[axis].LmtP,
                         motionDone: _axes[axis].MotionDone,
-                        motionStart: _axes[axis].VHStart));
+                        motionStart: _axes[axis].VHStart,
+                        eZ: state.ez));
 
                     GetAxOutNIn(axis, state.outs, state.sensors);
                 }

@@ -5,7 +5,7 @@ namespace MachineClassLibrary.Machine
 {
     public class AxisStateEventArgs : EventArgs
     {
-        public AxisStateEventArgs(Ax axis, double position, double cmdPosition, bool nLmt, bool pLmt, bool motionDone, bool motionStart)
+        public AxisStateEventArgs(Ax axis, double position, double cmdPosition, bool nLmt, bool pLmt, bool motionDone, bool motionStart, bool eZ)
         {
             Axis = axis;
             Position = position;
@@ -14,6 +14,7 @@ namespace MachineClassLibrary.Machine
             PLmt = pLmt;
             MotionDone = motionDone;
             MotionStart = motionStart;
+            EZ = eZ;
         }
 
         public Ax Axis { get; init; }
@@ -23,5 +24,6 @@ namespace MachineClassLibrary.Machine
         public bool PLmt { get; init; }
         public bool MotionDone { get; init; }
         public bool MotionStart { get; init; }
+        public bool EZ { get; init; }
     }
 }

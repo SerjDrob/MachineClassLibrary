@@ -174,6 +174,7 @@ private async Task DeviceStateMonitorAsync()
             var vhEnd = false;
             var nLmt = false;
             var pLmt = false;
+            var ez = false;
 
             while (true)
             {
@@ -186,6 +187,7 @@ private async Task DeviceStateMonitorAsync()
 
                     nLmt = (ioStatus & (uint)Ax_Motion_IO.AX_MOTION_IO_LMTN) > 0;
                     pLmt = (ioStatus & (uint)Ax_Motion_IO.AX_MOTION_IO_LMTP) > 0;
+                    ez = (ioStatus & (uint)Ax_Motion_IO.AX_MOTION_IO_EZ) > 0;
 
                     var sensorsState = 0;
                     var outState = 0;
@@ -237,7 +239,8 @@ private async Task DeviceStateMonitorAsync()
                         motionDone,
                         homeDone,
                         vhStart,
-                        vhEnd
+                        vhEnd,
+                        ez
                     );
                     _axisStates[num] = axState;
                     try

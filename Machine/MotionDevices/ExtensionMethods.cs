@@ -27,7 +27,7 @@ namespace MachineClassLibrary.Machine.MotionDevices
                 Motion2.mAcm2_GetErrorMessage(result, sb, 50);
                 var axisName = axisNum != -1 ? $"in axis number {axisNum}" : string.Empty;
 
-                throw new MotionException($"{sb} Error Code: [0x{result:X}] {axisName}");
+               throw new MotionException($"{sb} Error Code: [0x{result:X}] {axisName}");
             }
         }
 

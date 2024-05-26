@@ -5,18 +5,18 @@
     <GeneratePackageOnBuild>False</GeneratePackageOnBuild>
     <Version>1.8.9</Version>
     <Description>
-     
+
     </Description>
-	<LangVersion>preview</LangVersion>
+    <LangVersion>preview</LangVersion>
     <Platforms>AnyCPU;x86</Platforms>
-    <ApplicationIcon />
+
+    <!--<ApplicationIcon />-->
     <OutputType>Library</OutputType>
-    <StartupObject />
+    <!--<StartupObject />-->
   </PropertyGroup>
 
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x86'">
     <AllowUnsafeBlocks>false</AllowUnsafeBlocks>
-    <Optimize>false</Optimize>
     <PlatformTarget>x86</PlatformTarget>
   </PropertyGroup>
 
@@ -64,11 +64,11 @@
     <PackageReference Include="System.Management" Version="8.0.0" />
     <PackageReference Include="System.Reactive" Version="6.0.0" />
   </ItemGroup>
-  
+
   <ItemGroup>
     <FrameworkReference Include="Microsoft.WindowsDesktop.App" />
   </ItemGroup>
-  
+
   <ItemGroup>
     <Reference Include="AdvMotAPI">
       <HintPath>..\..\..\..\Program Files (x86)\Advantech\MotionNavi\Public\AdvMotApi.dll</HintPath>
