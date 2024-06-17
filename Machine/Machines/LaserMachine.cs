@@ -4,6 +4,7 @@ using System.Drawing;
 using System.Linq;
 using System.Reactive.Linq;
 using System.Reactive.Subjects;
+using System.Threading;
 using System.Threading.Tasks;
 using MachineClassLibrary.Classes;
 using MachineClassLibrary.Laser;
@@ -17,6 +18,7 @@ using Microsoft.Toolkit.Diagnostics;
 
 namespace MachineClassLibrary.Machine.Machines
 {
+    public record VelocityRegimeChanged(Velocity velocity):IDeviceStateChanged;
     public class LaserMachine : PCI124XXMachine, IMarkLaser, IHasPlaces<LMPlace>, IHasValves, IObservable<IDeviceStateChanged>, IDisposable
     {
         private readonly IMarkLaser _markLaser;
@@ -64,6 +66,9 @@ namespace MachineClassLibrary.Machine.Machines
                 _subject?.OnNext(new DeviceStateChanged());
             }
         }
+
+        public string LaserBoardHealthProblemDescription { get; private set; }
+
         public bool VideoCaptureDeviceOk
         {
             get => _videoCaptureDeviceOk;
@@ -83,6 +88,8 @@ namespace MachineClassLibrary.Machine.Machines
             }
         }
 
+        public string PWMHealthProblemDescription { get; private set; }
+
         protected double _x;
         private IValveSwitcher _valveSwitcher;
 
@@ -99,9 +106,11 @@ namespace MachineClassLibrary.Machine.Machines
                     {
                         case IPWM:
                             PWMDeviceOk = true;
+                            PWMHealthProblemDescription = "OK";
                             break;
                         case IMarkLaser:
                             LaserBoardOk = true;
+                            LaserBoardHealthProblemDescription = "OK";  
                             break;
                     }
                     _subject?.OnNext(new DeviceStateChanged());
@@ -113,9 +122,11 @@ namespace MachineClassLibrary.Machine.Machines
                     {
                         case IPWM:
                             PWMDeviceOk = false;
+                            PWMHealthProblemDescription = problem.Exception?.Message ?? "OK";
                             break;
                         case IMarkLaser:
                             LaserBoardOk = false;
+                            LaserBoardHealthProblemDescription = problem.Exception?.Message ?? "OK";
                             break;
                     }
                     _subject.OnNext(new DeviceStateChanged());
@@ -159,6 +170,25 @@ namespace MachineClassLibrary.Machine.Machines
         public override void MotionDevInitialized() => MotionDeviceOk = true;
 
         private void _videoCapture_CameraPlugged(object sender, EventArgs e) => CameraPlugged?.Invoke(sender, e);
+
+        public async Task<bool> FindCameraFocus(CancellationToken token, float startIndex = 1)
+        {
+            if (token.IsCancellationRequested) return true;
+            var currentIndex = _videoCapture.GetBlurIndex();
+            if (startIndex > currentIndex)
+            {
+                await MoveAxRelativeAsync(Ax.Z, -0.2);
+                await Task.Delay(100);
+            }
+            else
+            {
+                await MoveAxRelativeAsync(Ax.Z, 0.2);
+                await Task.Delay(100);
+            }
+            currentIndex = _videoCapture.GetBlurIndex();
+            await FindCameraFocus(token, currentIndex);
+            return true;
+        }
 
         public void ConfigureGeometry(Dictionary<LMPlace, (Ax, double)[]> places)
         {
@@ -476,6 +506,11 @@ namespace MachineClassLibrary.Machine.Machines
             _subscriptions.Add(subscription);
             return subscription;
         }
+
+        protected override void OnVelocityRegimeChanged(Velocity velocity) => _subject.OnNext(new VelocityRegimeChanged(velocity));
+
+        public void SetSystemAngle(double angle) => _markLaser.SetSystemAngle(angle);
+
         public class GeometryBuilder<TPlace> : IGeometryBuilder<TPlace> where TPlace : Enum
         {
             private Dictionary<TPlace, (Ax axis, double pos)[]> _places;

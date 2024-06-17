@@ -59,6 +59,9 @@
     <!--<PackageReference Include="netDXF" Version="2.2.0.1" />-->
     <PackageReference Include="netDxf.netstandard" Version="2.4.0" />
     <PackageReference Include="NModbus4" Version="2.1.0" />
+    <PackageReference Include="OpenCvSharp4" Version="4.9.0.20240103" />
+    <PackageReference Include="OpenCvSharp4.Extensions" Version="4.9.0.20240103" />
+    <PackageReference Include="OpenCvSharp4.runtime.win" Version="4.9.0.20240103" />
     <PackageReference Include="propertychanged.fody" Version="4.1.0" />
     <PackageReference Include="System.Drawing.Common" Version="8.0.2" />
     <PackageReference Include="System.Management" Version="8.0.0" />

@@ -8,8 +8,10 @@ using System.Windows.Media.Imaging;
 using AForge.Imaging.Filters;
 using AForge.Video;
 using AForge.Video.DirectShow;
+using MachineClassLibrary.Machine.Machines;
 using MachineClassLibrary.Miscellaneous;
 using Microsoft.Toolkit.Diagnostics;
+using OpenCvSharp;
 
 
 namespace MachineClassLibrary.VideoCapture
@@ -48,7 +50,7 @@ namespace MachineClassLibrary.VideoCapture
             //DevicePlugged += USBCamera_DevicePlugged;
         }
 
-        private void USBCamera_DevicePlugged(object sender, EventArgs e) => CameraPlugged?.Invoke(sender,e);
+        private void USBCamera_DevicePlugged(object sender, EventArgs e) => CameraPlugged?.Invoke(sender, e);
 
         public event EventHandler<VideoCaptureEventArgs> OnBitmapChanged;
         public event EventHandler<Bitmap> OnRawBitmapChanged;
@@ -165,6 +167,8 @@ namespace MachineClassLibrary.VideoCapture
             var filter = new ContrastCorrection();
             var mirror = new Mirror(_mirrorX, _mirrorY);
 
+
+
             Bitmap ApplyAdjustWidthIfEnable(Bitmap bitmap)
             {
                 if (!AdjustWidthToHeight) return bitmap;
@@ -193,6 +197,10 @@ namespace MachineClassLibrary.VideoCapture
                     _bitmap.StreamSource = ms;
                     _bitmap.EndInit();
                     _bitmap.Freeze();
+
+
+
+
                 }
                 if (_bitmap is not null) OnBitmapChanged?.Invoke(this, new VideoCaptureEventArgs(_bitmap, _errorMessage));
             }
@@ -201,6 +209,38 @@ namespace MachineClassLibrary.VideoCapture
             }
 
             await Task.Delay(40).ConfigureAwait(false);
+        }
+
+        public float GetBlurIndex()
+        {
+            var src = OpenCvSharp.Extensions.BitmapConverter.ToMat(BitmapImage2Bitmap(_bitmap));
+            return calcBlurriness(src);
+        }
+
+        private Bitmap BitmapImage2Bitmap(BitmapImage bitmapImage)
+        {
+            // BitmapImage bitmapImage = new BitmapImage(new Uri("../Images/test.png", UriKind.Relative));
+
+            using (MemoryStream outStream = new MemoryStream())
+            {
+                BitmapEncoder enc = new BmpBitmapEncoder();
+                enc.Frames.Add(BitmapFrame.Create(bitmapImage));
+                enc.Save(outStream);
+                System.Drawing.Bitmap bitmap = new System.Drawing.Bitmap(outStream);
+
+                return new Bitmap(bitmap);
+            }
+        }
+        static float calcBlurriness(Mat src)
+        {
+            Mat Gx = new Mat();
+            Mat Gy = new Mat();
+            Cv2.Sobel(src, Gx, MatType.CV_32F, 1, 0);
+            Cv2.Sobel(src, Gy, MatType.CV_32F, 0, 1);
+            double normGx = Cv2.Norm(Gx);
+            double normGy = Cv2.Norm(Gy);
+            double sumSq = normGx * normGx + normGy * normGy;
+            return (float)(1.0 / (sumSq / (src.Size().Height * src.Size().Width) + 1e-6));
         }
 
         public void InvokeSettings()

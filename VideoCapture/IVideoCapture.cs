@@ -33,6 +33,7 @@ namespace MachineClassLibrary.VideoCapture
         int GetVideoCapabilitiesCount();
         void InvokeSettings();
         void SetCameraMirror(bool mirrorX, bool mirrorY);
+        float GetBlurIndex();
 
         event EventHandler<VideoCaptureEventArgs> OnBitmapChanged;
         event EventHandler CameraPlugged;

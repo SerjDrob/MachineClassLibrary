@@ -12,7 +12,7 @@ namespace MachineClassLibrary.Machine.MotionDevices
 
         event EventHandler<AxNumEventArgs> TransmitAxState;
         double GetAxActual(int axNum);
-        bool DevicesConnection();
+        Task<bool> DevicesConnection();
         void Dispose();
         int FormAxesGroup(int[] axisNums);
         bool GetAxisDout(int axisNum, ushort dOut);
@@ -22,7 +22,8 @@ namespace MachineClassLibrary.Machine.MotionDevices
         Task MoveAxesByCoorsPrecAsync((int axisNum, double position, double lineCoefficient)[] ax);
         Task MoveAxisAsync(int axisNum, double position);
         void MoveAxisContiniouslyAsync(int axisNum, AxDir dir);
-        Task MoveAxisPreciselyAsync(int axisNum, double lineCoefficient, double position, int rec = 0);
+        Task<double> MoveAxisPreciselyAsync(int axisNum, double lineCoefficient, double position, int rec = 0);
+        Task<double> MoveAxisPreciselyAsync_2(int axisNum, double lineCoefficient, double position, int rec = 0);
         Task MoveGroupAsync(int groupNum, double[] position);
         Task MoveGroupPreciselyAsync(int groupNum, double[] position, (int axisNum, double lineCoefficient)[] gpAxes);
         void ResetAxisCounter(int axisNum);
@@ -41,5 +42,8 @@ namespace MachineClassLibrary.Machine.MotionDevices
         void SetPrecision(double tolerance);
         Task StartMonitoringAsync();
         void StopAxis(int axisNum);
+        double GetAxCmd(int axNum);
+        void SetAxisCoordinate(int axisNum, double coordinate);
+        void CloseDevice();
     }
 }

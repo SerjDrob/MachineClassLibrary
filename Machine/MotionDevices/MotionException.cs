@@ -3,6 +3,11 @@ using System.Runtime.Serialization;
 
 namespace MachineClassLibrary.Machine.MotionDevices
 {
+    public enum MotionExStatus
+    {
+        AccuracyNotReached,
+        None
+    }
     public class MotionException : Exception
     {
         public MotionException()
@@ -11,6 +16,11 @@ namespace MachineClassLibrary.Machine.MotionDevices
 
         public MotionException(string message) : base(message)
         {
+        }
+
+        public MotionException(string message, MotionExStatus status):base(message)
+        {
+            MotionExStatus = status;
         }
 
         public MotionException(string message, Exception innerException)
@@ -22,5 +32,7 @@ namespace MachineClassLibrary.Machine.MotionDevices
             : base(info, context)
         {
         }
+
+        public MotionExStatus MotionExStatus { get; } = MotionExStatus.None;
     }
 }

@@ -50,12 +50,15 @@ namespace MachineClassLibrary.Laser.Markers
                     HasHealthProblem(hp.Message, hp.Exception, _pwm);
                 });
 
-            var result = JczLmc.InitializeTotal(initDirPath, false, Handle);
+            var result = await Task.Run(() =>
+            {
+                return JczLmc.InitializeTotal(initDirPath, false, Handle); 
+            });
             var markerInit = true;
             if ((JczLmc.EzCad_Error_Code)result == JczLmc.EzCad_Error_Code.LMC1_ERR_SUCCESS) DeviceOK(this);
             else
             {
-                var ex = new Exception($"The device opening failed with error code {(Lmc.EzCad_Error_Code)result}");
+                var ex = new Exception($"The device opening failed with error code: {(Lmc.EzCad_Error_Code)result}");
                 HasHealthProblem("",ex,this);
                 markerInit = false;
                 //throw new Exception($"The device opening failed with error code {(Lmc.EzCad_Error_Code)result}");
@@ -169,7 +172,7 @@ namespace MachineClassLibrary.Laser.Markers
 
 
             var tempFilePath = Path.Combine(Path.GetTempPath(), "TestFile.ezd");
-            JczLmc.SaveEntLibToFile(tempFilePath);
+            result = JczLmc.SaveEntLibToFile(tempFilePath);
             await SetPwm(_markLaserParams.PenParams);
             await MarkEntityAndDelete("Entity");
             return true;
@@ -297,7 +300,7 @@ namespace MachineClassLibrary.Laser.Markers
             //var result = Lmc.lmc1_CancelMark();
             var result = await Task.FromResult(JczLmc.StopMark());
             var res = true;
-            if (_markLaserParams.PenParams.IsModulated) res = await _pwm.StopPWM();
+            if (_markLaserParams.PenParams.IsModulated) res = await _pwm.StopPWM();//TODO exception?
             return res & result == 0;
             //if (result != 0) throw new Exception($"Cancelling of marking failed with error code {(Lmc.EzCad_Error_Code)result}");
         }
@@ -312,6 +315,10 @@ namespace MachineClassLibrary.Laser.Markers
         public override void AskHealth()
         {
             throw new NotImplementedException();
+        }
+        public void SetSystemAngle(double angle)
+        {
+            var result = JczLmc.SetRotateMoveParam(0,0,0,0,angle);
         }
     }
 }

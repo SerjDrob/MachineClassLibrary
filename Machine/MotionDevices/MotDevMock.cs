@@ -30,7 +30,7 @@ namespace MachineClassLibrary.Machine.MotionDevices
         public event Action<string, int> ThrowMessage;
         public event EventHandler<AxNumEventArgs> TransmitAxState;
 
-        public bool DevicesConnection()
+        public Task<bool> DevicesConnection()
         {
             AxisCount = 4;
             _axisStates = new MockAxisState[AxisCount];
@@ -40,7 +40,7 @@ namespace MachineClassLibrary.Machine.MotionDevices
                 _axisFeatures[i].AxLength = 50;
             }
             _axGroups = new();
-            return true;
+            return Task.FromResult(true);
         }
 
         public void Dispose()
@@ -135,9 +135,10 @@ namespace MachineClassLibrary.Machine.MotionDevices
         }
 
 
-        public async Task MoveAxisPreciselyAsync(int axisNum, double lineCoefficient, double position, int rec = 0)
+        public async Task<double> MoveAxisPreciselyAsync(int axisNum, double lineCoefficient, double position, int rec = 0)
         {
             await Task.Delay(1000);
+            return 0d;
         }
 
         public Task MoveGroupAsync(int groupNum, double[] position)
@@ -243,6 +244,26 @@ namespace MachineClassLibrary.Machine.MotionDevices
         public void SetPrecision(double tolerance)
         {
             return;
+        }
+
+        public Task<double> MoveAxisPreciselyAsync_2(int axisNum, double lineCoefficient, double position, int rec = 0)
+        {
+            throw new NotImplementedException();
+        }
+
+        public double GetAxCmd(int axNum)
+        {
+            throw new NotImplementedException();
+        }
+
+        public void SetAxisCoordinate(int axisNum, double coordinate)
+        {
+            throw new NotImplementedException();
+        }
+
+        public void CloseDevice()
+        {
+            throw new NotImplementedException();
         }
     }
 }

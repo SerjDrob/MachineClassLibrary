@@ -5,7 +5,7 @@ namespace MachineClassLibrary.Machine
 
     readonly public struct AxisState
     {
-        public AxisState(double cmdPos, double actPos, int sensors, int outs, bool pLmt, bool nLmt, bool motionDone, bool homeDone, bool vhStart, bool vhEnd, bool ez)
+        public AxisState(double cmdPos, double actPos, int sensors, int outs, bool pLmt, bool nLmt, bool motionDone, bool homeDone, bool vhStart, bool vhEnd, bool ez, bool org)
         {
             this.cmdPos = cmdPos;
             this.actPos = actPos;
@@ -18,6 +18,7 @@ namespace MachineClassLibrary.Machine
             this.vhStart = vhStart;
             this.vhEnd = vhEnd;
             this.ez = ez;
+            this.org = org;
         }
 
         public double cmdPos { get; }
@@ -31,5 +32,6 @@ namespace MachineClassLibrary.Machine
         public bool vhStart { get; }
         public bool vhEnd { get; }
         public bool ez { get; }
+        public bool org { get; }
     }
 }

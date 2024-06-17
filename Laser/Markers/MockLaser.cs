@@ -83,5 +83,10 @@ namespace MachineClassLibrary.Laser.Markers
         {
             //throw new NotImplementedException();
         }
+
+        public void SetSystemAngle(double angle)
+        {
+            throw new NotImplementedException();
+        }
     }
 }

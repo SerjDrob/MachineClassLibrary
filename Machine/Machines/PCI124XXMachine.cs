@@ -20,12 +20,24 @@ namespace MachineClassLibrary.Machine.Machines
         public PCI124XXMachine(IMotionDevicePCI1240U motionDevice)
         {
             _motionDevice = motionDevice;
-            IsMotionDeviceInit = _motionDevice.DevicesConnection();
-            if (IsMotionDeviceInit)
-            {
-                MotionDevInitialized();
-                _motionDevice.TransmitAxState += MotionDevice_TransmitAxState;
-            }
+            //IsMotionDeviceInit = _motionDevice.DevicesConnection();
+            //if (IsMotionDeviceInit)
+            //{
+            //    MotionDevInitialized();
+            //    _motionDevice.TransmitAxState += MotionDevice_TransmitAxState;
+            //}
+
+            _motionDevice.DevicesConnection()
+                .ContinueWith(result =>
+                {
+                    IsMotionDeviceInit = result.Result;
+                    if (IsMotionDeviceInit)
+                    {
+                        MotionDevInitialized();
+                        _motionDevice.TransmitAxState += MotionDevice_TransmitAxState;
+                        _motionDevice.StartMonitoringAsync();
+                    }
+                },TaskScheduler.Default);
         }
 
         public void StartMonitoringState()
@@ -35,6 +47,7 @@ namespace MachineClassLibrary.Machine.Machines
         }
 
         public event EventHandler<AxisStateEventArgs> OnAxisMotionStateChanged;
+        protected abstract void OnVelocityRegimeChanged(Velocity velocity);
 
         public Velocity VelocityRegime { get; set; }
         public bool IsMotionDeviceInit { get; set; }
@@ -84,6 +97,8 @@ namespace MachineClassLibrary.Machine.Machines
                 if (precisely)
                 {
                     await _motionDevice.MoveAxisPreciselyAsync(_axes[axis].AxisNum, _axes[axis].LineCoefficient, position).ConfigureAwait(false);
+                    //await _motionDevice.MoveAxisPreciselyAsync_2(_axes[axis].AxisNum, _axes[axis].LineCoefficient, position).ConfigureAwait(false);
+
                 }
                 else
                 {
@@ -185,7 +200,7 @@ namespace MachineClassLibrary.Machine.Machines
                     {
                         _motionDevice.SetAxisVelocity(axis.Value.AxisNum, axis.Value.VelRegimes[velocity]);
                         VelocityRegime = velocity;
-
+                        OnVelocityRegimeChanged(VelocityRegime);
                     }
                 }
                 else
@@ -277,7 +292,7 @@ namespace MachineClassLibrary.Machine.Machines
             }
 
 
-            _axes[Ax.X].SetMotionStarted();
+            //_axes[Ax.X].SetMotionStarted();
 
             var par = _homingConfigs.Select(p =>
             (
@@ -300,9 +315,14 @@ namespace MachineClassLibrary.Machine.Machines
                 MoveAxInPosAsync(p.Key, p.Value.positionAfterHoming, true)
             ).ToArray();
 
+
             await Task.WhenAll(tasks).ConfigureAwait(false);
 
-            //await MoveAxInPosAsync(Ax.X, 10, true).ConfigureAwait(false);
+            //_motionDevice.SetAxisCoordinate(_axes[Ax.X].AxisNum, 0d);
+            //_motionDevice.SetAxisCoordinate(_axes[Ax.Y].AxisNum, 0d);
+
+
+            //await MoveAxInPosAsync(Ax.X, _homingConfigs[Ax.X].positionAfterHoming, true).ConfigureAwait(false);
         }
 
         public IHomingBuilder ConfigureHomingForAxis(Ax axis)
@@ -438,7 +458,8 @@ namespace MachineClassLibrary.Machine.Machines
                         pLmt: _axes[axis].LmtP,
                         motionDone: _axes[axis].MotionDone,
                         motionStart: _axes[axis].VHStart,
-                        eZ: state.ez));
+                        eZ: state.ez,
+                        org: state.org));
 
                     GetAxOutNIn(axis, state.outs, state.sensors);
                 }
@@ -460,7 +481,13 @@ namespace MachineClassLibrary.Machine.Machines
 
         public double GetAxActual(Ax axis)
         {
-            return _motionDevice.GetAxActual(_axes[axis].AxisNum) * _axes[axis].LineCoefficient;
+            //return _motionDevice.GetAxActual(_axes[axis].AxisNum) * _axes[axis].LineCoefficient;
+            return _motionDevice.GetAxActual(_axes[axis].AxisNum);
+        }
+        public double GetAxCmd(Ax axis)
+        {
+            //return _motionDevice.GetAxActual(_axes[axis].AxisNum) * _axes[axis].LineCoefficient;
+            return _motionDevice.GetAxCmd(_axes[axis].AxisNum);
         }
 
         public void SetPrecision(double tolerance) => _motionDevice.SetPrecision(tolerance);
