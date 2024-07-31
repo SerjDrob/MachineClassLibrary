@@ -137,6 +137,7 @@ namespace MachineClassLibrary.Laser.Parameters
             get => _hatchContourFirst & EnableContour;
             set => _hatchContourFirst = value;
         }
+        public double HatchAngle { get; set; }
         public bool HatchAutoRotate { get; set; }
         public double HatchRotateAngle { get; set; }
         public object Clone()

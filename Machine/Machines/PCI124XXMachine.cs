@@ -161,7 +161,7 @@ namespace MachineClassLibrary.Machine.Machines
         }
         public async Task MoveAxRelativeAsync(Ax axis, double diffPosition, bool precisely = false)
         {
-            var initialPos = precisely ? _axes[axis].ActualPosition : _axes[axis].CmdPosition; //TODO can it influence?
+            var initialPos = precisely ? GetAxActual(axis) : GetAxCmd(axis); //TODO can it influence?
             var pos = initialPos + diffPosition;
             await MoveAxInPosAsync(axis, pos, precisely);
         }
@@ -205,7 +205,7 @@ namespace MachineClassLibrary.Machine.Machines
                 }
                 else
                 {
-                    throw new MotionException($"Не настроенны скоростные режимы оси {axis.Key}");
+                    throw new MotionException($"Не настроены скоростные режимы оси {axis.Key}");
                 }
             }
 
@@ -469,26 +469,12 @@ namespace MachineClassLibrary.Machine.Machines
         protected virtual void GetAxOutNIn(Ax ax, int outs, int ins) { }
 
 
-        private void SetAxisBusy(Ax axis)
-        {
-            _axes[axis].Busy = true;
-        }
+        private void SetAxisBusy(Ax axis) => _axes[axis].Busy = true;
 
-        private void ResetAxisBusy(Ax axis)
-        {
-            _axes[axis].Busy = false;
-        }
+        private void ResetAxisBusy(Ax axis) => _axes[axis].Busy = false;
 
-        public double GetAxActual(Ax axis)
-        {
-            //return _motionDevice.GetAxActual(_axes[axis].AxisNum) * _axes[axis].LineCoefficient;
-            return _motionDevice.GetAxActual(_axes[axis].AxisNum);
-        }
-        public double GetAxCmd(Ax axis)
-        {
-            //return _motionDevice.GetAxActual(_axes[axis].AxisNum) * _axes[axis].LineCoefficient;
-            return _motionDevice.GetAxCmd(_axes[axis].AxisNum);
-        }
+        public double GetAxActual(Ax axis) => (_axes[axis].LineCoefficient != 0) ? _motionDevice.GetAxActual(_axes[axis].AxisNum) : _motionDevice.GetAxCmd(_axes[axis].AxisNum);
+        public double GetAxCmd(Ax axis) => _motionDevice.GetAxCmd(_axes[axis].AxisNum);
 
         public void SetPrecision(double tolerance) => _motionDevice.SetPrecision(tolerance);
 

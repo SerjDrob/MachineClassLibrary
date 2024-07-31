@@ -84,7 +84,8 @@ namespace MachineClassLibrary.GeometryUtility
                                                    m31: 0, m32: 0, m33: 1);
 
                 _workMatrix = Translate * R * _workTransformation * S;
-
+                //_workMatrix = R.Inverse() * Translate.Inverse() * _workTransformation * S.Inverse();
+                //R.Inverse() * Translate.Inverse() * _mainTransformation * S.Inverse();
                 return this;
             }
             public ICoorSystem Build()

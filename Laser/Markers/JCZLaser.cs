@@ -125,15 +125,15 @@ namespace MachineClassLibrary.Laser.Markers
                 bContourFirst: hatch.HatchContourFirst,
                 nPenNo: _markLaserParams.PenParams.PenNo,
                 nHatchType: GetHatchType(hatch.HatchAttribute),//2<----------
-                bHatchAllCalc: false,
+                bHatchAllCalc: true,//false,
                 bHatchEdge: hatch.HatchEdge,//when lines
                 bHatchAverageLine: hatch.HatchAverageLine,
-                dHatchAngle: 0,
+                dHatchAngle: hatch.HatchAngle,
                 dHatchLineDist: hatch.HatchLineDist,
                 dHatchEdgeDist: 0.0001,//hatch.HatchEdgeDist,
                 dHatchStartOffset: hatch.HatchStartOffset,
                 dHatchEndOffset: hatch.HatchEndOffset,
-                dHatchLineReduction: 0,//hatch.HatchLineReduction,
+                dHatchLineReduction: hatch.HatchLineReduction,
                 dHatchLoopDist: hatch.HatchLoopDist,
                 nEdgeLoop: hatch.EdgeLoop,//<-----------------
                 nHatchLoopRev: (hatch.HatchAttribute & JczLmc.HATCHATTRIB_OUT) != 0,
@@ -196,6 +196,7 @@ namespace MachineClassLibrary.Laser.Markers
             JczLmc.DeleteEnt(entityName);
         }
 
+        private int _setPwmAttempts = 3;
         private async Task SetPwm(PenParams penParams)
         {
             if (penParams.IsModulated)
@@ -206,7 +207,12 @@ namespace MachineClassLibrary.Laser.Markers
                 var modDutyCycle = penParams.ModDutyCycle;
                 try
                 {
-                    var pwmResult = await _pwm.SetPWM(freq, (int)Math.Round(dutyCycle), modFreq, modDutyCycle);
+                    var pwmResult = false;
+                    for ( var i = 0; i < _setPwmAttempts; i++ )
+                    {
+                        pwmResult = await _pwm.SetPWM(freq, (int)Math.Round(dutyCycle), modFreq, modDutyCycle);
+                        if (pwmResult) break;
+                    }
                     if (!pwmResult) throw new MarkerException("PWM is failed. Cannot get the response.");
                 }
                 catch (InvalidOperationException ex)
