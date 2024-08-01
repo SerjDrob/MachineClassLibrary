@@ -652,7 +652,6 @@ namespace MachineClassLibrary.Machine.MotionDevices
                 return 0d;
             }
         }
-
         public async Task<double> MoveAxisPreciselyAsync_2(int axisNum, double lineCoefficient, double position, int rec = 0)
         {
             if (rec > 20)
@@ -862,13 +861,6 @@ namespace MachineClassLibrary.Machine.MotionDevices
             var id = _axisLogicalIDList[axisNum].ID;
             if (Math.Abs(_axisStates[id].cmdPos - position) < _tolerance) return;
             uint state = default;
-            //Motion2.mAcm2_AxPTP(id, ABS_MODE.MOVE_ABS, position).CheckResult2(axisNum);
-            //do
-            //{
-            //    Motion2.mAcm2_AxGetState(id, AXIS_STATUS_TYPE.AXIS_STATE, ref state);
-            //    await Task.Delay(1).ConfigureAwait(false);
-            //} while ((AxState)state == AxState.STA_AX_PTP_MOT);
-
             await Task.Run(() =>
             {
                 Motion2.mAcm2_AxPTP(id, ABS_MODE.MOVE_ABS, position);
@@ -876,10 +868,8 @@ namespace MachineClassLibrary.Machine.MotionDevices
                 {
                     Task.Delay(1).Wait();
                     Motion2.mAcm2_AxGetState(id, AXIS_STATUS_TYPE.AXIS_STATE, ref state);
-                } while ((AxState)state == AxState.STA_AX_WAIT_PTP);
+                } while ((AxState)state != AxState.STA_AX_READY);
             });
-
-
         }
         public void SetAxisCoordinate(int axisNum, double coordinate)
         {
@@ -918,7 +908,6 @@ namespace MachineClassLibrary.Machine.MotionDevices
 
             return availableDevs.Take((int)deviceCount);
         }
-
         private int GetAxisCount()
         {
             var axesPerDev = 0d;
@@ -931,17 +920,8 @@ namespace MachineClassLibrary.Machine.MotionDevices
 
             return (int)axesPerDev;
         }
-
-        private static bool Success(uint result)
-        {
-            return result == (uint)ErrorCode.SUCCESS;
-        }
-
-        private static bool Success(int result)
-        {
-            return result == (int)ErrorCode.SUCCESS;
-        }
-
+        private static bool Success(uint result) => result == (uint)ErrorCode.SUCCESS;
+        private static bool Success(int result) => result == (int)ErrorCode.SUCCESS;
         private void ReleaseUnmanagedResources()
         {
             //var copy = DeviceHandle;
@@ -951,13 +931,11 @@ namespace MachineClassLibrary.Machine.MotionDevices
             //    Motion2.mAcm_DevClose(ref copy);
             //}
         }
-
         public void Dispose()
         {
             ReleaseUnmanagedResources();
             GC.SuppressFinalize(this);
         }
-
         public double GetAxActual(int axNum)
         {
             var pos = 0d;
@@ -970,9 +948,7 @@ namespace MachineClassLibrary.Machine.MotionDevices
             Motion2.mAcm2_AxGetPosition(_axisLogicalIDList[axNum].ID, POSITION_TYPE.POSITION_CMD, ref pos).CheckResult2(axNum);
             return pos;
         }
-
         public void SetPrecision(double tolerance) => _tolerance = tolerance;
-
         public void CloseDevice()
         {
             var result = Motion2.mAcm2_DevAllClose();
