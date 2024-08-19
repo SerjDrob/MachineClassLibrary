@@ -326,7 +326,7 @@ namespace MachineClassLibrary.Machine.MotionDevices
         public void SetAxisVelocity(int axisNum, double vel)
         {
             var velHigh = vel;
-            var velLow = vel / 2;
+            var velLow = 0d;// vel / 2;TODO think it
 
             _axisLogicalIDList[axisNum].ChangeSpeed(velLow, velHigh);
 
@@ -429,6 +429,7 @@ namespace MachineClassLibrary.Machine.MotionDevices
             var acc = configs.acc;
             var dec = configs.dec;
             var jerk = configs.jerk;
+            var jerkFac = 2d;
             var ppu = configs.ppu;
             double axMaxAcc = configs.maxAcc;
             double axMaxDec = configs.maxDec;
@@ -473,6 +474,9 @@ namespace MachineClassLibrary.Machine.MotionDevices
             Motion2.mAcm2_SetProperty(id, (uint)PropertyID2.PAR_AxAcc, acc).CheckResult2(axisNum);
             Motion2.mAcm2_SetProperty(id, (uint)PropertyID2.PAR_AxDec, dec).CheckResult2(axisNum);
             Motion2.mAcm2_SetProperty(id, (uint)PropertyID2.PAR_AxJerk, jerk).CheckResult2(axisNum);
+            
+            Motion2.mAcm2_SetProperty(id, (uint)PropertyID2.PAR_AxJerkFactor, jerkFac).CheckResult2(axisNum);
+
             Motion2.mAcm2_SetProperty(id, (uint)PropertyID2.PAR_AxHomeAcc, acc).CheckResult2(axisNum);
             Motion2.mAcm2_SetProperty(id, (uint)PropertyID2.PAR_AxHomeDec, dec).CheckResult2(axisNum);
             Motion2.mAcm2_SetProperty(id, (uint)PropertyID2.PAR_AxHomeVelLow, homeVelLow).CheckResult2(axisNum);
@@ -497,8 +501,8 @@ namespace MachineClassLibrary.Machine.MotionDevices
 
             var tol = 0;
             Motion2.mAcm2_AxResetError(id).CheckResult2(axisNum);
-            Motion2.mAcm2_SetProperty(id, (uint)PropertyID2.CFG_AxSwPelReact, (double)SwLmtReact.SLMT_IMMED_STOP).CheckResult2(axisNum);
-            Motion2.mAcm2_SetProperty(id, (uint)PropertyID2.CFG_AxSwMelReact, (double)SwLmtReact.SLMT_IMMED_STOP).CheckResult2(axisNum);
+            Motion2.mAcm2_SetProperty(id, (uint)PropertyID2.CFG_AxSwPelReact, (double)SwLmtReact.SLMT_DEC_TO_STOP/*.SLMT_IMMED_STOP*/).CheckResult2(axisNum);
+            Motion2.mAcm2_SetProperty(id, (uint)PropertyID2.CFG_AxSwMelReact, (double)SwLmtReact.SLMT_DEC_TO_STOP/*.SLMT_IMMED_STOP*/).CheckResult2(axisNum);
             Motion2.mAcm2_SetProperty(id, (uint)PropertyID2.CFG_AxSwPelToleranceEnable, (double)SwLmtToleranceEnable.TOLERANCE_ENABLE).CheckResult2(axisNum);
             Motion2.mAcm2_SetProperty(id, (uint)PropertyID2.CFG_AxSwPelToleranceValue, tol).CheckResult2(axisNum);
             Motion2.mAcm2_SetProperty(id, (uint)PropertyID2.CFG_AxSwMelToleranceEnable, (double)SwLmtToleranceEnable.TOLERANCE_ENABLE).CheckResult2(axisNum);
@@ -565,22 +569,6 @@ namespace MachineClassLibrary.Machine.MotionDevices
             var tolerance = _tolerance;
             var backlash = 2;//mm
             var state = new uint();
-            //if (rec == 0)
-            //{
-            //    _storedSpeeds[axisNum] = GetAxisVelocity(axisNum);
-            //    var token = new CancellationTokenSource(TimeSpan.FromMilliseconds(15000));
-            //    Motion2.mAcm2_AxPTP(id, ABS_MODE.MOVE_ABS, position).CheckResult2(axisNum);
-            //    await Task.Run(async () =>
-            //    {
-            //        do
-            //        {
-            //            await Task.Delay(10);
-            //            Motion2.mAcm2_AxGetState(id, AXIS_STATUS_TYPE.AXIS_STATE, ref state);
-            //        } while (!token.Token.IsCancellationRequested && (AxState)state==AxState.STA_AX_PTP_MOT);
-            //    }, token.Token).ConfigureAwait(false);
-            //}
-
-
             var direction = MOTION_DIRECTION.DIRECTION_POS;
 
             Motion2.mAcm2_SetProperty(id, (uint)PropertyID2.CFG_AxSwPelEnable, (double)SwLmtEnable.SLMT_DIS).CheckResult2(axisNum);
@@ -602,16 +590,7 @@ namespace MachineClassLibrary.Machine.MotionDevices
                     if (rec == 0)
                     {
                         _storedSpeeds[axisNum] = GetAxisVelocity(axisNum);
-                        //var token = new CancellationTokenSource(TimeSpan.FromMilliseconds(15000));
                         Motion2.mAcm2_AxPTP(id, ABS_MODE.MOVE_ABS, position).CheckResult2(axisNum);
-                        //await Task.Run(async () =>
-                        //{
-                        //    do
-                        //    {
-                        //        await Task.Delay(10);
-                        //        Motion2.mAcm2_AxGetState(id, AXIS_STATUS_TYPE.AXIS_STATE, ref state);
-                        //    } while (!token.Token.IsCancellationRequested && (AxState)state == AxState.STA_AX_PTP_MOT);
-                        //}, token.Token).ConfigureAwait(false);
                     }
                     else
                     {
@@ -649,8 +628,6 @@ namespace MachineClassLibrary.Machine.MotionDevices
                         var result = (AxState)st;
                         throw new MotionException($"Reset axis errors failed. axis number {axisNum}");
                     }
-                    //var newPos = CalcActualPosition(axisNum, lineCoefficient);
-                    //Motion2.mAcm2_AxSetPosition(id, POSITION_TYPE.POSITION_CMD, newPos).CheckResult2(axisNum);
                     await MoveAxisPreciselyAsync(axisNum, lineCoefficient, position, ++rec);
                     rec--;
                     if (rec == 0)
@@ -675,7 +652,6 @@ namespace MachineClassLibrary.Machine.MotionDevices
                 return 0d;
             }
         }
-
         public async Task<double> MoveAxisPreciselyAsync_2(int axisNum, double lineCoefficient, double position, int rec = 0)
         {
             if (rec > 20)
@@ -885,12 +861,15 @@ namespace MachineClassLibrary.Machine.MotionDevices
             var id = _axisLogicalIDList[axisNum].ID;
             if (Math.Abs(_axisStates[id].cmdPos - position) < _tolerance) return;
             uint state = default;
-            Motion2.mAcm2_AxPTP(id, ABS_MODE.MOVE_ABS, position).CheckResult2(axisNum);
-            do
+            await Task.Run(() =>
             {
-                Motion2.mAcm2_AxGetState(id, AXIS_STATUS_TYPE.AXIS_STATE, ref state);
-                await Task.Delay(1).ConfigureAwait(false);
-            } while ((AxState)state == AxState.STA_AX_PTP_MOT);
+                Motion2.mAcm2_AxPTP(id, ABS_MODE.MOVE_ABS, position);
+                do
+                {
+                    Task.Delay(1).Wait();
+                    Motion2.mAcm2_AxGetState(id, AXIS_STATUS_TYPE.AXIS_STATE, ref state);
+                } while ((AxState)state != AxState.STA_AX_READY);
+            });
         }
         public void SetAxisCoordinate(int axisNum, double coordinate)
         {
@@ -929,7 +908,6 @@ namespace MachineClassLibrary.Machine.MotionDevices
 
             return availableDevs.Take((int)deviceCount);
         }
-
         private int GetAxisCount()
         {
             var axesPerDev = 0d;
@@ -942,17 +920,8 @@ namespace MachineClassLibrary.Machine.MotionDevices
 
             return (int)axesPerDev;
         }
-
-        private static bool Success(uint result)
-        {
-            return result == (uint)ErrorCode.SUCCESS;
-        }
-
-        private static bool Success(int result)
-        {
-            return result == (int)ErrorCode.SUCCESS;
-        }
-
+        private static bool Success(uint result) => result == (uint)ErrorCode.SUCCESS;
+        private static bool Success(int result) => result == (int)ErrorCode.SUCCESS;
         private void ReleaseUnmanagedResources()
         {
             //var copy = DeviceHandle;
@@ -962,13 +931,11 @@ namespace MachineClassLibrary.Machine.MotionDevices
             //    Motion2.mAcm_DevClose(ref copy);
             //}
         }
-
         public void Dispose()
         {
             ReleaseUnmanagedResources();
             GC.SuppressFinalize(this);
         }
-
         public double GetAxActual(int axNum)
         {
             var pos = 0d;
@@ -981,9 +948,7 @@ namespace MachineClassLibrary.Machine.MotionDevices
             Motion2.mAcm2_AxGetPosition(_axisLogicalIDList[axNum].ID, POSITION_TYPE.POSITION_CMD, ref pos).CheckResult2(axNum);
             return pos;
         }
-
         public void SetPrecision(double tolerance) => _tolerance = tolerance;
-
         public void CloseDevice()
         {
             var result = Motion2.mAcm2_DevAllClose();
