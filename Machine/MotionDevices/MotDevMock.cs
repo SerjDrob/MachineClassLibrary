@@ -263,7 +263,7 @@ namespace MachineClassLibrary.Machine.MotionDevices
 
         public void CloseDevice()
         {
-            throw new NotImplementedException();
+            //throw new NotImplementedException();
         }
     }
 }
