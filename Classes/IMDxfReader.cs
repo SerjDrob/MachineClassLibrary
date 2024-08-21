@@ -13,6 +13,10 @@ namespace MachineClassLibrary.Classes
         private readonly string _fileName;
         private readonly DxfFile _document;
         private List<PDxfCurve> _tempDxfCurves = new();
+        public IMDxfReader()
+        {
+            _fileName = string.Empty;
+        }
         public IMDxfReader(string fileName)
         {
             _fileName = fileName;

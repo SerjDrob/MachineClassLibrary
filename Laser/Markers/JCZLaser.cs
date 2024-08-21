@@ -50,12 +50,15 @@ namespace MachineClassLibrary.Laser.Markers
                     HasHealthProblem(hp.Message, hp.Exception, _pwm);
                 });
 
-            var result = JczLmc.InitializeTotal(initDirPath, false, Handle);
+            var result = await Task.Run(() =>
+            {
+                return JczLmc.InitializeTotal(initDirPath, false, Handle); 
+            });
             var markerInit = true;
             if ((JczLmc.EzCad_Error_Code)result == JczLmc.EzCad_Error_Code.LMC1_ERR_SUCCESS) DeviceOK(this);
             else
             {
-                var ex = new Exception($"The device opening failed with error code {(Lmc.EzCad_Error_Code)result}");
+                var ex = new Exception($"The device opening failed with error code: {(Lmc.EzCad_Error_Code)result}");
                 HasHealthProblem("",ex,this);
                 markerInit = false;
                 //throw new Exception($"The device opening failed with error code {(Lmc.EzCad_Error_Code)result}");
@@ -122,15 +125,15 @@ namespace MachineClassLibrary.Laser.Markers
                 bContourFirst: hatch.HatchContourFirst,
                 nPenNo: _markLaserParams.PenParams.PenNo,
                 nHatchType: GetHatchType(hatch.HatchAttribute),//2<----------
-                bHatchAllCalc: false,
+                bHatchAllCalc: true,//false,
                 bHatchEdge: hatch.HatchEdge,//when lines
                 bHatchAverageLine: hatch.HatchAverageLine,
-                dHatchAngle: 0,
+                dHatchAngle: hatch.HatchAngle,
                 dHatchLineDist: hatch.HatchLineDist,
                 dHatchEdgeDist: 0.0001,//hatch.HatchEdgeDist,
                 dHatchStartOffset: hatch.HatchStartOffset,
                 dHatchEndOffset: hatch.HatchEndOffset,
-                dHatchLineReduction: 0,//hatch.HatchLineReduction,
+                dHatchLineReduction: hatch.HatchLineReduction,
                 dHatchLoopDist: hatch.HatchLoopDist,
                 nEdgeLoop: hatch.EdgeLoop,//<-----------------
                 nHatchLoopRev: (hatch.HatchAttribute & JczLmc.HATCHATTRIB_OUT) != 0,
@@ -196,7 +199,7 @@ namespace MachineClassLibrary.Laser.Markers
 
 
             var tempFilePath = Path.Combine(Path.GetTempPath(), "TestFile.ezd");
-            JczLmc.SaveEntLibToFile(tempFilePath);
+            result = JczLmc.SaveEntLibToFile(tempFilePath);
             await SetPwm(_markLaserParams.PenParams);
             await MarkEntityAndDelete("Entity");
             return true;
@@ -220,6 +223,7 @@ namespace MachineClassLibrary.Laser.Markers
             JczLmc.DeleteEnt(entityName);
         }
 
+        private int _setPwmAttempts = 3;
         private async Task SetPwm(PenParams penParams)
         {
             if (penParams.IsModulated)
@@ -230,7 +234,12 @@ namespace MachineClassLibrary.Laser.Markers
                 var modDutyCycle = penParams.ModDutyCycle;
                 try
                 {
-                    var pwmResult = await _pwm.SetPWM(freq, (int)Math.Round(dutyCycle), modFreq, modDutyCycle);
+                    var pwmResult = false;
+                    for ( var i = 0; i < _setPwmAttempts; i++ )
+                    {
+                        pwmResult = await _pwm.SetPWM(freq, (int)Math.Round(dutyCycle), modFreq, modDutyCycle);
+                        if (pwmResult) break;
+                    }
                     if (!pwmResult) throw new MarkerException("PWM is failed. Cannot get the response.");
                 }
                 catch (InvalidOperationException ex)
@@ -324,7 +333,7 @@ namespace MachineClassLibrary.Laser.Markers
             //var result = Lmc.lmc1_CancelMark();
             var result = await Task.FromResult(JczLmc.StopMark());
             var res = true;
-            if (_markLaserParams.PenParams.IsModulated) res = await _pwm.StopPWM();
+            if (_markLaserParams.PenParams.IsModulated) res = await _pwm.StopPWM();//TODO exception?
             return res & result == 0;
             //if (result != 0) throw new Exception($"Cancelling of marking failed with error code {(Lmc.EzCad_Error_Code)result}");
         }
@@ -339,6 +348,10 @@ namespace MachineClassLibrary.Laser.Markers
         public override void AskHealth()
         {
             throw new NotImplementedException();
+        }
+        public void SetSystemAngle(double angle)
+        {
+            var result = JczLmc.SetRotateMoveParam(0,0,0,0,angle);
         }
     }
 }

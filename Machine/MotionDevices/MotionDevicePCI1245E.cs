@@ -38,7 +38,7 @@ namespace MachineClassLibrary.Machine.MotionDevices
             return axState == (uint)Advantech.Motion.AxisState.STA_AX_READY;
         }
 
-        public override async Task MoveAxisPreciselyAsync(int axisNum, double lineCoefficient, double position, int rec = 0)
+        public override async Task<double> MoveAxisPreciselyAsync(int axisNum, double lineCoefficient, double position, int rec = 0)
         {
             var state = new uint();
             if (rec == 0) _storeSpeed = GetAxisVelocity(axisNum);
@@ -129,6 +129,7 @@ namespace MachineClassLibrary.Machine.MotionDevices
                         SetAxisVelocity(axisNum, _storeSpeed);
                     }
                 }
+                return 0d;
             }
             else
             {
@@ -141,6 +142,7 @@ namespace MachineClassLibrary.Machine.MotionDevices
                         Motion.mAcm_AxGetMotionStatus(_mAxishand[axisNum], ref state);
                     } while ((state & 0x1) == 0);
                 });
+                return 0d;
             }
         }
     }

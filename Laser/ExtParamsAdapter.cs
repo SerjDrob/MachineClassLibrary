@@ -33,6 +33,7 @@ namespace MachineClassLibrary.Laser
                 HatchEdgeDist = _extendedParams.HatchEdgeDist / 1000d,
                 HatchContourFirst = _extendedParams.HatchContourFirst,
                 HatchEdge = false,//TODO add it extended params
+                HatchAngle = _extendedParams.HatchAngle,
                 HatchAutoRotate = _extendedParams.HatchAutoRotate,
                 HatchRotateAngle = _extendedParams.HatchRotateAngle
             };

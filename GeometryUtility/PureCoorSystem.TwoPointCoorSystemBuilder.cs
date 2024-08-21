@@ -58,10 +58,11 @@ namespace MachineClassLibrary.GeometryUtility
                                            m21: 0, m22: yScaleMul, m23: 0,
                                            m31: 0, m32: 0, m33: 1);
 
-                var sderY = _useYLine ? _yLine[_secondPair.derivativePoint.Y,true] : _secondPair.derivativePoint.Y;
+                
+                var fderX = _useXLine ? _xLine[_firstPair.derivativePoint.X, true] : _firstPair.derivativePoint.X;
                 var fderY = _useYLine ? _yLine[_firstPair.derivativePoint.Y, true] : _firstPair.derivativePoint.Y;
                 var sderX = _useXLine ? _xLine[_secondPair.derivativePoint.X, true] : _secondPair.derivativePoint.X;
-                var fderX = _useXLine ? _xLine[_firstPair.derivativePoint.X, true] : _firstPair.derivativePoint.X;
+                var sderY = _useYLine ? _yLine[_secondPair.derivativePoint.Y, true] : _secondPair.derivativePoint.Y;
 
                 var k1 = (sderY - fderY) / (sderX - fderX);
                 var k2 = (point1.Y - point0.Y) / (point1.X - point0.X);
@@ -83,7 +84,8 @@ namespace MachineClassLibrary.GeometryUtility
                                                    m31: 0, m32: 0, m33: 1);
 
                 _workMatrix = Translate * R * _workTransformation * S;
-
+                //_workMatrix = R.Inverse() * Translate.Inverse() * _workTransformation * S.Inverse();
+                //R.Inverse() * Translate.Inverse() * _mainTransformation * S.Inverse();
                 return this;
             }
             public ICoorSystem Build()

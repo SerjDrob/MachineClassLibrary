@@ -43,7 +43,7 @@ namespace MachineClassLibrary.Machine.MotionDevices
 
         // public event Action<string, int> ThrowMessage;
 
-        public bool DevicesConnection()
+        public Task<bool> DevicesConnection()
         {
             try
             {
@@ -84,7 +84,7 @@ namespace MachineClassLibrary.Machine.MotionDevices
 
             Motion.mAcm_EnableMotionEvent(DeviceHandle, axisEnableEvent, gpEnableEvent, (uint)AxisCount, 1).CheckResult();
 
-            return true;
+            return Task.FromResult(true);
         }
         public async Task StartMonitoringAsync()
         {
@@ -174,6 +174,8 @@ private async Task DeviceStateMonitorAsync()
             var vhEnd = false;
             var nLmt = false;
             var pLmt = false;
+            var ez = false;
+            var org = false;
 
             while (true)
             {
@@ -186,6 +188,8 @@ private async Task DeviceStateMonitorAsync()
 
                     nLmt = (ioStatus & (uint)Ax_Motion_IO.AX_MOTION_IO_LMTN) > 0;
                     pLmt = (ioStatus & (uint)Ax_Motion_IO.AX_MOTION_IO_LMTP) > 0;
+                    ez = (ioStatus & (uint)Ax_Motion_IO.AX_MOTION_IO_EZ) > 0;
+                    org = (ioStatus & (uint)Ax_Motion_IO.AX_MOTION_IO_ORG) > 0;
 
                     var sensorsState = 0;
                     var outState = 0;
@@ -237,7 +241,9 @@ private async Task DeviceStateMonitorAsync()
                         motionDone,
                         homeDone,
                         vhStart,
-                        vhEnd
+                        vhEnd,
+                        ez,
+                        org
                     );
                     _axisStates[num] = axState;
                     try
@@ -300,7 +306,7 @@ private async Task DeviceStateMonitorAsync()
                 throw new MotionException($"Для настоящего устройства не определена ось № {ax.Max(num => num.axisNum)}");
             }
 
-            var tasks = new List<Task>(ax.Length);
+            var tasks = new List<Task<double>>(ax.Length);
 
             //foreach (var item in ax)
             //{
@@ -514,7 +520,7 @@ private async Task DeviceStateMonitorAsync()
             _result = Motion.mAcm_GetProperty(_mAxishand[axisNum], (uint)PropertyID.PAR_AxVelHigh, ref vel, ref bufLength);
             return vel;
         }
-        public async virtual Task MoveAxisPreciselyAsync(int axisNum, double lineCoefficient, double position, int rec = 0)
+        public async virtual Task<double> MoveAxisPreciselyAsync(int axisNum, double lineCoefficient, double position, int rec = 0)
         {
             var accuracy = _tolerance;//0.001;
             ushort state = default;
@@ -522,6 +528,7 @@ private async Task DeviceStateMonitorAsync()
             var gotIt = false;
 
             var storedVelocity = GetAxisVelocity(axisNum);
+            var diff = 0d;
 
             await Task.Run(async () =>
             {
@@ -531,7 +538,7 @@ private async Task DeviceStateMonitorAsync()
                     Motion.mAcm_AxGetState(_mAxishand[axisNum], ref state);
                     await Task.Delay(1).ConfigureAwait(false);
                 } while ((Advantech.Motion.AxisState)state == Advantech.Motion.AxisState.STA_AX_PTP_MOT);
-                var diff = position - CalcActualPosition(axisNum, lineCoefficient);
+                diff = position - CalcActualPosition(axisNum, lineCoefficient);
                 if (lineCoefficient == 0 || Math.Abs(diff) <= accuracy) return;
 
 
@@ -564,10 +571,10 @@ private async Task DeviceStateMonitorAsync()
                     gotIt = Math.Abs(diff) <= accuracy;
                     //if (gotIt) break;
                 }
-            }
-            );
+            });
 
             SetAxisVelocity(axisNum, storedVelocity);
+            return diff;
         }
         public void ResetAxisCounter(int axisNum)
         {
@@ -790,5 +797,25 @@ private async Task DeviceStateMonitorAsync()
         }
 
         public void SetPrecision(double tolerance) => _tolerance = tolerance;
+
+        public Task<double> MoveAxisPreciselyAsync_2(int axisNum, double lineCoefficient, double position, int rec = 0)
+        {
+            throw new NotImplementedException();
+        }
+
+        public double GetAxCmd(int axNum)
+        {
+            throw new NotImplementedException();
+        }
+
+        public void SetAxisCoordinate(int axisNum, double coordinate)
+        {
+            throw new NotImplementedException();
+        }
+
+        public void CloseDevice()
+        {
+            throw new NotImplementedException();
+        }
     }
 }

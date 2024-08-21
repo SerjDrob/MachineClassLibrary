@@ -74,7 +74,11 @@
 
   <ItemGroup>
     <Reference Include="AdvMotAPI">
+<<<<<<< HEAD
       <HintPath>..\..\..\..\..\Program Files (x86)\Advantech\MotionNavi\Public\AdvMotApi.dll</HintPath>
+=======
+      <HintPath>AdvMotApi.dll</HintPath>
+>>>>>>> b0211594fc5bb0dbf58e105c2aa0453a9e63b6e5
     </Reference>
   </ItemGroup>
 
