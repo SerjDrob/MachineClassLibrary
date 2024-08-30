@@ -183,21 +183,29 @@ namespace MachineClassLibrary.VideoCapture
             {
                 if (!_freezeImage)
                 {
-                    using var img = ApplyAdjustWidthIfEnable((Bitmap)eventArgs.Frame.Clone());
-                    filter.ApplyInPlace(img);
-                    mirror.ApplyInPlace(img);
-                    OnRawBitmapChanged?.Invoke(this, img);
-                    var ms = new MemoryStream();
-                    img.Save(ms, ImageFormat.Bmp);
+                    try
+                    {
+                        using var img = ApplyAdjustWidthIfEnable((Bitmap)eventArgs.Frame.Clone());
+                        filter.ApplyInPlace(img);
+                        mirror.ApplyInPlace(img);
+                        OnRawBitmapChanged?.Invoke(this, img);
+                        var ms = new MemoryStream();
+                        img.Save(ms, ImageFormat.Bmp);
 
-                    ms.Seek(0, SeekOrigin.Begin);
+                        ms.Seek(0, SeekOrigin.Begin);
 
-                    _bitmap = new BitmapImage();
-                    _bitmap.BeginInit();
-                    _bitmap.StreamSource = ms;
-                    _bitmap.EndInit();
-                    _bitmap.Freeze();
+                        _bitmap = new BitmapImage();
+                        _bitmap.BeginInit();
+                        _bitmap.StreamSource = ms;
+                        _bitmap.EndInit();
+                        _bitmap.Freeze();
 
+                    }
+                    catch (AccessViolationException ex)
+                    {
+
+                        Console.WriteLine(ex.Message);
+                    }
 
 
 

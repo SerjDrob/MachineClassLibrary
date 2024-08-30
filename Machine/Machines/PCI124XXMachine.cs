@@ -90,7 +90,7 @@ namespace MachineClassLibrary.Machine.Machines
 
         public async Task MoveAxInPosAsync(Ax axis, double position, bool precisely = false)
         {
-            if (!_axes[axis].Busy)
+            if (!_axes[axis].Busy | _axes[axis].MotionDone)
             {
                 SetAxisBusy(axis);
                

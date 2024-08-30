@@ -5,6 +5,7 @@ using System.Text;
 using System.Threading.Tasks;
 using Advantech.Motion;
 using MachineClassLibrary.Classes;
+using AxState = Advantech.Motion.AxisState;
 
 namespace MachineClassLibrary.Machine.MotionDevices
 {
@@ -17,7 +18,7 @@ namespace MachineClassLibrary.Machine.MotionDevices
             _bridges = new Dictionary<int, int>();
             _tolerance = 0.001;
             var device = GetAvailableDevs().First();
-            DeviceHandle = OpenDevice(device);
+            _deviceHandle = OpenDevice(device);
         }
 
         public int AxisCount
@@ -34,10 +35,10 @@ namespace MachineClassLibrary.Machine.MotionDevices
         private AxisState[] _axisStates;
         protected double _tolerance;
 
-        public static IntPtr DeviceHandle
-        {
-            get; private set;
-        }
+        private static IntPtr _deviceHandle;
+        //{
+        //    get; private set;
+        //}
 
         public event EventHandler<AxNumEventArgs> TransmitAxState;
 
@@ -49,6 +50,8 @@ namespace MachineClassLibrary.Machine.MotionDevices
             {
                 AxisCount = GetAxisCount();
                 _axisStates = new AxisState[AxisCount];
+                var buf = (uint)EmgLogic.EMG_ACT_LOW;
+                Motion.mAcm_SetProperty(_deviceHandle, (uint)PropertyID.CFG_DevEmgLogic, ref buf, 4).CheckResult(_deviceHandle);
             }
             //catch (MotionException e)
             //{
@@ -63,7 +66,7 @@ namespace MachineClassLibrary.Machine.MotionDevices
             _mAxishand = new IntPtr[AxisCount];
             for (var i = 0; i < axisEnableEvent.Length; i++)
             {
-                Motion.mAcm_AxOpen(DeviceHandle, (ushort)i, ref _mAxishand[i]).CheckResult(i);
+                Motion.mAcm_AxOpen(_deviceHandle, (ushort)i, ref _mAxishand[i]).CheckResult(i);
 
                 double cmdPosition = 0;
 
@@ -71,7 +74,46 @@ namespace MachineClassLibrary.Machine.MotionDevices
 
                 Motion.mAcm_AxGetState(_mAxishand[i], ref state);
 
-                if (state == 3) Motion.mAcm_AxResetError(_mAxishand[i]).CheckResult(i);
+
+                if ((AxState)state != AxState.STA_AX_READY)
+                {
+                    switch ((AxState)state)
+                    {
+                        case AxState.STA_AX_DISABLE:
+                            break;
+                        case AxState.STA_AX_READY:
+                            break;
+                        case AxState.STA_AX_STOPPING:
+                            break;
+                        case AxState.STA_AX_ERROR_STOP:
+                            break;
+                        case AxState.STA_AX_HOMING:
+                            break;
+                        case AxState.STA_AX_PTP_MOT:
+                            break;
+                        case AxState.STA_AX_CONTI_MOT:
+                            break;
+                        case AxState.STA_AX_SYNC_MOT:
+                            break;
+                        case AxState.STA_AX_EXT_JOG:
+                            break;
+                        case AxState.STA_AX_EXT_MPG:
+                            break;
+                        case AxState.STA_AX_PAUSE:
+                            break;
+                        case AxState.STA_AX_BUSY:
+                            break;
+                        case AxState.STA_AX_WAIT_DI:
+                            break;
+                        case AxState.STA_AX_WAIT_PTP:
+                            break;
+                        case AxState.STA_AX_WAIT_VEL:
+                            break;
+                        default:
+                            break;
+                    }
+                    Motion.mAcm_AxResetError(_mAxishand[i]).CheckResult(i);
+                }
                 Motion.mAcm_AxSetCmdPosition(_mAxishand[i], cmdPosition).CheckResult(i);
                 Motion.mAcm_AxSetActualPosition(_mAxishand[i], cmdPosition).CheckResult(i);
 
@@ -82,7 +124,7 @@ namespace MachineClassLibrary.Machine.MotionDevices
                 axisEnableEvent[i] |= (uint)EventType.EVT_AX_VH_END;
             }
 
-            Motion.mAcm_EnableMotionEvent(DeviceHandle, axisEnableEvent, gpEnableEvent, (uint)AxisCount, 1).CheckResult();
+            Motion.mAcm_EnableMotionEvent(_deviceHandle, axisEnableEvent, gpEnableEvent, (uint)AxisCount, 1).CheckResult();
 
             return Task.FromResult(true);
         }
@@ -179,7 +221,7 @@ private async Task DeviceStateMonitorAsync()
 
             while (true)
             {
-                eventResult = Motion.mAcm_CheckMotionEvent(DeviceHandle, axEvtStatusArray, gpEvtStatusArray, (uint)AxisCount, 0, 10);
+                eventResult = Motion.mAcm_CheckMotionEvent(_deviceHandle, axEvtStatusArray, gpEvtStatusArray, (uint)AxisCount, 0, 10);
                 for (int num = 0; num < _mAxishand.Length; num++)
                 {
                     //var axState = new AxisState();
@@ -335,7 +377,7 @@ private async Task DeviceStateMonitorAsync()
                 if (!Success(_result)) { throw new MotionException($"Get command position Failed With Error Code: [0x{_result:X}]"); }
             }
 
-            return position * lineCoefficient;
+            return position /** lineCoefficient*/;
         }
         public void SetAxisVelocity(int axisNum, double vel)
         {
@@ -463,21 +505,21 @@ private async Task DeviceStateMonitorAsync()
             //double homeVelHigh = configs.homeVelHigh;
 
             _result = Motion.mAcm_SetProperty(_mAxishand[axisNum], (uint)PropertyID.CFG_AxHomeResetEnable, ref configs.reset, 4); _errors.Add(PropertyID.CFG_AxHomeResetEnable, _result);
-            //_result = Motion.mAcm_SetU32Property(_mAxishand[axisNum], (uint)PropertyID.CFG_AxPPUDenominator, denominator);
 
 
             _result = Motion.mAcm_SetProperty(_mAxishand[axisNum], (uint)PropertyID.CFG_AxPPU, ref ppu, 4); _errors.Add(PropertyID.CFG_AxPPU, _result);
-
-            //_result = Motion.mAcm_SetProperty(_mAxishand[axisNum], (uint)PropertyID.CFG_AxPPUDenominator, ref denominator, 4); _errors.Add(PropertyID.CFG_AxPPUDenominator, _result);
             _result = Motion.mAcm_SetProperty(_mAxishand[axisNum], (uint)PropertyID.CFG_AxMaxAcc, ref axMaxAcc, 8); _errors.Add(PropertyID.CFG_AxMaxAcc, _result);
             _result = Motion.mAcm_SetProperty(_mAxishand[axisNum], (uint)PropertyID.CFG_AxMaxDec, ref axMaxDec, 8); _errors.Add(PropertyID.CFG_AxMaxDec, _result);
             _result = Motion.mAcm_SetProperty(_mAxishand[axisNum], (uint)PropertyID.CFG_AxMaxVel, ref axMaxVel, 8); _errors.Add(PropertyID.CFG_AxMaxVel, _result);
             // result = Motion.mAcm_SetProperty(_mAxishand[axisNum], (uint)PropertyID.CFG_AxPulseInLogic, ref configs.plsInLogic, 4); errors.Add(PropertyID.CFG_AxPulseInLogic, result);
             _result = Motion.mAcm_SetProperty(_mAxishand[axisNum], (uint)PropertyID.CFG_AxPulseInMode, ref configs.plsInMde, 4); _errors.Add(PropertyID.CFG_AxPulseInMode, _result);
+            
             _result = Motion.mAcm_SetProperty(_mAxishand[axisNum], (uint)PropertyID.CFG_AxPulseOutMode, ref configs.plsOutMde, 4); _errors.Add(PropertyID.CFG_AxPulseOutMode, _result);
+            _result = Motion.mAcm_SetProperty(_mAxishand[axisNum], (uint)PropertyID.CFG_AxPulseInLogic, ref configs.plsInLogic, 4); _errors.Add(PropertyID.CFG_AxPulseInLogic, _result);
+
             _result = Motion.mAcm_SetProperty(_mAxishand[axisNum], (uint)PropertyID.PAR_AxAcc, ref acc, 8); _errors.Add(PropertyID.PAR_AxAcc, _result);
             _result = Motion.mAcm_SetProperty(_mAxishand[axisNum], (uint)PropertyID.PAR_AxDec, ref dec, 8); _errors.Add(PropertyID.PAR_AxDec, _result);
-            _result = Motion.mAcm_SetProperty(_mAxishand[axisNum], (uint)PropertyID.PAR_AxJerk, ref jerk, 8); _errors.Add(PropertyID.PAR_AxJerk, _result);
+ //           _result = Motion.mAcm_SetProperty(_mAxishand[axisNum], (uint)PropertyID.PAR_AxJerk, ref jerk, 8); _errors.Add(PropertyID.PAR_AxJerk, _result);
 
             // result = Motion.mAcm_SetProperty(_mAxishand[axisNum], (uint)PropertyID.PAR_AxHomeVelLow, ref homeVelLow, 8); errors.Add(PropertyID.PAR_AxHomeVelLow, result);
             // result = Motion.mAcm_SetProperty(_mAxishand[axisNum], (uint)PropertyID.PAR_AxHomeVelHigh, ref homeVelHigh, 8); errors.Add(PropertyID.PAR_AxHomeVelHigh, result);
@@ -753,7 +795,7 @@ private async Task DeviceStateMonitorAsync()
         private int GetAxisCount()
         {
             uint axesPerDev = default;
-            _result = Motion.mAcm_GetU32Property(DeviceHandle, (uint)PropertyID.FT_DevAxesCount, ref axesPerDev);
+            _result = Motion.mAcm_GetU32Property(_deviceHandle, (uint)PropertyID.FT_DevAxesCount, ref axesPerDev);
 
             if (!Success(_result))
             {
@@ -805,7 +847,9 @@ private async Task DeviceStateMonitorAsync()
 
         public double GetAxCmd(int axNum)
         {
-            throw new NotImplementedException();
+            var position = 0d;
+            Motion.mAcm_AxGetCmdPosition(_mAxishand[axNum], ref position).CheckResult(axNum); 
+            return position;
         }
 
         public void SetAxisCoordinate(int axisNum, double coordinate)
@@ -815,7 +859,7 @@ private async Task DeviceStateMonitorAsync()
 
         public void CloseDevice()
         {
-            throw new NotImplementedException();
+           var result = Motion.mAcm_DevClose(ref _deviceHandle);
         }
     }
 }

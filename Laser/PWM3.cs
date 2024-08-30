@@ -3,6 +3,7 @@ using System.Diagnostics;
 using System.IO.Ports;
 using System.Threading;
 using System.Threading.Tasks;
+using Advantech.Motion;
 using MachineClassLibrary.Miscellaneous;
 
 namespace MachineClassLibrary.Laser
@@ -56,7 +57,7 @@ namespace MachineClassLibrary.Laser
             var comPort = new SerialPort
             {
                 PortName = port,
-                BaudRate =  9600,//57600,//9600,
+                BaudRate = 9600, //57600,//9600,
                 Parity = Parity.None,
                 DataBits = 8,
                 StopBits = StopBits.One,

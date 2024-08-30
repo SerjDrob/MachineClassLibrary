@@ -99,7 +99,7 @@ namespace MachineClassLibrary.Machine.Machines
             Guard.IsNotNull(videoCapture, nameof(videoCapture));
             _markLaser = markLaser;
             var watchableLaser = _markLaser as WatchableDevice;
-            watchableLaser.OfType<HealthOK>()
+            watchableLaser?.OfType<HealthOK>()
                 .Subscribe(ok =>
                 {
                     switch (ok.Device)
@@ -115,7 +115,7 @@ namespace MachineClassLibrary.Machine.Machines
                     }
                     _subject?.OnNext(new DeviceStateChanged());
                 });
-            watchableLaser.OfType<HealthProblem>()
+            watchableLaser?.OfType<HealthProblem>()
                 .Subscribe(problem =>
                 {
                     switch (problem.Device)
