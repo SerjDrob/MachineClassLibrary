@@ -1,15 +1,12 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 using System.Windows;
-using System.Xml.Linq;
 using MachineClassLibrary.Classes;
 
 namespace MachineClassLibrary.Laser.Entities
 {
-    internal class PCluster : IProcObject, IShape
+    internal class PCluster : IProcObject<PCluster>, IShape
     {
         private readonly IProcObject[] _procObjects;
         public IEnumerable<IProcObject> ProcObjects => _procObjects;
@@ -64,7 +61,7 @@ namespace MachineClassLibrary.Laser.Entities
         {
             get; set;
         }
-        private readonly Curve _curve;
+        //private readonly Curve _curve;
         public double Scaling { get; private set; } = 1;
         public bool MirrorX { get; private set; } = false;
         public bool Turn90 { get; private set; } = false;
@@ -76,24 +73,53 @@ namespace MachineClassLibrary.Laser.Entities
         {
             get; private set;
         }
+        private PCluster _pCluster;
+        public PCluster PObject { get => GetTransformedCluster(); init => _pCluster = value; }
+
+        private PCluster GetTransformedCluster()
+        {
+            throw new NotImplementedException();
+        }
 
         public void Scale(double scale)
         {
             Scaling = scale;
+            foreach (var @object in _procObjects)
+            {
+                @object.Scale(scale);
+            }
         }
         public void SetMirrorX(bool mirror)
         {
             MirrorX = mirror;
+            foreach (var @object in _procObjects)
+            {
+                @object.SetMirrorX(mirror);
+            }
         }
         public void SetTurn90(bool turn)
         {
             Turn90 = turn;
+            foreach (var @object in _procObjects)
+            {
+                @object.SetTurn90(turn);
+            }
         }
         public override string ToString() => $"{GetType().Name} X:{X}, Y:{Y} Id = {Id}";
         public IProcObject CloneWithPosition(double x, double y) => new PCluster(x, y, Angle, _procObjects, LayerName, ARGBColor, Id);
         public (double x, double y) GetSize()
         {
             return (Bounds.Width, Bounds.Height);
+        }
+
+        public void Deconstruct(out IShape[] primaryShape, out int num)
+        {
+            throw new NotImplementedException();
+        }
+
+        IProcObject<PCluster> IProcObject<PCluster>.CloneWithPosition(double x, double y)
+        {
+            throw new NotImplementedException();
         }
     }
     public static class ProcObjectsExtensions
@@ -106,7 +132,7 @@ namespace MachineClassLibrary.Laser.Entities
                 return acc;
             });
 
-           return procObjects.SplitOnClusters(boundary, xParts, yParts);
+            return procObjects.SplitOnClusters(boundary, xParts, yParts);
         }
 
         public static IEnumerable<IProcObject> SplitOnClusters(this IEnumerable<IProcObject> procObjects, Rect boundary, int xParts, int yParts)
@@ -117,11 +143,16 @@ namespace MachineClassLibrary.Laser.Entities
                 .SelectMany(x => Enumerable.Range(0, yParts).Select(y => new Rect(x * width + boundary.X, y * height + boundary.Y, width, height)));
 
             var objects = procObjects.ToList();
-            return boundaries.Select(b => {
+            return boundaries.Select(b =>
+            {
                 var centerX = b.X + b.Width / 2;
                 var centerY = b.Y + b.Height / 2;
-                return new PCluster(centerX, centerY, objects.ExtractMorph(o => b.Contains(o.X, o.Y), ex => ex.CloneWithPosition(ex.X - centerX, ex.Y - centerY)));
-            }).Where(b=>b.ProcObjects.Any());
+                return new PCluster(centerX, centerY, objects.ExtractMorph(o => b.Contains(o.X, o.Y), ex =>
+                {
+                    ex.CloneWithPosition(ex.X - centerX, ex.Y - centerY);
+                    return ex;
+                }));
+            }).Where(b => b.ProcObjects.Any());
         }
 
         public static IEnumerable<T> Extract<T>(this List<T> values, Predicate<T> predicate)

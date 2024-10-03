@@ -57,7 +57,7 @@ namespace MachineClassLibrary.Laser
             var comPort = new SerialPort
             {
                 PortName = port,
-                BaudRate = 9600, //57600,//9600,
+                BaudRate = 9600,
                 Parity = Parity.None,
                 DataBits = 8,
                 StopBits = StopBits.One,

@@ -12,5 +12,11 @@ namespace MachineClassLibrary.Laser.Entities
             acc.Union(cur.Bounds);
             return acc;
         });
+
+        public void Deconstruct(out IShape[] primaryShape, out int num)
+        {
+            primaryShape = Curves.ToArray();
+            num = Curves.Count();
+        }
     }
 }

@@ -19,5 +19,10 @@ namespace MachineClassLibrary.Laser.Entities
         {
             _fullPath = fullPath;
         }
+
+        public void Deconstruct(out IShape[] primaryShape, out int num)
+        {
+            throw new System.NotImplementedException();
+        }
     }
 }

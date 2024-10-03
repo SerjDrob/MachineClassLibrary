@@ -177,7 +177,7 @@ namespace MachineClassLibrary.Classes
                 var ent = shape switch
                 {
                     Circle circle => new DxfCircle(new DxfPoint(circle.CenterX, circle.CenterY, 0), circle.Radius),
-                    Curve curve => (DxfEntity) new DxfLwPolyline(curve.Vertices.Select(v => new DxfLwPolylineVertex { X = v.X, Y = v.Y, Bulge = v.Bulge })){ IsClosed = curve.IsClosed, ConstantWidth = 0.1d }
+                    Curve curve => (DxfEntity) new DxfLwPolyline(curve.Vertices.Select(v => new DxfLwPolylineVertex { X = v.X, Y = v.Y, Bulge = v.Bulge })){ IsClosed = curve.IsClosed, ConstantWidth = 0.1d },
                 };
                 doc.Entities.Add(ent);
             }
