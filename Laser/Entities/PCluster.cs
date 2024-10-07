@@ -1,6 +1,10 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Drawing;
+using System.Drawing.Drawing2D;
 using System.Linq;
+using System.Numerics;
+using System.Security.Cryptography;
 using System.Windows;
 using MachineClassLibrary.Classes;
 
@@ -78,7 +82,22 @@ namespace MachineClassLibrary.Laser.Entities
 
         private PCluster GetTransformedCluster()
         {
-            throw new NotImplementedException();
+            var transformation = Matrix3x2.Identity;
+            var mirror = Matrix3x2.CreateScale(MirrorX ? -1 : 1, 1);
+            var scaling = Matrix3x2.CreateScale((float)Scaling);
+            var rotation = Matrix3x2.CreateRotation(Turn90 ? MathF.PI * 90 / 180 : 0);
+            transformation *= scaling * mirror * rotation;
+            var matrix = new Matrix(transformation);
+
+            var transObjects = _procObjects.Select(p =>
+            {
+                var points = new PointF[] { new PointF((float)p.X, (float)p.Y) };
+                matrix.TransformPoints(points);
+                var pobj = p.CloneWithPosition(points[0].X, points[0].Y);
+                return pobj;
+            }).ToArray(); 
+
+            return new(this.X,this.Y,transObjects);
         }
 
         public void Scale(double scale)
@@ -106,7 +125,7 @@ namespace MachineClassLibrary.Laser.Entities
             }
         }
         public override string ToString() => $"{GetType().Name} X:{X}, Y:{Y} Id = {Id}";
-        public IProcObject CloneWithPosition(double x, double y) => new PCluster(x, y, Angle, _procObjects, LayerName, ARGBColor, Id);
+        
         public (double x, double y) GetSize()
         {
             return (Bounds.Width, Bounds.Height);
@@ -117,10 +136,8 @@ namespace MachineClassLibrary.Laser.Entities
             throw new NotImplementedException();
         }
 
-        IProcObject<PCluster> IProcObject<PCluster>.CloneWithPosition(double x, double y)
-        {
-            throw new NotImplementedException();
-        }
+        public IProcObject<PCluster> CloneWithPosition(double x, double y) => new PCluster(x, y, Angle, _procObjects, LayerName, ARGBColor, Id);
+        IProcObject IProcObject.CloneWithPosition(double x, double y) => CloneWithPosition(x, y);
     }
     public static class ProcObjectsExtensions
     {
@@ -149,8 +166,8 @@ namespace MachineClassLibrary.Laser.Entities
                 var centerY = b.Y + b.Height / 2;
                 return new PCluster(centerX, centerY, objects.ExtractMorph(o => b.Contains(o.X, o.Y), ex =>
                 {
-                    ex.CloneWithPosition(ex.X - centerX, ex.Y - centerY);
-                    return ex;
+                    var obj = ex.CloneWithPosition(ex.X - centerX, ex.Y - centerY);
+                    return obj;
                 }));
             }).Where(b => b.ProcObjects.Any());
         }
