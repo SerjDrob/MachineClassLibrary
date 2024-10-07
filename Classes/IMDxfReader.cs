@@ -2,6 +2,7 @@
 using IxMilia.Dxf.Entities;
 using MachineClassLibrary.Laser.Entities;
 using System.Collections.Generic;
+using System.Drawing;
 using System.Linq;
 using System.Windows;
 
@@ -213,7 +214,11 @@ namespace MachineClassLibrary.Classes
              );
         }
 
-        
+        public (PointF minPoint, PointF maxPoint) GetSize2()
+        {
+            var box = _document.GetBoundingBox();
+            return (new((float)box.MinimumPoint.X, (float)box.MinimumPoint.Y), new((float)box.MaximumPoint.X, (float)box.MaximumPoint.Y));
+        }
     }
 
 }

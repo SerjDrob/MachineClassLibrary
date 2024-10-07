@@ -1,6 +1,7 @@
 ﻿using MachineClassLibrary.Laser.Entities;
 using System;
 using System.Collections.Generic;
+using System.Drawing;
 using System.Linq;
 using System.Windows;
 
@@ -112,6 +113,11 @@ namespace MachineClassLibrary.Classes
         public void WriteShapesToFile(string filePath, params IShape[] shapes)
         {
             _dxfReader?.WriteShapesToFile(filePath, shapes);
+        }
+
+        public (PointF minPoint, PointF maxPoint) GetSize2()
+        {
+            return _dxfReader.GetSize2();
         }
     }
 
