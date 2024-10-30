@@ -87,6 +87,7 @@ namespace MachineClassLibrary.Classes
         }
 
         private Stack<(string[] layers, Rect selection)> _erasedObjects;
+        public Stack<(string[] layers, Rect selection)> ErasedObjects { get => _erasedObjects; }
 
         public void RemoveBySelection(string layerName, Rect selection)
         {
