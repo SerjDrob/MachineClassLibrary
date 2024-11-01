@@ -171,7 +171,7 @@ namespace MachineClassLibrary.Machine.Machines
 
         private void _videoCapture_CameraPlugged(object sender, EventArgs e) => CameraPlugged?.Invoke(sender, e);
 
-        public async Task<bool> FindCameraFocus(CancellationToken token, float startIndex = 1)
+        public async Task<bool> FindCameraFocusAsync(CancellationToken token, float startIndex = 1)
         {
             if (token.IsCancellationRequested) return true;
             var currentIndex = _videoCapture.GetBlurIndex();
@@ -186,7 +186,7 @@ namespace MachineClassLibrary.Machine.Machines
                 await Task.Delay(100);
             }
             currentIndex = _videoCapture.GetBlurIndex();
-            await FindCameraFocus(token, currentIndex);
+            await FindCameraFocusAsync(token, currentIndex);
             return true;
         }
 

@@ -174,11 +174,11 @@ namespace MachineClassLibrary.Laser.Markers
             var tempFilePath = Path.Combine(Path.GetTempPath(), "TestFile.ezd");
             result = JczLmc.SaveEntLibToFile(tempFilePath);
             await SetPwm(_markLaserParams.PenParams);
-            await MarkEntityAndDelete("Entity");
+            await MarkEntityAndDeleteAsync("Entity");
             return true;
         }
 
-        private async Task MarkEntityAndDelete(string entityName)
+        private async Task MarkEntityAndDeleteAsync(string entityName)
         {
             await Task.Run(async () =>
             {
@@ -266,7 +266,7 @@ namespace MachineClassLibrary.Laser.Markers
             
             if (result != 0) return false;
             await SetPwm(_markLaserParams.PenParams);
-            await MarkEntityAndDelete("Text");
+            await MarkEntityAndDeleteAsync("Text");
             return true;
         }
 

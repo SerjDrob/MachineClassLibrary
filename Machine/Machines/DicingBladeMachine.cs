@@ -420,7 +420,7 @@ namespace MachineClassLibrary.Machine.Machines
 
         protected override void OnVelocityRegimeChanged(Velocity velocity)
         {
-            throw new NotImplementedException();
+           // throw new NotImplementedException();
         }
 
         public float GetBlurIndex()
