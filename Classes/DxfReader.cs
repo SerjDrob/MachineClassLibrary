@@ -114,5 +114,10 @@ namespace MachineClassLibrary.Classes
         {
             throw new System.NotImplementedException();
         }
+
+        public (PointF minPoint, PointF maxPoint) GetSize2()
+        {
+            throw new System.NotImplementedException();
+        }
     }
 }

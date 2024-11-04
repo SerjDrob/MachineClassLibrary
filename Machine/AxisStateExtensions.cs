@@ -13,7 +13,9 @@
             state.motionDone,
             state.homeDone,
             newVal,
-            state.vhEnd
+            state.vhEnd,
+            state.ez,
+            state.org
         );
         public static AxisState AlterVHEnd(this AxisState state, bool newVal) => new AxisState
         (
@@ -26,9 +28,13 @@
             state.motionDone,
             state.homeDone,
             state.vhStart,
-            newVal
+            newVal,
+            state.ez, 
+            state.org
         );
-        public static AxisState AlterMotDone(this AxisState state, bool newVal) => new AxisState
+        public static AxisState AlterMotDone(this AxisState state, bool newVal)
+        {
+            return new AxisState
         (
             state.cmdPos,
             state.actPos,
@@ -39,7 +45,10 @@
             newVal,
             state.homeDone,
             state.vhStart,
-            state.vhEnd
+            state.vhEnd,
+            state.ez,
+            state.org
         );
+        }
     }
 }

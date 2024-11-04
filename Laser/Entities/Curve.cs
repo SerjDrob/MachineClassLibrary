@@ -22,6 +22,12 @@ namespace MachineClassLibrary.Laser.Entities
         public bool IsClosed { get; init; }
         public Rect Bounds { get; init; }
 
+        public void Deconstruct(out IShape[] primaryShapes, out int num)
+        {
+            primaryShapes = [this];
+            num = 1;
+        }
+
         public static bool operator == (Curve left, Curve right) => left.Bounds.Width == right.Bounds.Width && left.Bounds.Height == right.Bounds.Height;
         public static bool operator != (Curve left, Curve right) => !(left == right);
 

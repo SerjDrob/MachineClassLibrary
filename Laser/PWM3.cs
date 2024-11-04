@@ -3,6 +3,7 @@ using System.Diagnostics;
 using System.IO.Ports;
 using System.Threading;
 using System.Threading.Tasks;
+using Advantech.Motion;
 using MachineClassLibrary.Miscellaneous;
 
 namespace MachineClassLibrary.Laser

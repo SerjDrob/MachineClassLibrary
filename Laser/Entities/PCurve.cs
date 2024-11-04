@@ -60,9 +60,10 @@ namespace MachineClassLibrary.Laser.Entities
             Turn90 = turn;
         }
         public IProcObject<Curve> CloneWithPosition(double x, double y) => new PCurve(x, y, Angle, PObject, LayerName, ARGBColor, Id);
+        IProcObject IProcObject.CloneWithPosition(double x, double y) => CloneWithPosition(x, y);
         public override string ToString() => $"{GetType().Name} X:{X}, Y:{Y} Id = {Id}";
 
-        IProcObject IProcObject.CloneWithPosition(double x, double y) => CloneWithPosition(x, y);
+        
         public (double x, double y) GetSize()
         {
             return (PObject.Bounds.Width, PObject.Bounds.Height);

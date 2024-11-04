@@ -1,7 +1,7 @@
 ﻿using Humanizer;
 using MachineClassLibrary.Classes;
 
-namespace MachineClassLibrary.Miscellanius
+namespace MachineClassLibrary.Miscellaneous
 {
     public static class IntNumbers
     {

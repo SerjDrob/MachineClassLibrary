@@ -1,6 +1,6 @@
-﻿using netDxf;
-using System;
+﻿using System;
 using System.Drawing;
+using netDxf;
 
 namespace MachineClassLibrary.GeometryUtility
 {
@@ -11,14 +11,18 @@ namespace MachineClassLibrary.GeometryUtility
             private (PointF originPoint, PointF derivativePoint) _firstPair;
             private (PointF originPoint, PointF derivativePoint) _secondPair;
             private (PointF originPoint, PointF derivativePoint) _thirdPair;
-            
+
             private Matrix3 _workMatrix = new Matrix3(m11: 1, m12: 0, m13: 0,
                                                       m21: 0, m22: 1, m23: 0,
                                                       m31: 0, m32: 0, m33: 1);
-            
+
             private Matrix3 _pureMatrix = new Matrix3(m11: 1, m12: 0, m13: 0,
                                                       m21: 0, m22: 1, m23: 0,
                                                       m31: 0, m32: 0, m33: 1);
+            private CoeffLine _xLine;
+            private bool _useXLine;
+            private CoeffLine _yLine;
+            private bool _useYLine;
 
             public ThreePointCoorSystemBuilder SetFirstPointPair(PointF originPoint, PointF derivativePoint)
             {
@@ -35,20 +39,38 @@ namespace MachineClassLibrary.GeometryUtility
                 _thirdPair = (originPoint, derivativePoint);
                 return this;
             }
+            public ThreePointCoorSystemBuilder UseXCoeffLine(CoeffLine xLine)
+            {
+                _xLine = xLine;
+                _useXLine = true;
+                return this;
+            }
+            public ThreePointCoorSystemBuilder UseYCoeffLine(CoeffLine yLine)
+            {
+                _yLine = yLine;
+                _useYLine = true;
+                return this;
+            }
             public ThreePointCoorSystemBuilder FormWorkMatrix(double xScaleMul, double yScaleMul)
             {
                 var first = _firstPair;
                 var second = _secondPair;
                 var third = _thirdPair;
 
-                var initialPoints = new Matrix3(m11: first.Item1.X, m12: first.Item1.Y, m13: 1,
-                                                m21: second.Item1.X, m22: second.Item1.Y, m23: 1,
-                                                m31: third.Item1.X, m32: third.Item1.Y, m33: 1);
+                var initialPoints = new Matrix3(m11: first.originPoint.X, m12: first.originPoint.Y, m13: 1,
+                                                m21: second.originPoint.X, m22: second.originPoint.Y, m23: 1,
+                                                m31: third.originPoint.X, m32: third.originPoint.Y, m33: 1);
 
+                var fderX = _useXLine ? _xLine[_firstPair.derivativePoint.X, true] : _firstPair.derivativePoint.X;
+                var fderY = _useYLine ? _yLine[_firstPair.derivativePoint.Y, true] : _firstPair.derivativePoint.Y;
+                var sderX = _useXLine ? _xLine[_secondPair.derivativePoint.X, true] : _secondPair.derivativePoint.X;
+                var sderY = _useYLine ? _yLine[_secondPair.derivativePoint.Y, true] : _secondPair.derivativePoint.Y;
+                var tderX = _useXLine ? _xLine[_thirdPair.derivativePoint.X, true] : _thirdPair.derivativePoint.X;
+                var tderY = _useYLine ? _yLine[_thirdPair.derivativePoint.Y, true] : _thirdPair.derivativePoint.Y;
 
-                var transformedPoints = new Matrix3(m11: first.Item2.X, m12: first.Item2.Y, m13: 1,
-                                                    m21: second.Item2.X, m22: second.Item2.Y, m23: 1,
-                                                    m31: third.Item2.X, m32: third.Item2.Y, m33: 1);
+                var transformedPoints = new Matrix3(m11: fderX, m12: fderY, m13: 1,
+                                                    m21: sderX, m22: sderY, m23: 1,
+                                                    m31: tderX, m32: tderY, m33: 1);
 
                 var invert = initialPoints.Inverse();
 

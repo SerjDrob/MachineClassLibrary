@@ -24,10 +24,17 @@ namespace MachineClassLibrary.Machine.MotionDevices
             if (result != 0)
             {
                 var sb = new StringBuilder(50);
+                uint state = default;
+                Motion2.mAcm2_AxGetState(0,AXIS_STATUS_TYPE.AXIS_STATE, ref state);
+                var xstate = (Advantech.Motion.AxisState)state;
+                Motion2.mAcm2_AxGetState(1, AXIS_STATUS_TYPE.AXIS_STATE, ref state);
+                var ystate = (Advantech.Motion.AxisState)state;
+                Motion2.mAcm2_AxGetState(2, AXIS_STATUS_TYPE.AXIS_STATE, ref state);
+                var zstate = (Advantech.Motion.AxisState)state;
                 Motion2.mAcm2_GetErrorMessage(result, sb, 50);
                 var axisName = axisNum != -1 ? $"in axis number {axisNum}" : string.Empty;
 
-                throw new MotionException($"{sb} Error Code: [0x{result:X}] {axisName}");
+               throw new MotionException($"{sb} Error Code: [0x{result:X}] {axisName}");
             }
         }
 

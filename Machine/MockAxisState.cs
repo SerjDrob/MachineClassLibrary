@@ -28,6 +28,9 @@
         public bool homeDone { get; set; }
         public bool vhStart { get; set; }
         public bool vhEnd { get; set; }
-        public AxisState GetAxisState => new AxisState(cmdPos, actPos, sensors, outs, pLmt, nLmt, motionDone, homeDone, vhStart,vhEnd);
+        public bool ez { get; set; }
+        public bool org { get; set; }
+
+        public AxisState GetAxisState => new AxisState(cmdPos, actPos, sensors, outs, pLmt, nLmt, motionDone, homeDone, vhStart,vhEnd, ez, org);
     }
 }

@@ -418,6 +418,16 @@ namespace MachineClassLibrary.Machine.Machines
             _videoCamera.SetCameraMirror(mirrorX, mirrorY);
         }
 
+        protected override void OnVelocityRegimeChanged(Velocity velocity)
+        {
+           // throw new NotImplementedException();
+        }
+
+        public float GetBlurIndex()
+        {
+            throw new NotImplementedException();
+        }
+
         public class GeometryBuilder<TPlace> : IGeometryBuilder<TPlace> where TPlace : Enum
         {
             private Dictionary<TPlace, (Ax axis, double pos)[]> _places;

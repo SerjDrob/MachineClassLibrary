@@ -2,9 +2,11 @@
 using MachineClassLibrary.Laser.Entities;
 //using netDxf.Entities;
 using System;
+using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Net.NetworkInformation;
+using System.Windows.Documents;
 
 namespace MachineClassLibrary.Laser
 {
@@ -43,7 +45,15 @@ namespace MachineClassLibrary.Laser
         {
             var filename = $"{CLUSTER_PREFIX}{Guid.NewGuid()}.dxf";
             var filePath = Path.Combine(_folderPath, filename);
-            _dxfReader.WriteShapesToFile(filePath, shapes);
+            var resultShapes = new List<IShape>();
+
+            foreach (var shape in shapes)
+            {
+                var (shs,_) = shape;
+                resultShapes.AddRange(shs);
+            }
+
+            _dxfReader.WriteShapesToFile(filePath, resultShapes.ToArray());
             _path = filePath;
             return this;
         }

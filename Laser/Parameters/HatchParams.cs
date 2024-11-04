@@ -10,6 +10,7 @@
          bool HatchAllCalc, // compute all object or not
          bool HatchEdge, //around edge once time
          bool HatchAverageLine,// Automatic average distribution line double dHatchAngle, //hatch line angle
+         double HatchAngle,
          double HatchLineDist, // hatch edge distance
          double HatchEdgeDist, // hatch line distance 
          double HatchStartOffset, // hatch start offset distance

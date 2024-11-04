@@ -1,5 +1,4 @@
 ﻿using System;
-using System.CodeDom;
 using System.Collections.Generic;
 using System.Linq;
 using System.Reactive.Linq;
@@ -106,13 +105,13 @@ namespace MachineClassLibrary.Miscellaneous
         public abstract void AskHealth();
         public void DeviceOK() => _subject?.OnNext(new HealthOK());
         public void DeviceOK(object device) => _subject?.OnNext(new HealthOK(device));
-        
+
         public void WatchMe(string vid, string pid, Action doWhenPlugged)
         {
             _plugMeWatcher ??= new(vid, pid);
             _plugMeWatcher.WaitAndPlugMe(doWhenPlugged);
         }
-        
+
         public void Dispose()
         {
             _subscriptions?.ForEach(x => x.Dispose());
@@ -126,10 +125,5 @@ namespace MachineClassLibrary.Miscellaneous
             _subscriptions.Add(subscription);
             return subscription;
         }
-    }
-
-    internal static class WatchDeviceExtensions
-    {
-        internal static void AddSubscriptionTo(this IDisposable subscription, IList<IDisposable> subscriptions) => subscriptions?.Add(subscription);
     }
 }
