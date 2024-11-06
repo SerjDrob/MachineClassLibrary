@@ -5,8 +5,8 @@ namespace MachineClassLibrary.GeometryUtility
 {
     public class CoeffLine
     {
-        private readonly double[] originPoints;
-        private readonly double[] derivedPoints;
+        private double[] originPoints;
+        private double[] derivedPoints;
 
         public CoeffLine(params (double orig, double derived)[] values)
         {
@@ -16,6 +16,15 @@ namespace MachineClassLibrary.GeometryUtility
             derivedPoints = res.Select(val => val.derived).ToArray();
         }
 
+        public void AddPoint(double orig, double derived)
+        {
+            var tempArr = originPoints.Zip(derivedPoints)
+                .Append((orig,derived))
+                .OrderBy(o=>o.Item1);
+            originPoints = tempArr.Select(val => val.Item1).ToArray();
+            derivedPoints = tempArr.Select(val => val.Item2).ToArray();
+        }
+        public (double orig, double derived)[] GetValues() => originPoints.Zip(derivedPoints).ToArray();
         public double this[double par, bool rev = false]
         {
             get
