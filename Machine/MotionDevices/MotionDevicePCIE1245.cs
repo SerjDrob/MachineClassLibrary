@@ -1048,6 +1048,13 @@ namespace MachineClassLibrary.Machine.MotionDevices
         {
             var result = Motion2.mAcm2_DevAllClose();
         }
+
+        public bool GetAxisReady(int axisNum)
+        {
+            var status = new MOTION_IO();
+            Motion2.mAcm2_AxGetMotionIO(_axisLogicalIDList[axisNum].ID, ref status);
+            return status.RDY > 0;
+        }
     }
 
 

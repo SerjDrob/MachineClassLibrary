@@ -306,7 +306,7 @@ namespace MachineClassLibrary.Laser.Markers
             //var result = Lmc.lmc1_CancelMark();
             var result = await Task.FromResult(JczLmc.StopMark());
             var res = true;
-            if (_markLaserParams.PenParams.IsModulated) res = await _pwm.StopPWM();//TODO exception?
+            if (_markLaserParams?.PenParams.IsModulated ?? false) res = await _pwm.StopPWM();//TODO exception?
             return res & result == 0;
             //if (result != 0) throw new Exception($"Cancelling of marking failed with error code {(Lmc.EzCad_Error_Code)result}");
         }

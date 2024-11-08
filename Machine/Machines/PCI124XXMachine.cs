@@ -475,6 +475,8 @@ namespace MachineClassLibrary.Machine.Machines
 
         public double GetAxActual(Ax axis) => (_axes[axis].LineCoefficient != 0) ? _motionDevice.GetAxActual(_axes[axis].AxisNum) : _motionDevice.GetAxCmd(_axes[axis].AxisNum);
         public double GetAxCmd(Ax axis) => _motionDevice.GetAxCmd(_axes[axis].AxisNum);
+        public bool GetAxReady(Ax ax) => _motionDevice.GetAxisReady(_axes[ax].AxisNum);
+
 
         public void SetPrecision(double tolerance) => _motionDevice.SetPrecision(tolerance);
 
