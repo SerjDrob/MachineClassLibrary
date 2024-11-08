@@ -138,7 +138,7 @@ namespace MachineClassLibrary.Machine.MotionDevices
                     {
                         Task.Delay(1).Wait();
                         Motion.mAcm_AxGetState(id, ref state);
-                    } while ((AxState)state == AxState.STA_AX_WAIT_PTP);
+                    } while ((AxState)state == AxState.STA_AX_PTP_MOT/*.STA_AX_WAIT_PTP*/);
                 });
                 return 0d;
             }
