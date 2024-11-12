@@ -197,5 +197,9 @@ namespace MachineClassLibrary.Laser
             return false;
         }
 
+        public void SetBaudRate(int baudRate)
+        {
+            throw new NotImplementedException();
+        }
     }
 }

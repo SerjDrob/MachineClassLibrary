@@ -511,6 +511,8 @@ namespace MachineClassLibrary.Machine.Machines
 
         public void SetSystemAngle(double angle) => _markLaser.SetSystemAngle(angle);
 
+        public async Task<bool> ChangePWMBaudRateReinitMarkDevice(int baudRate, string initDirPath) => await _markLaser.ChangePWMBaudRateReinitMarkDevice(baudRate, initDirPath);
+
         public class GeometryBuilder<TPlace> : IGeometryBuilder<TPlace> where TPlace : Enum
         {
             private Dictionary<TPlace, (Ax axis, double pos)[]> _places;

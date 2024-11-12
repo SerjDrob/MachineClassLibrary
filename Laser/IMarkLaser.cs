@@ -24,5 +24,6 @@ namespace MachineClassLibrary.Laser
         Task<bool> CancelMarkingAsync();
         Task<bool> MarkTextAsync(string text, double textSize, double angle);
         void SetSystemAngle(double angle);
+        Task<bool> ChangePWMBaudRateReinitMarkDevice(int baudRate, string initDirPath);
     }
 }

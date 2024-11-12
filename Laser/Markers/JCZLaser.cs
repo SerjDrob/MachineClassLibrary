@@ -34,6 +34,11 @@ namespace MachineClassLibrary.Laser.Markers
             else IsMarkDeviceInit = false;
         }
 
+        public async Task<bool> ChangePWMBaudRateReinitMarkDevice(int baudRate, string initDirPath)
+        {
+            _pwm.SetBaudRate(baudRate);
+            return await InitMarkDevice(initDirPath);
+        }
         public async Task<bool> InitMarkDevice(string initDirPath)
         {
             IntPtr Handle = new WindowInteropHelper(new Window()).Handle;
