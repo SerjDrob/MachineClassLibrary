@@ -440,7 +440,7 @@ namespace MachineClassLibrary.Machine.Machines
 
         public int GetVideoCapabilitiesCount() => _videoCapture.GetVideoCapabilitiesCount();
 
-        public void SetVideoMirror(bool xmirror, bool ymirror) => _videoCapture.SetCameraMirror(xmirror, ymirror);
+        //public void SetVideoMirror(bool xmirror, bool ymirror) => _videoCapture.SetCameraMirror(xmirror, ymirror);
 
         public Task<bool> PierceCircleAsync(double diameter)
         {

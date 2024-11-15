@@ -388,10 +388,7 @@ namespace MachineClassLibrary.Machine.Machines
             }
         }
 
-        public void InvokeSettings()
-        {
-            throw new NotImplementedException();
-        }
+        public void InvokeSettings() => _videoCamera.InvokeSettings();
 
         public bool TryConnectSpindle()
         {
