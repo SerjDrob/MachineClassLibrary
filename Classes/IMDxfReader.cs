@@ -2,6 +2,7 @@
 using IxMilia.Dxf.Entities;
 using MachineClassLibrary.Laser.Entities;
 using System.Collections.Generic;
+using System.Drawing;
 using System.Linq;
 using System.Windows;
 
@@ -177,7 +178,7 @@ namespace MachineClassLibrary.Classes
                 var ent = shape switch
                 {
                     Circle circle => new DxfCircle(new DxfPoint(circle.CenterX, circle.CenterY, 0), circle.Radius),
-                    Curve curve => (DxfEntity) new DxfLwPolyline(curve.Vertices.Select(v => new DxfLwPolylineVertex { X = v.X, Y = v.Y, Bulge = v.Bulge })){ IsClosed = curve.IsClosed, ConstantWidth = 0.1d }
+                    Curve curve => (DxfEntity) new DxfLwPolyline(curve.Vertices.Select(v => new DxfLwPolylineVertex { X = v.X, Y = v.Y, Bulge = v.Bulge })){ IsClosed = curve.IsClosed, ConstantWidth = 0.1d },
                 };
                 doc.Entities.Add(ent);
             }
@@ -213,7 +214,11 @@ namespace MachineClassLibrary.Classes
              );
         }
 
-        
+        public (PointF minPoint, PointF maxPoint) GetSize2()
+        {
+            var box = _document.GetBoundingBox();
+            return (new((float)box.MinimumPoint.X, (float)box.MinimumPoint.Y), new((float)box.MaximumPoint.X, (float)box.MaximumPoint.Y));
+        }
     }
 
 }

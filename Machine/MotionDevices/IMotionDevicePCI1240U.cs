@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Threading.Tasks;
+using System.Windows.Documents;
 using MachineClassLibrary.Classes;
 
 namespace MachineClassLibrary.Machine.MotionDevices
@@ -44,6 +45,7 @@ namespace MachineClassLibrary.Machine.MotionDevices
         void StopAxis(int axisNum);
         double GetAxCmd(int axNum);
         void SetAxisCoordinate(int axisNum, double coordinate);
+        bool GetAxisReady(int axisNum);
         void CloseDevice();
     }
 }

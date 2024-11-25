@@ -90,7 +90,7 @@ namespace MachineClassLibrary.Machine.Machines
 
         public async Task MoveAxInPosAsync(Ax axis, double position, bool precisely = false)
         {
-            if (!_axes[axis].Busy)
+            if (!_axes[axis].Busy | _axes[axis].MotionDone)
             {
                 SetAxisBusy(axis);
                
@@ -198,7 +198,7 @@ namespace MachineClassLibrary.Machine.Machines
                     double vel = default;
                     if (axis.Value.VelRegimes.TryGetValue(velocity, out vel))
                     {
-                        _motionDevice.SetAxisVelocity(axis.Value.AxisNum, axis.Value.VelRegimes[velocity]);
+                        _motionDevice.SetAxisVelocity(axis.Value.AxisNum, vel);
                         VelocityRegime = velocity;
                         OnVelocityRegimeChanged(VelocityRegime);
                     }
@@ -475,6 +475,8 @@ namespace MachineClassLibrary.Machine.Machines
 
         public double GetAxActual(Ax axis) => (_axes[axis].LineCoefficient != 0) ? _motionDevice.GetAxActual(_axes[axis].AxisNum) : _motionDevice.GetAxCmd(_axes[axis].AxisNum);
         public double GetAxCmd(Ax axis) => _motionDevice.GetAxCmd(_axes[axis].AxisNum);
+        public bool GetAxReady(Ax ax) => _motionDevice.GetAxisReady(_axes[ax].AxisNum);
+
 
         public void SetPrecision(double tolerance) => _motionDevice.SetPrecision(tolerance);
 

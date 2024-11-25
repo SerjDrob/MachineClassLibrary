@@ -21,6 +21,12 @@ namespace MachineClassLibrary.Laser.Entities
             get; init;
         }//=> new(new System.Windows.Point(CenterX - Radius,CenterY - Radius),new Size(Radius*2,Radius*2));
 
+        public void Deconstruct(out IShape[] primaryShape, out int num)
+        {
+            primaryShape = [this];
+            num = 1;
+        }
+
         public static bool operator ==(Circle a, Circle b) => a.Radius == b.Radius;
         public static bool operator !=(Circle a, Circle b) => !(a == b);
     }

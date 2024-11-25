@@ -265,5 +265,10 @@ namespace MachineClassLibrary.Machine.MotionDevices
         {
             //throw new NotImplementedException();
         }
+
+        public bool GetAxisReady(int axisNum)
+        {
+            throw new NotImplementedException();
+        }
     }
 }

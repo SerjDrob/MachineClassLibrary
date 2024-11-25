@@ -18,6 +18,11 @@ namespace MachineClassLibrary.Laser.Markers
             return Task.FromResult(true);
         }
 
+        public Task<bool> ChangePWMBaudRateReinitMarkDevice(int baudRate, string initDirPath)
+        {
+            throw new NotImplementedException();
+        }
+
         public void CloseMarkDevice()
         {
             IsMarkDeviceInit = false;

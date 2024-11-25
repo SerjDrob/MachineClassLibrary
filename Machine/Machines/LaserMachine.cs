@@ -99,7 +99,7 @@ namespace MachineClassLibrary.Machine.Machines
             Guard.IsNotNull(videoCapture, nameof(videoCapture));
             _markLaser = markLaser;
             var watchableLaser = _markLaser as WatchableDevice;
-            watchableLaser.OfType<HealthOK>()
+            watchableLaser?.OfType<HealthOK>()
                 .Subscribe(ok =>
                 {
                     switch (ok.Device)
@@ -115,7 +115,7 @@ namespace MachineClassLibrary.Machine.Machines
                     }
                     _subject?.OnNext(new DeviceStateChanged());
                 });
-            watchableLaser.OfType<HealthProblem>()
+            watchableLaser?.OfType<HealthProblem>()
                 .Subscribe(problem =>
                 {
                     switch (problem.Device)
@@ -171,7 +171,7 @@ namespace MachineClassLibrary.Machine.Machines
 
         private void _videoCapture_CameraPlugged(object sender, EventArgs e) => CameraPlugged?.Invoke(sender, e);
 
-        public async Task<bool> FindCameraFocus(CancellationToken token, float startIndex = 1)
+        public async Task<bool> FindCameraFocusAsync(CancellationToken token, float startIndex = 1)
         {
             if (token.IsCancellationRequested) return true;
             var currentIndex = _videoCapture.GetBlurIndex();
@@ -186,7 +186,7 @@ namespace MachineClassLibrary.Machine.Machines
                 await Task.Delay(100);
             }
             currentIndex = _videoCapture.GetBlurIndex();
-            await FindCameraFocus(token, currentIndex);
+            await FindCameraFocusAsync(token, currentIndex);
             return true;
         }
 
@@ -440,7 +440,7 @@ namespace MachineClassLibrary.Machine.Machines
 
         public int GetVideoCapabilitiesCount() => _videoCapture.GetVideoCapabilitiesCount();
 
-        public void SetVideoMirror(bool xmirror, bool ymirror) => _videoCapture.SetCameraMirror(xmirror, ymirror);
+        //public void SetVideoMirror(bool xmirror, bool ymirror) => _videoCapture.SetCameraMirror(xmirror, ymirror);
 
         public Task<bool> PierceCircleAsync(double diameter)
         {
@@ -510,6 +510,8 @@ namespace MachineClassLibrary.Machine.Machines
         protected override void OnVelocityRegimeChanged(Velocity velocity) => _subject.OnNext(new VelocityRegimeChanged(velocity));
 
         public void SetSystemAngle(double angle) => _markLaser.SetSystemAngle(angle);
+
+        public async Task<bool> ChangePWMBaudRateReinitMarkDevice(int baudRate, string initDirPath) => await _markLaser.ChangePWMBaudRateReinitMarkDevice(baudRate, initDirPath);
 
         public class GeometryBuilder<TPlace> : IGeometryBuilder<TPlace> where TPlace : Enum
         {

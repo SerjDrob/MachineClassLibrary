@@ -13,7 +13,10 @@ namespace MachineClassLibrary.GeometryUtility
         private CoorSystem(Matrix3 mainMatrix) : base(mainMatrix) { }
         public static ThreePointCoorSystemBuilder GetThreePointSystemBuilder() => new ThreePointCoorSystemBuilder();
         public static WorkMatrixCoorSystemBuilder<TPlaceEnum> GetWorkMatrixSystemBuilder() => new WorkMatrixCoorSystemBuilder<TPlaceEnum>();
-
+        public static CoorSystem<TPlaceEnum> GetFromSystem(ICoorSystem coorSystem) => 
+            GetWorkMatrixSystemBuilder()
+            .SetWorkMatrix(coorSystem.GetMainMatrixElements())
+            .Build();
 
     }
 }

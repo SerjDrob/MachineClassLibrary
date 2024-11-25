@@ -60,7 +60,7 @@ namespace MachineClassLibrary.Laser
             if (procObject is not PCluster) return new EntityFileHandler(_dxfReader, _folderPath).SaveEntityToFile(PrepareShape(procObject));
             else if (procObject is PCluster cluster)
             {
-                var shapes = cluster.ProcObjects.Select(p => PrepareShape(p, false)).ToArray();
+                var shapes = cluster.PObject.ProcObjects.Select(p => PrepareShape(p, false)).ToArray();
                 return new EntityFileHandler(_dxfReader, _folderPath).SaveEntitiesToFile(shapes);
             }
             throw new ArgumentException($"The preparator can not to process {procObject.GetType().Name} entity");
@@ -77,7 +77,7 @@ namespace MachineClassLibrary.Laser
 
                 var r1 = rotatedCircle.Radius + _contourOffset;
                 var r2 = r1 - _contourWidth;
-                if (r2 < 0.02) return new Circle
+                if (r2 < 0.02 || _contourWidth == 0) return new Circle
                 {
                     Radius = r1,
                     CenterX = rotatedCircle.CenterX,

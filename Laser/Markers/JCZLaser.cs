@@ -32,8 +32,15 @@ namespace MachineClassLibrary.Laser.Markers
             var result = JczLmc.Close();
             if (result != 0) throw new Exception($"The device closing failed with error code {(Lmc.EzCad_Error_Code)result}");
             else IsMarkDeviceInit = false;
+            HasHealthProblem("Closed by user",null, this);
         }
 
+        public async Task<bool> ChangePWMBaudRateReinitMarkDevice(int baudRate, string initDirPath)
+        {
+            _pwm.SetBaudRate(baudRate);
+            JczLmc.Close();
+            return await InitMarkDevice(initDirPath);
+        }
         public async Task<bool> InitMarkDevice(string initDirPath)
         {
             IntPtr Handle = new WindowInteropHelper(new Window()).Handle;
@@ -201,11 +208,11 @@ namespace MachineClassLibrary.Laser.Markers
             var tempFilePath = Path.Combine(Path.GetTempPath(), "TestFile.ezd");
             result = JczLmc.SaveEntLibToFile(tempFilePath);
             await SetPwm(_markLaserParams.PenParams);
-            await MarkEntityAndDelete("Entity");
+            await MarkEntityAndDeleteAsync("Entity");
             return true;
         }
 
-        private async Task MarkEntityAndDelete(string entityName)
+        private async Task MarkEntityAndDeleteAsync(string entityName)
         {
             await Task.Run(async () =>
             {
@@ -293,7 +300,7 @@ namespace MachineClassLibrary.Laser.Markers
             
             if (result != 0) return false;
             await SetPwm(_markLaserParams.PenParams);
-            await MarkEntityAndDelete("Text");
+            await MarkEntityAndDeleteAsync("Text");
             return true;
         }
 
@@ -333,7 +340,7 @@ namespace MachineClassLibrary.Laser.Markers
             //var result = Lmc.lmc1_CancelMark();
             var result = await Task.FromResult(JczLmc.StopMark());
             var res = true;
-            if (_markLaserParams.PenParams.IsModulated) res = await _pwm.StopPWM();//TODO exception?
+            if (_markLaserParams?.PenParams.IsModulated ?? false) res = await _pwm.StopPWM();//TODO exception?
             return res & result == 0;
             //if (result != 0) throw new Exception($"Cancelling of marking failed with error code {(Lmc.EzCad_Error_Code)result}");
         }
