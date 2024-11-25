@@ -63,9 +63,9 @@ namespace MachineClassLibrary.GeometryUtility
         }
         public float[] GetMainMatrixElements()
         {
-            return [ (float) _workTransformation.M11, (float) _workTransformation.M12,
+            return new float[] { (float) _workTransformation.M11, (float) _workTransformation.M12,
                                 (float) _workTransformation.M21, (float) _workTransformation.M22,
-                                (float) _workTransformation.M13, (float) _workTransformation.M23 ];
+                                (float) _workTransformation.M13, (float) _workTransformation.M23 };
         }
         public void SetRelatedSystem(TPlaceEnum name, double offsetX, double offsetY)
         {
@@ -87,7 +87,7 @@ namespace MachineClassLibrary.GeometryUtility
             var vector = new netDxf.Vector3(x, y, 1);
             var result = _workTransformation * vector;
             var points = new PointF[] { new((float)result.X, (float)result.Y) };
-            return [points[0].X, points[0].Y];
+            return new double[] { points[0].X, points[0].Y };
         }
         public double[] ToSub(TPlaceEnum to, double x, double y)
         {

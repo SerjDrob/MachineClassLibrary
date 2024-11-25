@@ -11,7 +11,7 @@ using AForge.Video.DirectShow;
 using MachineClassLibrary.Machine.Machines;
 using MachineClassLibrary.Miscellaneous;
 using Microsoft.Toolkit.Diagnostics;
-using OpenCvSharp;
+//using OpenCvSharp;
 
 
 namespace MachineClassLibrary.VideoCapture
@@ -213,8 +213,9 @@ namespace MachineClassLibrary.VideoCapture
 
         public float GetBlurIndex()
         {
-            var src = OpenCvSharp.Extensions.BitmapConverter.ToMat(BitmapImage2Bitmap(_bitmap));
-            return calcBlurriness(src);
+            throw new NotImplementedException();
+            //var src = OpenCvSharp.Extensions.BitmapConverter.ToMat(BitmapImage2Bitmap(_bitmap));
+            //return calcBlurriness(src);
         }
 
         private Bitmap BitmapImage2Bitmap(BitmapImage bitmapImage)
@@ -231,17 +232,17 @@ namespace MachineClassLibrary.VideoCapture
                 return new Bitmap(bitmap);
             }
         }
-        static float calcBlurriness(Mat src)
-        {
-            Mat Gx = new Mat();
-            Mat Gy = new Mat();
-            Cv2.Sobel(src, Gx, MatType.CV_32F, 1, 0);
-            Cv2.Sobel(src, Gy, MatType.CV_32F, 0, 1);
-            double normGx = Cv2.Norm(Gx);
-            double normGy = Cv2.Norm(Gy);
-            double sumSq = normGx * normGx + normGy * normGy;
-            return (float)(1.0 / (sumSq / (src.Size().Height * src.Size().Width) + 1e-6));
-        }
+        //static float calcBlurriness(Mat src)
+        //{
+        //    Mat Gx = new Mat();
+        //    Mat Gy = new Mat();
+        //    Cv2.Sobel(src, Gx, MatType.CV_32F, 1, 0);
+        //    Cv2.Sobel(src, Gy, MatType.CV_32F, 0, 1);
+        //    double normGx = Cv2.Norm(Gx);
+        //    double normGy = Cv2.Norm(Gy);
+        //    double sumSq = normGx * normGx + normGy * normGy;
+        //    return (float)(1.0 / (sumSq / (src.Size().Height * src.Size().Width) + 1e-6));
+        //}
 
         public void InvokeSettings()
         {

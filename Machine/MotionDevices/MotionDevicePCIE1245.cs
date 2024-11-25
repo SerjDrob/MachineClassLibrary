@@ -10,6 +10,7 @@ using AxState = Advantech.Motion.AxisState;
 
 namespace MachineClassLibrary.Machine.MotionDevices
 {
+#if PCIE1245Enable
     public class MotionDevicePCIE1245 : IMotionDevicePCI1240U
     {
 
@@ -52,7 +53,7 @@ namespace MachineClassLibrary.Machine.MotionDevices
         public event EventHandler<AxNumEventArgs> TransmitAxState;
 
         // public event Action<string, int> ThrowMessage;
-
+        
         public async Task<bool> DevicesConnection()
         {
             try
@@ -135,7 +136,7 @@ namespace MachineClassLibrary.Machine.MotionDevices
 
             return true;
         }
-
+    
         private uint AxVHEndCallback(uint axId, IntPtr UserParameter)
         {
             _axisStates[axId] = _axisStates[axId].AlterVHEnd(true);//TODO this is id not the number
@@ -474,7 +475,7 @@ namespace MachineClassLibrary.Machine.MotionDevices
             Motion2.mAcm2_SetProperty(id, (uint)PropertyID2.PAR_AxAcc, acc).CheckResult2(axisNum);
             Motion2.mAcm2_SetProperty(id, (uint)PropertyID2.PAR_AxDec, dec).CheckResult2(axisNum);
             Motion2.mAcm2_SetProperty(id, (uint)PropertyID2.PAR_AxJerk, jerk).CheckResult2(axisNum);
-            
+
             Motion2.mAcm2_SetProperty(id, (uint)PropertyID2.PAR_AxJerkFactor, jerkFac).CheckResult2(axisNum);
 
             Motion2.mAcm2_SetProperty(id, (uint)PropertyID2.PAR_AxHomeAcc, acc).CheckResult2(axisNum);
@@ -615,7 +616,7 @@ namespace MachineClassLibrary.Machine.MotionDevices
                             slmtn = status.SLMT_N == 0;
                             rdy = (AxState)st == AxState.STA_AX_ERROR_STOP;
                             rrr = (AxState)st == AxState.STA_AX_READY;
-                        } while ((!rdy || slmtp && slmtn && !token.Token.IsCancellationRequested)&&!rrr);
+                        } while ((!rdy || slmtp && slmtn && !token.Token.IsCancellationRequested) && !rrr);
                     }, token.Token).ConfigureAwait(false);
 
                     Motion2.mAcm2_SetProperty(id, (uint)PropertyID2.CFG_AxSwPelEnable, (double)SwLmtEnable.SLMT_DIS).CheckResult2(axisNum);
@@ -623,7 +624,7 @@ namespace MachineClassLibrary.Machine.MotionDevices
                     Motion2.mAcm2_AxResetError(id).CheckResult2();
                     var st = 0u;
                     Motion2.mAcm2_AxGetState(id, AXIS_STATUS_TYPE.AXIS_STATE, ref st);
-                    if ((AxState)st!=AxState.STA_AX_READY)
+                    if ((AxState)st != AxState.STA_AX_READY)
                     {
                         var result = (AxState)st;
                         throw new MotionException($"Reset axis errors failed. axis number {axisNum}");
@@ -953,42 +954,6 @@ namespace MachineClassLibrary.Machine.MotionDevices
         {
             var result = Motion2.mAcm2_DevAllClose();
         }
-    }
-
-
-    struct Axis
-    {
-        public Axis(uint id)
-        {
-            ID = id;
-        }
-        public readonly uint ID;
-        public SPEED_PROFILE_PRM AxVel;
-        public void SetSpeedProfile(SPEED_PROFILE_PRM profile) => AxVel = profile;
-        public void ChangeSpeed(double low, double high)
-        {
-            AxVel.FL = low;
-            AxVel.FH = high;
-        }
-    }
-
-    struct AxGroup
-    {
-        public AxGroup(uint id, uint[] axes)
-        {
-            ID = id;
-            AxesID = axes;
-        }
-
-        public readonly uint ID;
-        public readonly uint[] AxesID;
-        public SPEED_PROFILE_PRM GpVel;
-        public void SetSpeedProfile(SPEED_PROFILE_PRM profile) => GpVel = profile;
-        public void ChangeSpeed(double low, double high)
-        {
-            GpVel.FL = low;
-            GpVel.FH = high;
-        }
-    }
-
+    } 
+#endif
 }
