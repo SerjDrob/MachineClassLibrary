@@ -2,10 +2,11 @@
 using System.IO.Ports;
 using System.Text;
 using System.Threading.Tasks;
+using MachineClassLibrary.Miscellaneous;
 
 namespace MachineClassLibrary.Laser
 {
-    public class PWM2 : IPWM
+    public class PWM2 : WatchableDevice, IPWM
     {
         private SerialPort _serialPort;
         private string _lastMessage;
@@ -32,8 +33,16 @@ namespace MachineClassLibrary.Laser
         public Task<bool> FindOpen()
         {
             var portName = "COM3";
-
-            return Task.FromResult(OpenPort(portName));
+            var result = OpenPort(portName);
+            if (result)
+            {
+                DeviceOK(this);
+            }
+            else
+            {
+                HasHealthProblem($"Cannot find the PWM", null, this);
+            }
+            return Task.FromResult(result);
         }
 
         public bool OpenPort(string port)
@@ -71,12 +80,18 @@ namespace MachineClassLibrary.Laser
             if (comPort.IsOpen)
             {
                 _serialPort = comPort;
+                _serialPort.ErrorReceived += _serialPort_ErrorReceived;
                 return true;
             }
             else
             {
                 return false;
             }
+        }
+
+        private void _serialPort_ErrorReceived(object sender, SerialErrorReceivedEventArgs e)
+        {
+            HasHealthProblem($"PWM's com-port got the error. {e}", null, this);
         }
 
         public Task<bool> SetPWM(int freq, int dutyCycle1, int modFreq, int dutyCycle2)
@@ -120,5 +135,15 @@ namespace MachineClassLibrary.Laser
         public override string ToString() => _lastMessage;
 
         public void SetBaudRate(int baudRate) => _baudRate = baudRate;
+
+        public override void CureDevice()
+        {
+            throw new NotImplementedException();
+        }
+
+        public override void AskHealth()
+        {
+            throw new NotImplementedException();
+        }
     }
 }

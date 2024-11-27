@@ -23,7 +23,7 @@ namespace MachineClassLibrary.Laser.Entities
         {
             var circle1 = new Circle { Radius = Radius1, CenterX = this.CenterX, CenterY = this.CenterY };
             var circle2 = new Circle { Radius = Radius2, CenterX = this.CenterX, CenterY = this.CenterY };
-            primaryShape = [circle1, circle2];
+            primaryShape = new Circle[] { circle1, circle2 };
             num = 2;
         }
     }

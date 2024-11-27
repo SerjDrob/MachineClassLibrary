@@ -345,7 +345,7 @@ namespace MachineClassLibrary.Laser.Markers
             //if (result != 0) throw new Exception($"Cancelling of marking failed with error code {(Lmc.EzCad_Error_Code)result}");
         }
 
-        public bool SetDevConfig() => JczLmc.SetDevCfg2(false, false) == 0;
+        public bool SetDevConfig() => JczLmc.SetDevCfg() == 0;// JczLmc.SetDevCfg2(false, false) == 0;
 
         public override void CureDevice()
         {

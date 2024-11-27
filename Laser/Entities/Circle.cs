@@ -23,7 +23,7 @@ namespace MachineClassLibrary.Laser.Entities
 
         public void Deconstruct(out IShape[] primaryShape, out int num)
         {
-            primaryShape = [this];
+            primaryShape = new Circle[]{ this };
             num = 1;
         }
 
