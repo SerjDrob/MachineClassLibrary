@@ -440,7 +440,7 @@ namespace MachineClassLibrary.Machine.Machines
 
         public int GetVideoCapabilitiesCount() => _videoCapture.GetVideoCapabilitiesCount();
 
-        public void SetVideoMirror(bool xmirror, bool ymirror) => _videoCapture.SetCameraMirror(xmirror, ymirror);
+        //public void SetVideoMirror(bool xmirror, bool ymirror) => _videoCapture.SetCameraMirror(xmirror, ymirror);
 
         public Task<bool> PierceCircleAsync(double diameter)
         {
@@ -510,6 +510,8 @@ namespace MachineClassLibrary.Machine.Machines
         protected override void OnVelocityRegimeChanged(Velocity velocity) => _subject.OnNext(new VelocityRegimeChanged(velocity));
 
         public void SetSystemAngle(double angle) => _markLaser.SetSystemAngle(angle);
+
+        public async Task<bool> ChangePWMBaudRateReinitMarkDevice(int baudRate, string initDirPath) => await _markLaser.ChangePWMBaudRateReinitMarkDevice(baudRate, initDirPath);
 
         public class GeometryBuilder<TPlace> : IGeometryBuilder<TPlace> where TPlace : Enum
         {

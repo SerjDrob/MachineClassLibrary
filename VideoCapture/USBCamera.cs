@@ -97,7 +97,7 @@ namespace MachineClassLibrary.VideoCapture
             {
                 Guard.IsGreaterThan(AvailableVideoCaptureDevices?.Count ?? 0, 0, nameof(_videoCaptureDevices.Count));
             }
-            catch (ArgumentOutOfRangeException ex)
+            catch (ArgumentOutOfRangeException)
             {
                 _errorMessage = $"Device count is 0";
                 return;
@@ -212,7 +212,7 @@ namespace MachineClassLibrary.VideoCapture
                 }
                 if (_bitmap is not null) OnBitmapChanged?.Invoke(this, new VideoCaptureEventArgs(_bitmap, _errorMessage));
             }
-            catch (Exception ex)
+            catch (Exception)
             {
             }
 

@@ -9,7 +9,7 @@ namespace MachineClassLibrary.Laser
     {
         private SerialPort _serialPort;
         private string _lastMessage;
-
+        private int _baudRate = 9600;
 
         private bool IsInRange(int value, int min, int max) => value >= min && value <= max;
 
@@ -53,7 +53,7 @@ namespace MachineClassLibrary.Laser
             var comPort = new SerialPort
             {
                 PortName = port,
-                BaudRate = 9600,
+                BaudRate = _baudRate,// 9600,
                 Parity = Parity.Even,
                 WriteTimeout = 1000,
                 ReadTimeout = 100
@@ -118,6 +118,7 @@ namespace MachineClassLibrary.Laser
         }
 
         public override string ToString() => _lastMessage;
-        
+
+        public void SetBaudRate(int baudRate) => _baudRate = baudRate;
     }
 }

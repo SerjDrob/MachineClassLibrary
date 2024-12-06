@@ -1,6 +1,6 @@
 ﻿namespace MachineClassLibrary.Machine.Machines
 {
-    public class LaserMachineAxesConfiguration
+    public class MachineAxesConfiguration
     {
         public string LineComment => "Line coefficient for coordinates equipped with encoder. Can be negative. Set 0 if no encoder";
         public string HomeModeComment =>
@@ -29,75 +29,32 @@
             " Pos = 0," +
             " Neg = 1";
 
-        public double XLine
-        {
-            get; set;
-        }
-        public int XHomeMode
-        {
-            get; set;
-        }
-        public int XHomeReset
-        {
-            get; set;
-        }
-        public int XHomeDirection
-        {
-            get;set;
-        }
-        public double YLine
-        {
-            get; set;
-        }
-        public int YHomeMode
-        {
-            get; set;
-        }
-        public int YHomeReset
-        {
-            get; set;
-        }
-        public int YHomeDirection
-        {
-            get; set;
-        }
-        public double ZLine
-        {
-            get; set;
-        }
-        public int ZHomeMode
-        {
-            get; set;
-        }
-        public int ZHomeReset
-        {
-            get; set;
-        }
-        public int ZHomeDirection
-        {
-            get; set;
-        }
+        public double XLine {  get; set; }
+        public int XHomeMode {  get; set; }
+        public int XHomeReset {  get; set; }
+        public int XHomeDirection {  get; set; }
+        public double YLine {  get; set; }
+        public int YHomeMode {  get; set; }
+        public int YHomeReset {  get; set; }
+        public int YHomeDirection {  get; set; }
+        public double ZLine {  get; set; }
+        public int ZHomeMode {  get; set; }
+        public int ZHomeReset {  get; set; }
+        public int ZHomeDirection {  get; set; }
+        public double ULine {  get; set; }
+        public int UHomeMode {  get; set; }
+        public int UHomeReset {  get; set; }
+        public int UHomeDirection {  get; set; }
         public string RightDirectionComment => "Set true if moving right is the positive direction";
-        public bool XRightDirection
-        {
-            get; set;
-        }
-        public bool YRightDirection
-        {
-            get; set;
-        }
-        public bool ZRightDirection
-        {
-            get; set;
-        }
+        public bool XRightDirection {  get; set; }
+        public bool YRightDirection {  get; set; }
+        public bool ZRightDirection {  get; set; }
+        public bool URightDirection {  get; set; }
         public string ZToObjApproxComment => "Set true if z move toward the objective in the positive direction";
-        public bool ZToObjectiveApproximation
-        {
-            get; set;
-        }
+        public bool ZToObjectiveApproximation {  get; set; }
 
-        public bool XMirrorCamera { get; set; }
-        public bool YMirrorCamera { get; set; }
+        //public bool XMirrorCamera { get; set; }
+        //public bool YMirrorCamera { get; set; }
 
     }
 }

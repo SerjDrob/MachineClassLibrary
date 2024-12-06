@@ -24,6 +24,7 @@ namespace MachineClassLibrary.Laser
         private bool _isResponded;
         private const string PASSED = "Heisenberg";
         private const string PASSWORD = "ID ";
+        private int _baudRate = 9600;
 
         public async Task<bool> FindOpen()
         {
@@ -41,6 +42,10 @@ namespace MachineClassLibrary.Laser
             }
             return false;
         }
+
+        public void SetBaudRate(int baudRate) => _baudRate = baudRate;
+
+
         public bool OpenPort(string port)
         {
             if (_serialPort != null)
@@ -57,7 +62,7 @@ namespace MachineClassLibrary.Laser
             var comPort = new SerialPort
             {
                 PortName = port,
-                BaudRate = 57600,//9600,
+                BaudRate = _baudRate,/*57600,*///9600,
                 Parity = Parity.None,
                 DataBits = 8,
                 StopBits = StopBits.One,

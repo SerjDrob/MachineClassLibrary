@@ -758,7 +758,7 @@ private async Task DeviceStateMonitorAsync()
             {
                 Motion.mAcm_AxGetState(_mAxishand[axisNum], ref state);
                 await Task.Delay(1).ConfigureAwait(false);
-            } while ((Advantech.Motion.AxisState)state == Advantech.Motion.AxisState.STA_AX_PTP_MOT);
+            } while ((AxState)state == AxState.STA_AX_PTP_MOT);
         }
         private static IntPtr OpenDevice(in DEV_LIST device)
         {
@@ -860,6 +860,13 @@ private async Task DeviceStateMonitorAsync()
         public void CloseDevice()
         {
            var result = Motion.mAcm_DevClose(ref _deviceHandle);
+        }
+
+        public bool GetAxisReady(int axNum)
+        {
+            var status = default(uint);
+            Motion.mAcm_AxGetMotionStatus(_mAxishand[axNum], ref status);
+            return (Ax_Motion_IO)status == Ax_Motion_IO.AX_MOTION_IO_RDY;
         }
     }
 }
