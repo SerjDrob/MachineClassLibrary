@@ -32,11 +32,13 @@ namespace MachineClassLibrary.Laser.Markers
             var result = JczLmc.Close();
             if (result != 0) throw new Exception($"The device closing failed with error code {(Lmc.EzCad_Error_Code)result}");
             else IsMarkDeviceInit = false;
+            HasHealthProblem("Closed by user",null, this);
         }
 
         public async Task<bool> ChangePWMBaudRateReinitMarkDevice(int baudRate, string initDirPath)
         {
             _pwm.SetBaudRate(baudRate);
+            JczLmc.Close();
             return await InitMarkDevice(initDirPath);
         }
         public async Task<bool> InitMarkDevice(string initDirPath)

@@ -255,7 +255,7 @@ namespace MachineClassLibrary.Machine.MotionDevices
             var axes = axisNums.Select(n => _axisLogicalIDList[n].ID).ToArray();
             //clear axes count in the group
             Motion2.mAcm2_GpCreate(hand, axes, 0u).CheckResult2();
-            Motion2.mAcm2_DevResetAllError();
+            Motion2.mAcm2_AxResetAllError();/*.mAcm2_DevResetAllError();*/
             //create group
             Motion2.mAcm2_GpCreate(hand, axes, axesCount).CheckResult2();
             var group = new AxGroup(hand, axisNums.Select(num => _axisLogicalIDList[num].ID).ToArray());
@@ -400,7 +400,7 @@ namespace MachineClassLibrary.Machine.MotionDevices
             uint state = default;
             if (axisNum == 888)
             {
-                Motion2.mAcm2_DevResetAllError();
+                Motion2.mAcm2_AxResetAllError();//.mAcm2_DevResetAllError();
                 foreach (var handle in _axisLogicalIDList.Select(ax => ax.ID))
                 {
                     Motion2.mAcm2_AxGetState(handle, AXIS_STATUS_TYPE.AXIS_STATE, ref state);
@@ -1051,9 +1051,9 @@ namespace MachineClassLibrary.Machine.MotionDevices
 
         public bool GetAxisReady(int axisNum)
         {
-            var status = new MOTION_IO();
-            Motion2.mAcm2_AxGetMotionIO(_axisLogicalIDList[axisNum].ID, ref status);
-            return status.RDY > 0;
+            var status = default(uint);
+            Motion2.mAcm2_AxGetState(_axisLogicalIDList[axisNum].ID, AXIS_STATUS_TYPE.AXIS_STATE, ref status);
+            return (AxState)status == AxState.STA_AX_READY;
         }
     }
 

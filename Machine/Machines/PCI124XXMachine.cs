@@ -198,7 +198,7 @@ namespace MachineClassLibrary.Machine.Machines
                     double vel = default;
                     if (axis.Value.VelRegimes.TryGetValue(velocity, out vel))
                     {
-                        _motionDevice.SetAxisVelocity(axis.Value.AxisNum, axis.Value.VelRegimes[velocity]);
+                        _motionDevice.SetAxisVelocity(axis.Value.AxisNum, vel);
                         VelocityRegime = velocity;
                         OnVelocityRegimeChanged(VelocityRegime);
                     }
