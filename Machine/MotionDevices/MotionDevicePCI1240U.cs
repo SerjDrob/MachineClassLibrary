@@ -74,7 +74,6 @@ namespace MachineClassLibrary.Machine.MotionDevices
 
                 Motion.mAcm_AxGetState(_mAxishand[i], ref state);
 
-
                 if ((AxState)state != AxState.STA_AX_READY)
                 {
                     switch ((AxState)state)
