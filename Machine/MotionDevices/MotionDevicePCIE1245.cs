@@ -670,7 +670,7 @@ namespace MachineClassLibrary.Machine.MotionDevices
             Motion2.mAcm2_SetProperty(id, (uint)PropertyID2.CFG_AxSwMelEnable, (double)SwLmtEnable.SLMT_DIS).CheckResult2(axisNum);
             if (lineCoefficient != 0)
             {
-               // await Task.Delay(100);
+                await Task.Delay(100);
                 var newPos = CalcActualPosition(axisNum, lineCoefficient);
                 Motion2.mAcm2_AxSetPosition(id, POSITION_TYPE.POSITION_CMD, newPos).CheckResult2(axisNum);
                 var diff = position - newPos;
@@ -742,7 +742,7 @@ namespace MachineClassLibrary.Machine.MotionDevices
                     {
                         Task.Delay(1).Wait();
                         Motion2.mAcm2_AxGetState(id, AXIS_STATUS_TYPE.AXIS_STATE, ref state);
-                    } while ((AxState)state == AxState.STA_AX_WAIT_PTP);
+                    } while ((AxState)state !=AxState.STA_AX_READY /*== AxState.STA_AX_WAIT_PTP*/);
                 });
                 return 0d;
             }
