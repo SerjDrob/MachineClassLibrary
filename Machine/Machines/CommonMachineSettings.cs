@@ -42,8 +42,8 @@
         public double? ZVelHigh { get; set; }
         public double? ZVelLow { get; set; }
         public double? ZVelService { get; set; }
-        public uint? UVelLow { get; set; }
-        public uint? UVelHigh { get; set; }
+        public double? UVelLow { get; set; }
+        public double? UVelHigh { get; set; }
         public double? UAcc { get; set; }
         public double? UDec { get; set; }
         public int? UDenominator { get; set; }
@@ -53,6 +53,6 @@
         public bool? UInvertEncoder { get; set; }
         public int? UPPU { get; set; }
         public int? UJerk { get; set; }
-        public uint? UVelService { get; set; }
+        public double? UVelService { get; set; }
     }
 }

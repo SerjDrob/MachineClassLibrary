@@ -240,7 +240,7 @@ namespace MachineClassLibrary.Machine.Machines
         public void SetBridgeOnSensors(Sensors sensor, bool setBridge)
         {
             var num = _axes[_sensors[sensor].axis].AxisNum;
-            _motionDevice.SetBridgeOnAxisDin(num, (int)_sensors[sensor].dIn, setBridge);
+            _motionDevice.SetBridgeOnAxisDin(num, (int)_sensors[sensor].dIn - 1, setBridge);
         }
 
         public void SwitchOnValve(Valves valve)
@@ -383,7 +383,7 @@ namespace MachineClassLibrary.Machine.Machines
             {
                 if (sensor.Value.axis == ax)
                 {
-                    OnSensorStateChanged?.Invoke(this, new(sensor.Key, sensor.Value.invertion ^ (ins & (1 << (int)sensor.Value.dIn)) != 0));
+                    OnSensorStateChanged?.Invoke(this, new(sensor.Key, sensor.Value.invertion ^ (ins & (1 << ((int)sensor.Value.dIn - 1))) != 0));
                 }
             }
         }
