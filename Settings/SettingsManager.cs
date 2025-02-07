@@ -48,6 +48,7 @@ namespace MachineClassLibrary.Settings
         public void SetSettings(T settings)
         {
             Settings = settings;
+            _subject?.OnNext(Settings!);
         }
 
         public IDisposable Subscribe(IObserver<T> observer)

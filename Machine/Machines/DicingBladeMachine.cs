@@ -227,16 +227,26 @@ namespace MachineClassLibrary.Machine.Machines
 
             return pl;
         }
-        public void ConfigureSensors(Dictionary<Sensors, (Ax, Di, bool, string)> sensors)
+        //public void ConfigureSensors(Dictionary<Sensors, (Ax, Di, bool, string)> sensors)
+        //{
+        //    _sensors = new Dictionary<Sensors, (Ax, Di, bool, string)>(sensors);
+        //}
+
+        public void AddSensor(Sensors sensor, Ax axis, Di di, bool inverted, string name)
         {
-            _sensors = new Dictionary<Sensors, (Ax, Di, bool, string)>(sensors);
+            _sensors ??= new();
+            if (!_sensors.TryAdd(sensor, (axis, di, inverted, name))) _sensors[sensor] = (axis, di, inverted, name);
         }
 
-        public void ConfigureValves(Dictionary<Valves, (Ax, Do)> valves)
+        //public void ConfigureValves(Dictionary<Valves, (Ax, Do)> valves)
+        //{
+        //    _valves = new Dictionary<Valves, (Ax, Do)>(valves);
+        //}
+        public void AddValve(Valves valve, Ax axis, Do @do)
         {
-            _valves = new Dictionary<Valves, (Ax, Do)>(valves);
+            _valves ??= new();
+            if (!_valves.TryAdd(valve, (axis, @do))) _valves[valve] = (axis, @do);
         }
-
         public void SetBridgeOnSensors(Sensors sensor, bool setBridge)
         {
             var num = _axes[_sensors[sensor].axis].AxisNum;

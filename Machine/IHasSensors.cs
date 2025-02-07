@@ -9,6 +9,6 @@ namespace MachineClassLibrary.Machine
         public event EventHandler<SensorsEventArgs> OnSensorStateChanged;
         public string GetSensorName(Sensors sensor);
         public void SetBridgeOnSensors(Sensors sensor, bool setBridge);
-        public void ConfigureSensors(Dictionary<Sensors, (Ax, Di, bool, string)> sensors);
+        //public void ConfigureSensors(Dictionary<Sensors, (Ax, Di, bool, string)> sensors);
     }
 }
