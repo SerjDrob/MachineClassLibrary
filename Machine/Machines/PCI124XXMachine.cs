@@ -1,4 +1,5 @@
-﻿using MachineClassLibrary.Classes;
+﻿using Advantech.Motion;
+using MachineClassLibrary.Classes;
 using MachineClassLibrary.Machine.MotionDevices;
 using Microsoft.Toolkit.Diagnostics;
 using System;
@@ -387,8 +388,7 @@ namespace MachineClassLibrary.Machine.Machines
                 _positionAfterHoming = position;
                 return this;
             }
-        }
-        
+        }       
 
         public IAxisBuilder AddAxis(Ax ax, double lineCoefficient)
         {
