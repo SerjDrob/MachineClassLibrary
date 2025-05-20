@@ -1,9 +1,12 @@
 ﻿using System;
 using System.IO;
+using System.Linq;
 using System.Reactive.Linq;
 using System.Threading.Tasks;
 using System.Windows;
+using System.Windows.Documents;
 using System.Windows.Interop;
+using IxMilia.Dxf.Objects;
 using MachineClassLibrary.Laser.Parameters;
 using MachineClassLibrary.Miscellaneous;
 
@@ -115,6 +118,7 @@ namespace MachineClassLibrary.Laser.Markers
                 dRatio: 1,
                 nPenNo: _markLaserParams.PenParams.PenNo,
                 bHatchFile: 0);//_markLaserParams.HatchParams.EnableHatch ? 1:0);
+            
 
             int GetHatchType(int attribute)
             {
@@ -123,33 +127,53 @@ namespace MachineClassLibrary.Laser.Markers
                 return 0;
             };
 
+            //------------
+            //result += JczLmc.UnGroupEnt2("Entity",0);
+            //var tempFilePath1 = Path.Combine(Path.GetTempPath(), "TestFile1.ezd");
+            //result = JczLmc.SaveEntLibToFile(tempFilePath1);
+            //var count = JczLmc.GetEntityCount();
 
-            result += JczLmc.SetHatchEntParam2(
-                HatchName: "Entity",
-                bEnableContour: hatch.EnableContour,//<---------------
-                nParamIndex: 1,
-                bEnableHatch: hatch.EnableHatch ? 1 : 0,
-                bContourFirst: hatch.HatchContourFirst,
-                nPenNo: _markLaserParams.PenParams.PenNo,
-                nHatchType: GetHatchType(hatch.HatchAttribute),//2<----------
-                bHatchAllCalc: true,//false,
-                bHatchEdge: hatch.HatchEdge,//when lines
-                bHatchAverageLine: hatch.HatchAverageLine,
-                dHatchAngle: hatch.HatchAngle,
-                dHatchLineDist: hatch.HatchLineDist,
-                dHatchEdgeDist: 0.0001,//hatch.HatchEdgeDist,
-                dHatchStartOffset: hatch.HatchStartOffset,
-                dHatchEndOffset: hatch.HatchEndOffset,
-                dHatchLineReduction: hatch.HatchLineReduction,
-                dHatchLoopDist: hatch.HatchLoopDist,
-                nEdgeLoop: hatch.EdgeLoop,//<-----------------
-                nHatchLoopRev: (hatch.HatchAttribute & JczLmc.HATCHATTRIB_OUT) != 0,
-                bHatchAutoRotate: hatch.HatchAutoRotate,//<----------
-                dHatchRotateAngle: hatch.HatchRotateAngle,//<---------
-                bHatchCrossMode: (hatch.HatchAttribute & JczLmc.HATCHATTRIB_CROSSLINE) != 0,
-                dCycCount: 1
-                );
-            if(result!=0) Console.WriteLine($"In the{nameof(PierceDxfObjectAsync)} JczLmc has result = {result} is {(JczLmc.EzCad_Error_Code)result}");
+            //for (int i = 0; i < count; i++)
+            //{
+              //  result += JczLmc.SetEntityNameByIndex(i, i.ToString());
+                result += JczLmc.SetHatchEntParam2(
+                                           HatchName: "Entity",
+                                           bEnableContour: hatch.EnableContour,//<---------------
+                                           nParamIndex: 1,
+                                           bEnableHatch: hatch.EnableHatch ? 1 : 0,
+                                           bContourFirst: hatch.HatchContourFirst,
+                                           nPenNo: _markLaserParams.PenParams.PenNo,
+                                           nHatchType: GetHatchType(hatch.HatchAttribute),//2<----------
+                                           bHatchAllCalc: true,//false,
+                                           bHatchEdge: hatch.HatchEdge,//when lines
+                                           bHatchAverageLine: hatch.HatchAverageLine,
+                                           dHatchAngle: hatch.HatchAngle,
+                                           dHatchLineDist: hatch.HatchLineDist,
+                                           dHatchEdgeDist: 0.0001,//hatch.HatchEdgeDist,
+                                           dHatchStartOffset: hatch.HatchStartOffset,
+                                           dHatchEndOffset: hatch.HatchEndOffset,
+                                           dHatchLineReduction: hatch.HatchLineReduction,
+                                           dHatchLoopDist: hatch.HatchLoopDist,
+                                           nEdgeLoop: hatch.EdgeLoop,//<-----------------
+                                           nHatchLoopRev: (hatch.HatchAttribute & JczLmc.HATCHATTRIB_OUT) != 0,
+                                           bHatchAutoRotate: hatch.HatchAutoRotate,//<----------
+                                           dHatchRotateAngle: hatch.HatchRotateAngle,//<---------
+                                           bHatchCrossMode: (hatch.HatchAttribute & JczLmc.HATCHATTRIB_CROSSLINE) != 0,
+                                           dCycCount: 1
+                                           );
+
+            //}
+
+            //var names = Enumerable.Range(0, count).Select(n=>n.ToString()).ToArray();
+            //result += JczLmc.lmc1_GroupEnt2(names,count, "Entity", _markLaserParams.PenParams.PenNo);
+            
+            
+
+
+
+            //-------------
+
+            if (result!=0) Console.WriteLine($"In the{nameof(PierceDxfObjectAsync)} JczLmc has result = {result} is {(JczLmc.EzCad_Error_Code)result}");
 
             //result = JczLmc.SetHatchEntParam2(
             //   HatchName: "Entity",
@@ -197,11 +221,13 @@ namespace MachineClassLibrary.Laser.Markers
                         JczLmc.DeleteEnt(entityName);
                         throw new OperationCanceledException($"Marking failed with code {(Lmc.EzCad_Error_Code)result}");
                     }
-                    await _pwm.StopPWM();//TODO think and fix it
+                   // await _pwm.StopPWM();//TODO think and fix it
                 }
             });
             JczLmc.DeleteEnt(entityName);
         }
+
+        public async Task<bool> StopPWMAsync() => await _pwm.StopPWM();
 
         private int _setPwmAttempts = 3;
         private async Task SetPwm(PenParams penParams)
@@ -299,11 +325,21 @@ namespace MachineClassLibrary.Laser.Markers
         public async Task<bool> PierceCircleAsync(double diameter)
         {
             if (!IsMarkDeviceInit) return false;
-
-            Lmc.lmc1_AddCircleToLib(0, 0, diameter / 2, "circle", 0);
-            Lmc.lmc1_MarkEntity("circle");
-            Lmc.lmc1_DeleteEnt("circle");
-            return true;
+            bool result = await Task.Run(() =>
+            {
+                try
+                {
+                    Lmc.lmc1_AddCircleToLib(0, 0, diameter / 2, "circle", 0);
+                    Lmc.lmc1_MarkEntity("circle");
+                    Lmc.lmc1_DeleteEnt("circle");
+                    return true;
+                }
+                catch
+                {
+                    return false;
+                }
+            });
+            return result;
         }
 
         public async Task<bool> CancelMarkingAsync()
@@ -319,6 +355,49 @@ namespace MachineClassLibrary.Laser.Markers
         }
 
         public bool SetDevConfig() => JczLmc.SetDevCfg2(false, false) == 0;
+
+        /// <summary>
+        /// Marks array of circles
+        /// </summary>
+        /// <param name="diameter">diameter of the circles</param>
+        /// <param name="arrayWidth">width between centers of edge's circles</param>
+        /// <param name="arraySize">dimension of square array</param>
+        /// <returns></returns>
+        public async Task<(double x, double y)[]> MarkCircleArrayAsync(double diameter, double arrayWidth, int arraySize)
+        {
+            var num = arraySize - 1;
+            var gap = arrayWidth / num;
+            var arr = Enumerable.Range(-num/2,arraySize)
+                .SelectMany(y => Enumerable.Range(-num/2, arraySize).Select(x=>(x*gap,y*gap))).ToList();
+            
+
+            if (!IsMarkDeviceInit) throw new OperationCanceledException();
+
+
+            bool result = await Task.Run(() =>
+            {
+                try
+                {
+                    arr.ForEach(coor =>
+                    {
+                        Lmc.lmc1_AddCircleToLib(coor.Item1, coor.Item2, diameter / 2, "circle", 0);
+                        Lmc.lmc1_MarkEntity("circle");
+                        Lmc.lmc1_DeleteEnt("circle");
+                        JczLmc.AddPointToLib(new[,]{ { coor.Item1},{ coor.Item2} }, 1, "point", 0);
+                        Lmc.lmc1_MarkEntity("point");
+                        Lmc.lmc1_DeleteEnt("point");
+                    });
+                    
+                    return true;
+                }
+                catch
+                {
+                    return false;
+                }
+            });
+            if(result) return arr.ToArray();
+            throw new OperationCanceledException();//TODO use right exception
+        }
 
         public override void CureDevice()
         {

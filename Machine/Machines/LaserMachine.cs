@@ -513,6 +513,10 @@ namespace MachineClassLibrary.Machine.Machines
 
         public async Task<bool> ChangePWMBaudRateReinitMarkDevice(int baudRate, string initDirPath) => await _markLaser.ChangePWMBaudRateReinitMarkDevice(baudRate, initDirPath);
 
+        public async Task<bool> StopPWMAsync() => await _markLaser.StopPWMAsync();
+
+        public Task<(double x, double y)[]> MarkCircleArrayAsync(double diameter, double arrayWidth, int arraySize) => _markLaser.MarkCircleArrayAsync(diameter, arrayWidth, arraySize);
+
         public class GeometryBuilder<TPlace> : IGeometryBuilder<TPlace> where TPlace : Enum
         {
             private Dictionary<TPlace, (Ax axis, double pos)[]> _places;

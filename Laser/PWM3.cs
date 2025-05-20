@@ -150,6 +150,11 @@ namespace MachineClassLibrary.Laser
             _response = String.Empty;
             return answer;
         }
+        private int _currentFreq;
+        private int _currentDutyCycle1;
+        private int _currentModFreq;
+        private int _currentDutyCycle2;
+        private bool _deviceIsStopped = true;
 
         public async Task<bool> SetPWM(int freq, int dutyCycle1, int modFreq, int dutyCycle2)
         {
@@ -162,6 +167,12 @@ namespace MachineClassLibrary.Laser
             {
                 throw new ArgumentException($"the dutyCycle2 must be in range [{DUTY_CYCLE.bottom}, {DUTY_CYCLE.top}] %");
             }
+            
+            if (_currentFreq == freq &&
+                _currentDutyCycle1 == dutyCycle1 &&
+                _currentModFreq == modFreq &&
+                _currentDutyCycle2 == dutyCycle2 && 
+                !_deviceIsStopped) return true;
 
             if (_serialPort?.IsOpen ?? false)
             {
@@ -169,6 +180,11 @@ namespace MachineClassLibrary.Laser
                 var result = await WaitCompareResponse(_lastMessage, _lastMessage, 200);
                 if (result)
                 {
+                    _currentFreq = freq;
+                    _currentDutyCycle1 = dutyCycle1;
+                    _currentDutyCycle2 = dutyCycle2;
+                    _currentModFreq = modFreq;
+                    _deviceIsStopped = false;
                     DeviceOK(this);
                 }
                 else
@@ -205,7 +221,8 @@ namespace MachineClassLibrary.Laser
         {
             if (_serialPort?.IsOpen ?? false)
             {
-                return await WaitCompareResponse($"{STOP_CMD}", $"{STOP_CMD}", 200);
+                _deviceIsStopped =  await WaitCompareResponse($"{STOP_CMD}", $"{STOP_CMD}", 200);
+                return _deviceIsStopped;
             }
             //else
             //{
