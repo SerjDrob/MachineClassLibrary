@@ -67,7 +67,7 @@
     <PackageReference Include="OpenCvSharp4.runtime.win" Version="4.10.0.20240616" />-->
     <PackageReference Include="propertychanged.fody" Version="4.1.0" />
     <PackageReference Include="SharpDX.Direct2D1" Version="4.2.0" />
-    <PackageReference Include="System.Drawing.Common" Version="8.0.7" />
+    <PackageReference Include="System.Drawing.Common" Version="8.0.10" />
     <PackageReference Include="System.Management" Version="8.0.0" />
     <PackageReference Include="System.Reactive" Version="6.0.1" />
   </ItemGroup>

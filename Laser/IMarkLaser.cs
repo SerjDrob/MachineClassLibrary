@@ -25,5 +25,7 @@ namespace MachineClassLibrary.Laser
         Task<bool> MarkTextAsync(string text, double textSize, double angle);
         void SetSystemAngle(double angle);
         Task<bool> ChangePWMBaudRateReinitMarkDevice(int baudRate, string initDirPath);
+        Task<bool> StopPWMAsync();
+        Task<(double x, double y)[]> MarkCircleArrayAsync(double diameter, double arrayWidth, int arraySize);
     }
 }
