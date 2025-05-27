@@ -308,15 +308,17 @@ namespace MachineClassLibrary.Machine.Machines
         public void StartSpindle(params Sensors[] blockers)
         {
             _spindleBlockers = new(blockers);
-            foreach (var blocker in blockers)
+
+
+            var absentBlockers  = _spindleBlockers.Where(blocker =>
             {
                 var axis = _axes[_sensors[blocker].axis];
                 var di = _sensors[blocker].dIn;
-                if (!axis.GetDi(di) ^ _sensors[blocker].invertion)
-                {
-                    throw new MachineException($"Отсутствует {_sensors[blocker].name}");
-                }
-            }
+                var result = axis.GetDi(di);
+                return !result ^ _sensors[blocker].invertion;
+            }).Select(blocker => _sensors[blocker].name);
+
+            if (absentBlockers.Any()) throw new MachineException($"Отсутствует: {string.Join(", ", absentBlockers)}.");
 
             _spindle.Start();
         }

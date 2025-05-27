@@ -56,13 +56,13 @@ namespace MachineClassLibrary.Machine
         public Dictionary<Velocity, double> VelRegimes { get; set; }
         public bool GetDi(Di din)
         {
-            var res = (DIs & 1 << (int)din) != 0;
+            var res = (DIs & 1 << ((int)din - 1)) != 0; 
             return res;
         }
 
         public bool GetDo(Do dout)
         {
-            return (DOs & 1 << (int)dout) != 0;
+            return (DOs & 1 << (int)dout) != 0;//TODO is it correct?
         }
 
         public bool Busy { get; set; } = false;
