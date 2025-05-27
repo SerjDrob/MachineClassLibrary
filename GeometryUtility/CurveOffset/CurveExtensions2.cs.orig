@@ -1,0 +1,800 @@
+﻿using System;
+using System.Collections.Generic;
+using System.Linq;
+using MachineClassLibrary.Laser.Entities;
+
+
+namespace MachineClassLibrary.GeometryUtility.CurveOffset;
+
+<<<<<<< HEAD:GeometryUtility/CurveOffset/CurveOffset.cs
+//public static class CurveExtensions
+//{
+/*   public static IEnumerable<Curve> InflateCurve4(this Curve curve, double delta)
+   {
+       var geometryFactory = NtsGeometryServices.Instance.CreateGeometryFactory(srid: 4326);
+
+       var coordinates = new List<Coordinate>();
+       foreach (var (X, Y, _) in curve.Vertices)
+       {
+           coordinates.Add(new Coordinate(X, Y));
+       }
+
+       // Ensure the loop is closed
+      // if (!curve.IsClosed)
+       {
+           coordinates.Add(coordinates[0]);
+       }
+
+       // Ensure minimum number of points
+       if (coordinates.Count < 4)
+       {
+           throw new InvalidOperationException("The curve must have at least 3 distinct points to form a closed shape.");
+       }
+
+       var linearRing = geometryFactory.CreateLinearRing(coordinates.ToArray());
+       var polygon = geometryFactory.CreatePolygon(linearRing);
+
+       var bufferedGeometry = polygon.Buffer(delta);
+
+       var inflatedVertices = new List<(double X, double Y, double Bulge)>();
+       foreach (var coord in bufferedGeometry.Coordinates)
+       {
+           inflatedVertices.Add((coord.X, coord.Y, 0));
+       }
+
+       return new List<Curve> { new Curve(inflatedVertices, true) };
+   }
+
+*/
+
+/*
+public static class CurveExt
+{
+    public static IEnumerable<Curve> InflateCurve4(this Curve curve, double delta)
+    {
+        SegmentCurve segmentCurve = curve;
+        var result = segmentCurve.GetParallels(delta).ToList();
+        var count = result.Count;
+        var curves = new List<Curve>();
+        for (var i = 0; i < count; i++)
+        {
+            var cur = new Curve([(result[i].Start.x, result[i].Start.y, 0), (result[i].End.x, result[i].End.y, 0)],false);
+            curves.Add(cur);
+        }
+        return curves;
+    }
+
+    private static IEnumerable<LineSegment> GetParallels(this SegmentCurve curve, double delta) 
+    {
+        if (curve == null)
+            throw new ArgumentNullException(nameof(curve));
+
+        // Смещаем каждый отрезок на расстояние delta
+        foreach (var segment in curve.Segments)
+        {
+            yield return segment.Offset(delta);
+        }
+    }
+}
+
+public record Point(double x, double y);
+public class LineSegment
+{
+    public Point Start { get; set; }
+    public Point End { get; set; }
+
+    public LineSegment(Point start, Point end)
+    {
+        Start = start;
+        End = end;
+    }
+
+    // Вычисление длины отрезка
+    public double Length()
+    {
+        double dx = End.x - Start.x;
+        double dy = End.x - Start.x;
+        return Math.Sqrt(dx * dx + dy * dy);
+    }
+
+    // Вычисление нормализованного вектора направления отрезка
+    public (double dx, double dy) Direction()
+    {
+        double length = Length();
+        if (length == 0)
+            throw new InvalidOperationException("Отрезок имеет нулевую длину.");
+
+        double dx = (End.x - Start.x) / length;
+        double dy = (End.x - Start.x) / length;
+        return (dx, dy);
+    }
+
+    // Вычисление нормали (перпендикуляра) к отрезку
+    public (double nx, double ny) Normal()
+    {
+        var (dx, dy) = Direction();
+        // Поворачиваем вектор направления на 90 градусов для получения нормали
+        return (-dy, dx);
+    }
+
+    // Смещение отрезка на расстояние delta вдоль нормали
+    public LineSegment Offset(double delta)
+    {
+        var (nx, ny) = Normal();
+        double offsetX = nx * delta;
+        double offsetY = ny * delta;
+
+        return new LineSegment(
+            new Point(Start.x + offsetX, Start.y + offsetY),
+            new Point(End.x + offsetX, End.y + offsetY)
+        );
+    }
+}
+
+
+public class SegmentCurve
+{
+    public IEnumerable<LineSegment> Segments { get; set; }
+
+    public SegmentCurve(IEnumerable<LineSegment> segments)
+    {
+        Segments = segments;
+    }
+
+    public static implicit operator SegmentCurve(Curve curve)
+    {
+        var segments = new List<LineSegment>();
+        var vertices = curve.Vertices.ToList();
+        var count = vertices.Count();
+        for (var i = 0; i < count - 1; i++)
+        {
+            var start = new Point(vertices[i].X, vertices[i].Y);
+            var end = new Point(vertices[i + 1].X, vertices[i + 1].Y);
+            var segment = new LineSegment(start, end);
+            segments.Add(segment);
+        }
+        var lastStart = new Point(vertices[count - 1].X, vertices[count - 1].Y);
+        var lastEnd = new Point(vertices[0].X, vertices[0].Y);
+        var lastSegment = new LineSegment(lastStart, lastEnd);
+        segments.Add(lastSegment);
+        return new SegmentCurve(segments);
+    }
+}
+
+
+*/
+
+public class Rect
+{
+    public double Left { get; }
+    public double Top { get; }
+    public double Width { get; }
+    public double Height { get; }
+
+    public Rect(double left, double top, double width, double height)
+    {
+        Left = left;
+        Top = top;
+        Width = width;
+        Height = height;
+    }
+}
+
+//public class Curve : IShape
+//{
+//    public Curve(IEnumerable<(double X, double Y, double Bulge)> vertices, bool isClosed)
+//    {
+//        Vertices = vertices;
+//        IsClosed = isClosed;
+//        var points = vertices.ToArray();
+//        if (points.Any())
+//        {
+//            var minX = points.Min(p => p.X);
+//            var maxX = points.Max(p => p.X);
+//            var minY = points.Min(p => p.Y);
+//            var maxY = points.Max(p => p.Y);
+//            Bounds = new Rect(minX, minY, maxX - minX, maxY - minY);
+//        }
+//        else
+//        {
+//            Bounds = new Rect(0, 0, 0, 0);
+//        }
+//    }
+
+//    public IEnumerable<(double X, double Y, double Bulge)> Vertices { get; init; }
+//    public bool IsClosed { get; init; }
+//    public Rect Bounds { get; init; }
+
+//    public void Deconstruct(out IShape[] primaryShapes, out int num)
+//    {
+//        primaryShapes = [this];
+//        num = 1;
+//    }
+
+//    public static bool operator ==(Curve left, Curve right) => left.Bounds.Width == right.Bounds.Width && left.Bounds.Height == right.Bounds.Height;
+//    public static bool operator !=(Curve left, Curve right) => !(left == right);
+//}
+
+//public interface IShape
+//{
+//    Rect Bounds { get; }
+//    void Deconstruct(out IShape[] primaryShapes, out int num);
+//}
+
+public static class CurveExtensions
+{
+    public static IEnumerable<Curve> InflateCurve4(this Curve curve, double delta)
+=======
+public static class CurveExtensions2
+{
+    public static IEnumerable<Curve> TestCurve(this Curve curve, double delta)
+    {
+        var vertices = curve.Vertices.ToList();
+        var newVertices = new List<(double X, double Y, double Bulge)>();
+
+        // Смещаем вершины
+        for (int i = 0; i < vertices.Count; i++)
+        {
+            var (x1, y1, bulge1) = vertices[i];
+            var (x2, y2, bulge2) = vertices[(i + 1) % vertices.Count];
+
+            if (bulge1 == 0)
+            {
+                // Линейный сегмент
+                double dx = x2 - x1;
+                double dy = y2 - y1;
+                double length = Math.Sqrt(dx * dx + dy * dy);
+                double nx = -dy / length; // Нормаль к направлению
+                double ny = dx / length;
+
+                // Смещаем вершину на расстояние delta
+                double offsetX1 = x1 + nx * delta;
+                double offsetY1 = y1 + ny * delta;
+                double offsetX2 = x2 + nx * delta;
+                double offsetY2 = y2 + ny * delta;
+
+                newVertices.Add((offsetX1, offsetY1, 0));
+                newVertices.Add((offsetX2, offsetY2, 0));
+            }
+            else
+            {
+                // Дуга (обработка выпуклости)
+                var arcPoints = ApproximateArc(x1, y1, x2, y2, bulge1, delta);
+                newVertices.AddRange(arcPoints);
+            }
+        }
+
+
+        // Проверка на самопересечения
+        var intersections = BentleyOttmann.FindIntersections(newVertices);
+        if (intersections.Any())
+        {
+            // Разделяем кривую на части
+            var curves = SplitCurveAtIntersections(newVertices, intersections);
+            foreach (var c in curves)
+            {
+                yield return new Curve(c, curve.IsClosed);
+            }
+        }
+        else
+        {
+            yield return new Curve(newVertices, curve.IsClosed);
+        }
+
+    }
+    public static IEnumerable<Curve> InflateCurve2(this Curve curve, double delta)
+>>>>>>> 997f08e7cae1d2a53662d8abbad31649e0bcb228:GeometryUtility/CurveOffset/CurveExtensions2.cs
+    {
+        var pretreatedVertices = PretreatCurve(curve.Vertices);
+        var untrimmedCurve = GetUntrimmedOffsetCurve(pretreatedVertices, delta);
+        var otherUntrimmedCurve = GetUntrimmedOffsetCurve(pretreatedVertices, -delta);
+        var clippedCurve = ClipCurve(untrimmedCurve, otherUntrimmedCurve);
+        var finalCurve = HandleComplexCases(clippedCurve, delta);
+
+        return new[] { new Curve(finalCurve, curve.IsClosed) };
+    }
+
+    private static IEnumerable<(double X, double Y, double Bulge)> PretreatCurve(IEnumerable<(double X, double Y, double Bulge)> vertices)
+    {
+        var result = new List<(double X, double Y, double Bulge)>();
+        var verticesArray = vertices.ToArray();
+
+        for (int i = 0; i < verticesArray.Length; i++)
+        {
+            var current = verticesArray[i];
+            var next = verticesArray[(i + 1) % verticesArray.Length];
+
+            if (Math.Abs(current.Bulge) < 1e-6 && Math.Abs(next.Bulge) < 1e-6)
+            {
+                result.Add(current);
+            }
+            else
+            {
+                var angle = 4 * Math.Atan(current.Bulge);
+                var chordLength = Math.Sqrt((next.X - current.X) * (next.X - current.X) + (next.Y - current.Y) * (next.Y - current.Y));
+                var radius = chordLength / (2 * Math.Sin(angle / 2));
+                var midPoint = ((current.X + next.X) / 2, (current.Y + next.Y) / 2);
+                var center = (
+                    midPoint.Item1 + (current.Y - next.Y) * (radius / chordLength),
+                    midPoint.Item2 + (next.X - current.X) * (radius / chordLength)
+                );
+
+                var startAngle = Math.Atan2(current.Y - center.Item2, current.X - center.Item1);
+                var endAngle = Math.Atan2(next.Y - center.Item2, next.X - center.Item1);
+
+                if (angle < 0)
+                    (startAngle, endAngle) = (endAngle, startAngle);
+
+                var intersectionPoints = FindIntersectionPoints(center, radius, current, next);
+
+                if (intersectionPoints.Any())
+                {
+                    var param = (intersectionPoints.First().Item1 + intersectionPoints.First().Item2) / 2;
+                    var p = ParametricPoint(current, next, param, current.Bulge);
+                    result.Add((p.Item1, p.Item2, current.Bulge));
+                }
+
+                result.Add(current);
+            }
+        }
+
+        return result;
+    }
+
+    private static IEnumerable<(double, double)> FindIntersectionPoints((double X, double Y) center, double radius, (double X, double Y, double Bulge) current, (double X, double Y, double Bulge) next)
+    {
+        var intersections = new List<(double, double)>();
+
+        if (Math.Abs(current.Bulge) < 1e-6 && Math.Abs(next.Bulge) < 1e-6)
+        {
+            // Line-line intersection
+            var det = (current.X - next.X) * (current.Y - next.Y) - (current.Y - next.Y) * (current.X - next.X);
+            if (Math.Abs(det) < 1e-6) return intersections; // Parallel lines
+
+            var x = ((current.X * next.Y - current.Y * next.X) * (current.X - next.X) - (current.X - next.X) * (current.X * next.Y - current.Y * next.X)) / det;
+            var y = ((current.X * next.Y - current.Y * next.X) * (current.Y - next.Y) - (current.Y - next.Y) * (current.X * next.Y - current.Y * next.X)) / det;
+
+            intersections.Add((x, y));
+        }
+        else if (Math.Abs(current.Bulge) < 1e-6)
+        {
+            // Line-circle intersection
+            var dx = next.X - current.X;
+            var dy = next.Y - current.Y;
+            var dr = Math.Sqrt(dx * dx + dy * dy);
+            var D = current.X * next.Y - next.X * current.Y;
+            var discriminant = radius * radius * dr * dr - D * D;
+
+            if (discriminant >= 0)
+            {
+                var sqrtDiscriminant = Math.Sqrt(discriminant);
+                var x1 = (D * dy + Math.Sign(dy) * dx * sqrtDiscriminant) / (dr * dr);
+                var y1 = (-D * dx + Math.Abs(dy) * sqrtDiscriminant) / (dr * dr);
+                var x2 = (D * dy - Math.Sign(dy) * dx * sqrtDiscriminant) / (dr * dr);
+                var y2 = (-D * dx - Math.Abs(dy) * sqrtDiscriminant) / (dr * dr);
+
+                intersections.Add((x1, y1));
+                intersections.Add((x2, y2));
+            }
+        }
+        else if (Math.Abs(next.Bulge) < 1e-6)
+        {
+            // Circle-line intersection (symmetric to line-circle)
+            var dx = current.X - next.X;
+            var dy = current.Y - next.Y;
+            var dr = Math.Sqrt(dx * dx + dy * dy);
+            var D = next.X * current.Y - current.X * next.Y;
+            var discriminant = radius * radius * dr * dr - D * D;
+
+            if (discriminant >= 0)
+            {
+                var sqrtDiscriminant = Math.Sqrt(discriminant);
+                var x1 = (D * dy + Math.Sign(dy) * dx * sqrtDiscriminant) / (dr * dr);
+                var y1 = (-D * dx + Math.Abs(dy) * sqrtDiscriminant) / (dr * dr);
+                var x2 = (D * dy - Math.Sign(dy) * dx * sqrtDiscriminant) / (dr * dr);
+                var y2 = (-D * dx - Math.Abs(dy) * sqrtDiscriminant) / (dr * dr);
+
+                intersections.Add((x1, y1));
+                intersections.Add((x2, y2));
+            }
+        }
+        else
+        {
+            // Circle-circle intersection
+            var dx = next.X - current.X;
+            var dy = next.Y - current.Y;
+            var d = Math.Sqrt(dx * dx + dy * dy);
+            var a = (radius * radius - next.Item3 * next.Item3 + d * d) / (2 * d);
+            var h = Math.Sqrt(radius * radius - a * a);
+
+            var x2 = current.X + a * (next.X - current.X) / d;
+            var y2 = current.Y + a * (next.Y - current.Y) / d;
+
+            var rx = -dy * (h / d);
+            var ry = dx * (h / d);
+
+            intersections.Add((x2 + rx, y2 + ry));
+            intersections.Add((x2 - rx, y2 - ry));
+        }
+
+        return intersections.Where(p => IsOnSegment(current, next, p));
+    }
+
+    private static bool IsOnSegment((double X, double Y, double Bulge) current, (double X, double Y, double Bulge) next, (double X, double Y) p)
+    {
+        var dx = next.X - current.X;
+        var dy = next.Y - current.Y;
+        var t1 = ((p.Item1 - current.X) * dx + (p.Item2 - current.Y) * dy) / (dx * dx + dy * dy);
+        var t2 = ((p.Item1 - next.X) * (current.X - next.X) + (p.Item2 - next.Y) * (current.Y - next.Y)) / (dx * dx + dy * dy);
+        return t1 >= 0 && t1 <= 1 && t2 >= 0 && t2 <= 1;
+    }
+
+    private static (double X, double Y) ParametricPoint((double X, double Y, double Bulge) current, (double X, double Y, double Bulge) next, double t, double bulge)
+    {
+        if (Math.Abs(bulge) < 1e-6)
+        {
+            return (current.X + t * (next.X - current.X), current.Y + t * (next.Y - current.Y));
+        }
+        else
+        {
+            var angle = 4 * Math.Atan(bulge);
+            var chordLength = Math.Sqrt((next.X - current.X) * (next.X - current.X) + (next.Y - current.Y) * (next.Y - current.Y));
+            var radius = chordLength / (2 * Math.Sin(angle / 2));
+            var midPoint = ((current.X + next.X) / 2, (current.Y + next.Y) / 2);
+            var center = (
+                midPoint.Item1 + (current.Y - next.Y) * (radius / chordLength),
+                midPoint.Item2 + (next.X - current.X) * (radius / chordLength)
+            );
+
+            var startAngle = Math.Atan2(current.Y - center.Item2, current.X - center.Item1);
+            var endAngle = Math.Atan2(next.Y - center.Item2, next.X - center.Item1);
+
+            if (angle < 0)
+                (startAngle, endAngle) = (endAngle, startAngle);
+
+            var angleParam = startAngle + t * (endAngle - startAngle);
+            return (center.Item1 + radius * Math.Cos(angleParam), center.Item2 + radius * Math.Sin(angleParam));
+        }
+    }
+
+    private static IEnumerable<(double X, double Y, double Bulge)> GetUntrimmedOffsetCurve(IEnumerable<(double X, double Y, double Bulge)> vertices, double delta)
+    {
+        var result = new List<(double X, double Y, double Bulge)>();
+        var verticesArray = vertices.ToArray();
+
+        for (int i = 0; i < verticesArray.Length; i++)
+        {
+            var current = verticesArray[i];
+            var next = verticesArray[(i + 1) % verticesArray.Length];
+            var offsetCurrent = OffsetSegment(current, next, delta).ToList();
+
+            if (result.Any())
+            {
+                var lastResult = result.Skip(result.Count - 2).Take(2).ToList(); // Get the last two points of the last segment
+                var intersectionPoints = FindIntersectionPoints(lastResult, offsetCurrent).ToList();
+
+                if (intersectionPoints.Any())
+                {
+                    var p0 = intersectionPoints.First();
+                    var typeCurrent = DeterminePointType(offsetCurrent, p0);
+                    var typeLast = DeterminePointType(lastResult, p0);
+
+<<<<<<< HEAD:GeometryUtility/CurveOffset/CurveOffset.cs
+                    switch ((typeCurrent, typeLast))
+                    {
+                        case (PointType.TIP, PointType.TIP):
+                            result.Add((p0.Item1, p0.Item2, 0));
+                            break;
+                        case (PointType.FIP, PointType.FIP):
+                            result.Add((p0.Item1, p0.Item2, 0));
+                            break;
+                        case (PointType.TIP, PointType.FIP):
+                            result.Add((lastResult.Last().Item1, lastResult.Last().Item2, 0));
+                            result.Add((p0.Item1, p0.Item2, 0));
+                            break;
+                        case (PointType.FIP, PointType.TIP):
+                            result.Add((lastResult.Last().Item1, lastResult.Last().Item2, 0));
+                            result.Add((p0.Item1, p0.Item2, 0));
+                            break;
+                    }
+                }
+                else
+                {
+                    result.AddRange(offsetCurrent);
+                }
+            }
+            else
+            {
+                result.AddRange(offsetCurrent);
+            }
+        }
+
+        return result;
+    }
+
+    private static IEnumerable<(double X, double Y, double Bulge)> OffsetSegment((double X, double Y, double Bulge) current, (double X, double Y, double Bulge) next, double delta)
+    {
+        if (Math.Abs(current.Bulge) < 1e-6 && Math.Abs(next.Bulge) < 1e-6)
+        {
+            // Line segment
+            var direction = (next.X - current.X, next.Y - current.Y);
+            var length = Math.Sqrt(direction.Item1 * direction.Item1 + direction.Item2 * direction.Item2);
+            var normal = (-direction.Item2 / length, direction.Item1 / length);
+
+            var offsetCurrent = (current.X + normal.Item1 * delta, current.Y + normal.Item2 * delta);
+            var offsetNext = (next.X + normal.Item1 * delta, next.Y + normal.Item2 * delta);
+
+            return [ (offsetCurrent.Item1, offsetCurrent.Item2, 0), (offsetNext.Item1, offsetNext.Item2, 0) ];
+        }
+        else
+        {
+            // Arc segment
+            var angle = 4 * Math.Atan(current.Bulge);
+            var chordLength = Math.Sqrt((next.X - current.X) * (next.X - current.X) + (next.Y - current.Y) * (next.Y - current.Y));
+            var radius = chordLength / (2 * Math.Sin(angle / 2));
+            var midPoint = ((current.X + next.X) / 2, (current.Y + next.Y) / 2);
+            var center = (
+                midPoint.Item1 + (current.Y - next.Y) * (radius / chordLength),
+                midPoint.Item2 + (next.X - current.X) * (radius / chordLength)
+            );
+
+            var startAngle = Math.Atan2(current.Y - center.Item2, current.X - center.Item1);
+            var endAngle = Math.Atan2(next.Y - center.Item2, next.X - center.Item1);
+
+            if (angle < 0)
+                (startAngle, endAngle) = (endAngle, startAngle);
+
+            var newRadius = radius + delta;
+            var newCenter = (
+                center.Item1 + (center.Item1 - midPoint.Item1) * (newRadius / radius),
+                center.Item2 + (center.Item2 - midPoint.Item2) * (newRadius / radius)
+            );
+
+            var newStartAngle = startAngle + Math.Sign(delta) * Math.PI / 2;
+            var newEndAngle = endAngle + Math.Sign(delta) * Math.PI / 2;
+
+            var offsetCurrent = (
+                newCenter.Item1 + newRadius * Math.Cos(newStartAngle),
+                newCenter.Item2 + newRadius * Math.Sin(newStartAngle)
+            );
+            var offsetNext = (
+                newCenter.Item1 + newRadius * Math.Cos(newEndAngle),
+                newCenter.Item2 + newRadius * Math.Sin(newEndAngle)
+            );
+
+            var bulge = Math.Tan((newEndAngle - newStartAngle) / 4);
+            return new[] { (offsetCurrent.Item1, offsetCurrent.Item2, bulge), (offsetNext.Item1, offsetNext.Item2, bulge) };
+        }
+    }
+
+    private static IEnumerable<(double X, double Y)> FindIntersectionPoints(IEnumerable<(double X, double Y, double Bulge)> segment1, IEnumerable<(double X, double Y, double Bulge)> segment2)
+    {
+        var points1 = segment1.ToArray();
+        var points2 = segment2.ToArray();
+
+        if (points1.Length != 2 || points2.Length != 2)
+            return Enumerable.Empty<(double, double)>();
+
+        var p1 = points1[0];
+        var p2 = points1[1];
+        var q1 = points2[0];
+        var q2 = points2[1];
+
+        var dx = p2.X - p1.X;
+        var dy = p2.Y - p1.Y;
+        var det = dx * q2.Y - dy * q1.Y + q1.X * p2.Y - q2.X * p1.Y;
+
+        if (Math.Abs(det) < 1e-6)
+            return Enumerable.Empty<(double, double)>();
+
+        var t = (q1.X * p2.Y - q2.X * p1.Y + q2.X * p1.Y - q1.X * p2.Y + q1.Y * p1.X - q1.Y * q2.X) / det;
+        var u = (q1.X * p2.Y - q2.X * p1.Y + q2.X * p1.Y - q1.X * p2.Y + p1.X * q1.Y - p1.Y * q1.X) / det;
+
+        if (t >= 0 && t <= 1 && u >= 0 && u <= 1)
+        {
+            var x = p1.X + t * dx;
+            var y = p1.Y + t * dy;
+            return new[] { (x, y) };
+        }
+
+        return Enumerable.Empty<(double, double)>();
+    }
+
+    private enum PointType
+    {
+        TIP,
+        FIP,
+        PFIP,
+        NFIP
+    }
+
+    private static PointType DeterminePointType(IEnumerable<(double X, double Y, double Bulge)> segment, (double X, double Y) point)
+    {
+        var points = segment.ToArray();
+
+        if (points.Length != 2)
+            return PointType.FIP;
+
+        var p1 = points[0];
+        var p2 = points[1];
+
+        var dx = p2.X - p1.X;
+        var dy = p2.Y - p1.Y;
+        var t = ((point.X - p1.X) * dx + (point.Y - p1.Y) * dy) / (dx * dx + dy * dy);
+
+        if (t >= 0 && t <= 1)
+        {
+            if (Math.Abs(point.X - (p1.X + t * dx)) < 1e-6 && Math.Abs(point.Y - (p1.Y + t * dy)) < 1e-6)
+                return PointType.TIP;
+            else
+                return PointType.PFIP;
+        }
+
+        return PointType.FIP;
+    }
+
+    private static IEnumerable<(double X, double Y, double Bulge)> ClipCurve(IEnumerable<(double X, double Y, double Bulge)> untrimmedCurve, IEnumerable<(double X, double Y, double Bulge)> otherUntrimmedCurve)
+    {
+        var result = new List<(double X, double Y, double Bulge)>();
+        var segments = SplitAtIntersections(untrimmedCurve, otherUntrimmedCurve);
+
+        foreach (var segment in segments)
+        {
+            if (!IsInsideOriginalCurve(segment, untrimmedCurve))
+            {
+                result.AddRange(segment);
+            }
+        }
+
+        return result;
+    }
+
+    private static IEnumerable<IEnumerable<(double X, double Y, double Bulge)>> SplitAtIntersections(IEnumerable<(double X, double Y, double Bulge)> curve1, IEnumerable<(double X, double Y, double Bulge)> curve2)
+    {
+        var result = new List<IEnumerable<(double X, double Y, double Bulge)>>();
+        var segments1 = curve1.Select((v, i) => new { v, Index = i }).ToList();
+        var segments2 = curve2.Select((v, i) => new { v, Index = i }).ToList();
+
+        for (int i = 0; i < segments1.Count; i++)
+        {
+            var current1 = segments1[i].v;
+            var next1 = segments1[(i + 1) % segments1.Count].v;
+
+            var segment1 = new[] { current1, next1 };
+
+            for (int j = 0; j < segments2.Count; j++)
+            {
+                var current2 = segments2[j].v;
+                var next2 = segments2[(j + 1) % segments2.Count].v;
+
+                var segment2 = new[] { current2, next2 };
+
+                var intersections = FindIntersectionPoints(segment1, segment2);
+
+                if (intersections.Any())
+                {
+                    // Split segment1 at intersection points
+                    var splitSegments = SplitSegmentAtPoints(segment1, intersections);
+                    result.AddRange(splitSegments);
+                }
+                else
+                {
+                    result.Add(segment1);
+                }
+            }
+        }
+
+        return result;
+    }
+
+    private static IEnumerable<IEnumerable<(double X, double Y, double Bulge)>> SplitSegmentAtPoints(IEnumerable<(double X, double Y, double Bulge)> segment, IEnumerable<(double X, double Y)> points)
+    {
+        var result = new List<IEnumerable<(double X, double Y, double Bulge)>>();
+        var pointsList = points.ToList();
+        var segmentList = segment.ToList();
+
+        pointsList.Sort((a, b) => ComparePoints(segmentList[0], segmentList[1], a, b));
+
+        var currentPoint = segmentList[0];
+        foreach (var point in pointsList)
+        {
+            result.Add(new[] { currentPoint, (point.Item1, point.Item2, 0) });
+            currentPoint = (point.Item1, point.Item2, 0);
+        }
+        result.Add(new[] { currentPoint, segmentList[1] });
+
+        return result;
+    }
+
+    private static int ComparePoints((double X, double Y, double Bulge) p1, (double X, double Y, double Bulge) p2, (double X, double Y) a, (double X, double Y) b)
+    {
+        var dx = p2.X - p1.X;
+        var dy = p2.Y - p1.Y;
+        var t1 = ((a.Item1 - p1.X) * dx + (a.Item2 - p1.Y) * dy) / (dx * dx + dy * dy);
+        var t2 = ((b.Item1 - p1.X) * dx + (b.Item2 - p1.Y) * dy) / (dx * dx + dy * dy);
+
+        return t1.CompareTo(t2);
+    }
+
+    private static bool IsInsideOriginalCurve(IEnumerable<(double X, double Y, double Bulge)> segment, IEnumerable<(double X, double Y, double Bulge)> originalCurve)
+    {
+        var points = segment.ToArray();
+        var originalPoints = originalCurve.ToArray();
+
+        if (points.Length != 2)
+            return false;
+
+        var p1 = points[0];
+        var p2 = points[1];
+
+        (double X, double Y) midPoint = ((p1.X + p2.X) / 2, (p1.Y + p2.Y) / 2);
+
+        var windingNumber = 0;
+
+        for (int i = 0; i < originalPoints.Length; i++)
+        {
+            var current = originalPoints[i];
+            var next = originalPoints[(i + 1) % originalPoints.Length];
+
+            if (current.Y <= midPoint.Y)
+            {
+                if (next.Y > midPoint.Y && IsLeft(current, next, midPoint) > 0)
+                    windingNumber++;
+            }
+            else
+            {
+                if (next.Y <= midPoint.Y && IsLeft(current, next, midPoint) < 0)
+                    windingNumber--;
+            }
+        }
+
+        return windingNumber != 0;
+    }
+
+    private static double IsLeft((double X, double Y, double Bulge) p0, (double X, double Y, double Bulge) p1, (double X, double Y) p2)
+    {
+        return (p1.X - p0.X) * (p2.Y - p0.Y) - (p2.X - p0.X) * (p1.Y - p0.Y);
+    }
+
+    private static IEnumerable<(double X, double Y, double Bulge)> HandleComplexCases(IEnumerable<(double X, double Y, double Bulge)> vertices, double delta)
+    {
+        // Handle complex cases such as closed curves, small arcs, and local overlapping curves
+        // This is a simplified version and may require further refinement
+
+        var result = new List<(double X, double Y, double Bulge)>();
+        var verticesArray = vertices.ToArray();
+
+        // Handle closed curves
+        if (verticesArray.Length > 0 && verticesArray[0] == verticesArray[^1])
+        {
+            // Convert closed curve to open curve
+            var openCurve = verticesArray.Take(verticesArray.Length - 1).ToArray();
+            var offsetCurve = GetUntrimmedOffsetCurve(openCurve, delta);
+            var clippedCurve = ClipCurve(offsetCurve, GetUntrimmedOffsetCurve(openCurve, -delta));
+
+            // Close the offset curve
+            if (clippedCurve.Any())
+            {
+                var lastPoint = clippedCurve.Last();
+                var firstPoint = clippedCurve.First();
+                var closingSegment = OffsetSegment(lastPoint, firstPoint, delta);
+                clippedCurve = clippedCurve.Concat(closingSegment.Skip(1)).ToList();
+            }
+
+            result.AddRange(clippedCurve);
+        }
+        else
+        {
+            result.AddRange(verticesArray);
+        }
+
+        // Handle small arcs and local overlapping curves
+        // This part is more complex and requires detailed handling
+
+        return result;
+    }
+}
+=======
+
+
+>>>>>>> 997f08e7cae1d2a53662d8abbad31649e0bcb228:GeometryUtility/CurveOffset/CurveExtensions2.cs
