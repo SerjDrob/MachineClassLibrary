@@ -79,6 +79,9 @@ namespace MachineClassLibrary.SFC
         }
 
         private bool _hasStarted = false;
+        private int _freq;
+        private bool _onFreq;
+
         public void Stop()
         {
             lock (_modbusLock)
@@ -115,7 +118,6 @@ namespace MachineClassLibrary.SFC
         private async Task WatchingStateAsync()
         {
             ushort[] data = default;
-            bool onFreq = false;
             bool acc = false;
             bool dec = false;
             bool stop = false;
@@ -125,20 +127,19 @@ namespace MachineClassLibrary.SFC
                 try
                 {
                     int current;
-                    int freq;
                     lock (_modbusLock)
                     {
                         data = _client.ReadHoldingRegisters(1, 0xD000, 2);
                         current = data[1];
-                        freq = data[0];
+                        _freq = data[0];
                         data = _client.ReadHoldingRegisters(1, 0x2000, 1);
-                        onFreq = data[0] == 0x0001 | data[0] == 0x0002;
+                        _onFreq = data[0] == 0x0001 | data[0] == 0x0002;
                         acc = data[0] == 0x0011 | data[0] == 0x0012;
                         dec = data[0] == 0x0014 | data[0] == 0x0015;
                         stop = data[0] == 0x0003;
                     }
                     
-                    GetSpindleState?.Invoke(this, new SpindleEventArgs(freq * 6,(double)current / 10,onFreq, acc, dec, stop));
+                    GetSpindleState?.Invoke(this, new SpindleEventArgs(_freq * 6,(double)current / 10,_onFreq, acc, dec, stop));
                 }
                 catch (ModbusException)
                 {
@@ -204,6 +205,22 @@ namespace MachineClassLibrary.SFC
             throw new NotImplementedException();
         }
 
-        public Task<bool> ChangeSpeedAsync(ushort rpm, int delay) => throw new NotImplementedException();
+        public async Task<bool> ChangeSpeedAsync(ushort rpm, int delay) 
+        {
+            if (!_hasStarted) return false;
+            if (rpm == _freq * 6) return true;
+            try
+            {
+                SetSpeed(rpm);
+                if (_onFreq) return true;
+                await Task.Run(async () => { while (!_onFreq) await Task.Delay(50); });
+                await Task.Delay(delay);
+                return true;
+            }
+            catch
+            {
+                return false;
+            }
+        }
     }
 }
