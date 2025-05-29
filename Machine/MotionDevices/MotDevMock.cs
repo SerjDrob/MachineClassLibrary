@@ -253,7 +253,8 @@ namespace MachineClassLibrary.Machine.MotionDevices
 
         public double GetAxCmd(int axNum)
         {
-            throw new NotImplementedException();
+            // throw new NotImplementedException();
+            return 0;
         }
 
         public void SetAxisCoordinate(int axisNum, double coordinate)
