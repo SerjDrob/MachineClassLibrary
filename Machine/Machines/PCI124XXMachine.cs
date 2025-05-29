@@ -1,10 +1,12 @@
-﻿using MachineClassLibrary.Classes;
+﻿using Advantech.Motion;
+using MachineClassLibrary.Classes;
 using MachineClassLibrary.Machine.MotionDevices;
 using Microsoft.Toolkit.Diagnostics;
 using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
+//using Serilog;
 
 namespace MachineClassLibrary.Machine.Machines
 {
@@ -17,7 +19,7 @@ namespace MachineClassLibrary.Machine.Machines
         private Dictionary<MFeatures, double> _doubleFeatures;
         protected Dictionary<Ax, Dictionary<Velocity, double>> _velRegimes;
         private readonly Dictionary<Ax, (AxDir direction, HomeRst homeRst, HmMode homeMode, double velocity, double positionAfterHoming)> _homingConfigs = new();
-        public PCI124XXMachine(IMotionDevicePCI1240U motionDevice)
+        public PCI124XXMachine(IMotionDevicePCI1240U motionDevice/*, Serilog.Ilogger logger*/)
         {
             _motionDevice = motionDevice;
             //IsMotionDeviceInit = _motionDevice.DevicesConnection();
@@ -93,10 +95,20 @@ namespace MachineClassLibrary.Machine.Machines
             if (!_axes[axis].Busy | _axes[axis].MotionDone)
             {
                 SetAxisBusy(axis);
-               
+
                 if (precisely)
                 {
-                    await _motionDevice.MoveAxisPreciselyAsync(_axes[axis].AxisNum, _axes[axis].LineCoefficient, position).ConfigureAwait(false);
+                    //await _motionDevice.MoveAxisAsync(_axes[axis].AxisNum, position - 1).ConfigureAwait(false);
+
+
+                    try
+                    {
+                        await _motionDevice.MoveAxisPreciselyAsync(_axes[axis].AxisNum, _axes[axis].LineCoefficient, position).ConfigureAwait(false);
+                    }
+                    catch (Exception ex)
+                    {
+                        //TODO log the exception
+                    }
                     //await _motionDevice.MoveAxisPreciselyAsync_2(_axes[axis].AxisNum, _axes[axis].LineCoefficient, position).ConfigureAwait(false);
 
                 }
@@ -376,8 +388,7 @@ namespace MachineClassLibrary.Machine.Machines
                 _positionAfterHoming = position;
                 return this;
             }
-        }
-        
+        }       
 
         public IAxisBuilder AddAxis(Ax ax, double lineCoefficient)
         {

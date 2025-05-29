@@ -227,20 +227,30 @@ namespace MachineClassLibrary.Machine.Machines
 
             return pl;
         }
-        public void ConfigureSensors(Dictionary<Sensors, (Ax, Di, bool, string)> sensors)
+        //public void ConfigureSensors(Dictionary<Sensors, (Ax, Di, bool, string)> sensors)
+        //{
+        //    _sensors = new Dictionary<Sensors, (Ax, Di, bool, string)>(sensors);
+        //}
+
+        public void AddSensor(Sensors sensor, Ax axis, Di di, bool inverted, string name)
         {
-            _sensors = new Dictionary<Sensors, (Ax, Di, bool, string)>(sensors);
+            _sensors ??= new();
+            if (!_sensors.TryAdd(sensor, (axis, di, inverted, name))) _sensors[sensor] = (axis, di, inverted, name);
         }
 
-        public void ConfigureValves(Dictionary<Valves, (Ax, Do)> valves)
+        //public void ConfigureValves(Dictionary<Valves, (Ax, Do)> valves)
+        //{
+        //    _valves = new Dictionary<Valves, (Ax, Do)>(valves);
+        //}
+        public void AddValve(Valves valve, Ax axis, Do @do)
         {
-            _valves = new Dictionary<Valves, (Ax, Do)>(valves);
+            _valves ??= new();
+            if (!_valves.TryAdd(valve, (axis, @do))) _valves[valve] = (axis, @do);
         }
-
         public void SetBridgeOnSensors(Sensors sensor, bool setBridge)
         {
             var num = _axes[_sensors[sensor].axis].AxisNum;
-            _motionDevice.SetBridgeOnAxisDin(num, (int)_sensors[sensor].dIn, setBridge);
+            _motionDevice.SetBridgeOnAxisDin(num, (int)_sensors[sensor].dIn - 1, setBridge);
         }
 
         public void SwitchOnValve(Valves valve)
@@ -298,15 +308,17 @@ namespace MachineClassLibrary.Machine.Machines
         public void StartSpindle(params Sensors[] blockers)
         {
             _spindleBlockers = new(blockers);
-            foreach (var blocker in blockers)
+
+
+            var absentBlockers  = _spindleBlockers.Where(blocker =>
             {
                 var axis = _axes[_sensors[blocker].axis];
                 var di = _sensors[blocker].dIn;
-                if (!axis.GetDi(di) ^ _sensors[blocker].invertion)
-                {
-                    throw new MachineException($"Отсутствует {_sensors[blocker].name}");
-                }
-            }
+                var result = axis.GetDi(di);
+                return !result ^ _sensors[blocker].invertion;
+            }).Select(blocker => _sensors[blocker].name);
+
+            if (absentBlockers.Any()) throw new MachineException($"Отсутствует: {string.Join(", ", absentBlockers)}.");
 
             _spindle.Start();
         }
@@ -383,7 +395,7 @@ namespace MachineClassLibrary.Machine.Machines
             {
                 if (sensor.Value.axis == ax)
                 {
-                    OnSensorStateChanged?.Invoke(this, new(sensor.Key, sensor.Value.invertion ^ (ins & (1 << (int)sensor.Value.dIn)) != 0));
+                    OnSensorStateChanged?.Invoke(this, new(sensor.Key, sensor.Value.invertion ^ (ins & (1 << ((int)sensor.Value.dIn - 1))) != 0));
                 }
             }
         }

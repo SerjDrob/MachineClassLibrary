@@ -6,9 +6,8 @@ using System.Drawing;
 using System.Linq;
 using System.Windows;
 
-namespace MachineClassLibrary.Classes
-{
-    public class IMDxfReader : IDxfReader
+namespace MachineClassLibrary.Classes;
+public class IMDxfReader : IDxfReader
     {
         private const string TEMP_FILE_NAME = "tempcurve";
         private readonly string _fileName;
@@ -221,4 +220,3 @@ namespace MachineClassLibrary.Classes
         }
     }
 
-}

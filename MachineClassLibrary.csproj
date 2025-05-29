@@ -35,12 +35,13 @@
   </ItemGroup>
 
   <ItemGroup>
+    <PackageReference Include="Advanced.Algorithms" Version="1.0.0" />
     <PackageReference Include="AForge" Version="2.2.5" />
     <PackageReference Include="AForge.Imaging" Version="2.2.5" />
     <PackageReference Include="AForge.Video" Version="2.2.5" />
     <PackageReference Include="AForge.Video.DirectShow" Version="2.2.5" />
-    <PackageReference Include="AutoMapper" Version="12.0.1" />
-    <PackageReference Include="Clipper2" Version="1.2.2" />
+    <PackageReference Include="AutoMapper" Version="13.0.1" />
+    <PackageReference Include="Clipper2" Version="1.4.0" />
     <PackageReference Include="EasyModbusTCP" Version="5.6.0" />
     <PackageReference Include="FluentModbus" Version="5.0.0" />
     <PackageReference Include="FTD2XX_NET" Version="1.0.14" />
@@ -58,6 +59,7 @@
     <PackageReference Include="Moq" Version="4.20.70" />
     <!--<PackageReference Include="netDXF" Version="2.2.0.1" />-->
     <PackageReference Include="netDxf.netstandard" Version="2.4.0" />
+    <PackageReference Include="NetTopologySuite" Version="2.5.0" />
     <PackageReference Include="Newtonsoft.Json" Version="13.0.3" />
     <PackageReference Include="NModbus" Version="3.0.81" />
     <PackageReference Include="NModbus.Serial" Version="3.0.81" />
@@ -66,9 +68,10 @@
     <PackageReference Include="OpenCvSharp4.Extensions" Version="4.10.0.20240616" />
     <PackageReference Include="OpenCvSharp4.runtime.win" Version="4.10.0.20240616" />-->
     <PackageReference Include="propertychanged.fody" Version="4.1.0" />
-    <PackageReference Include="System.Drawing.Common" Version="8.0.7" />
+    <PackageReference Include="SharpDX.Direct2D1" Version="4.2.0" />
+    <PackageReference Include="System.Drawing.Common" Version="8.0.10" />
     <PackageReference Include="System.Management" Version="8.0.0" />
-    <PackageReference Include="System.Reactive" Version="6.0.0" />
+    <PackageReference Include="System.Reactive" Version="6.0.1" />
   </ItemGroup>
 
   <ItemGroup>

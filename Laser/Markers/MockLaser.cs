@@ -1,8 +1,5 @@
 ﻿using System;
-using System.Collections.Generic;
 using System.Diagnostics;
-using System.Linq;
-using System.Text;
 using System.Threading.Tasks;
 using MachineClassLibrary.Laser.Parameters;
 
@@ -34,6 +31,11 @@ namespace MachineClassLibrary.Laser.Markers
             return Task.FromResult(IsMarkDeviceInit);
         }
 
+        public Task<(double x, double y)[]> MarkCircleArrayAsync(double diameter, double arrayWidth, int arraySize)
+        {
+            throw new NotImplementedException();
+        }
+
         public Task<bool> MarkTextAsync(string text, double textSize, double angle)
         {
             throw new NotImplementedException();
@@ -44,7 +46,7 @@ namespace MachineClassLibrary.Laser.Markers
             Debug.WriteLine($"Laser is piercing circle d = {diameter}");
             return Task.FromResult(true);
         }
-        
+
         public Task<bool> PierceDxfObjectAsync(string filePath)
         {
             return Task.FromResult(true); // throw new NotImplementedException();
@@ -90,6 +92,11 @@ namespace MachineClassLibrary.Laser.Markers
         }
 
         public void SetSystemAngle(double angle)
+        {
+            throw new NotImplementedException();
+        }
+
+        public Task<bool> StopPWMAsync()
         {
             throw new NotImplementedException();
         }
