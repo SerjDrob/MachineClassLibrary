@@ -10,14 +10,14 @@ namespace MachineClassLibrary.SFC
     public class MD520 : ISpindle, IDisposable
     {
         /// <summary>
-        ///     300 Hz = 18000 rpm
+        ///     85 Hz = 5100 rpm
         /// </summary>
-        private const ushort LowFreqLimit = 3000;
+        private const ushort LowFreqLimit = 850;
 
         /// <summary>
-        ///     550 Hz = 33000 rpm
+        ///     1000 Hz = 60000 rpm
         /// </summary>
-        private const ushort HighFreqLimit = 5500;
+        private const ushort HighFreqLimit = 10000;
 
         private readonly object _modbusLock = new();
         private ModbusSerialMaster _client;
@@ -94,10 +94,12 @@ namespace MachineClassLibrary.SFC
             _serialPort = new SerialPort
             {
                 PortName = com,
-                BaudRate = 9600,
-                Parity = Parity.Even,
+                BaudRate = 38400,
+                Parity = Parity.None,
                 WriteTimeout = 1000,
-                ReadTimeout = 100
+                ReadTimeout = 100,
+                DataBits = 8,
+                StopBits = StopBits.One
             };
 
             _serialPort.Open();
@@ -149,7 +151,7 @@ namespace MachineClassLibrary.SFC
                     dec = (data[0] & 1) > 0 && (data[0] & 1 << 3) == 0;
                     //}
 
-                    GetSpindleState?.Invoke(this, new SpindleEventArgs(freq * 6, (double)current / 10, onFreq, acc, dec, stop));
+                    GetSpindleState?.Invoke(this, new SpindleEventArgs(freq * 6, (double)current / 100, onFreq, acc, dec, stop));
                 }
                 catch (ModbusException)
                 {
