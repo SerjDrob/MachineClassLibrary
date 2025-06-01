@@ -340,7 +340,7 @@ private async Task DeviceStateMonitorAsync()
             Motion.mAcm_AxMoveVel(_mAxishand[axisNum], (ushort)dir);
         }
 
-        public void MoveAxesByCoorsAsync((int axisNum, double position)[] ax)
+        public void MoveAxesByCoorsAsync((int axisNum, double position)[] ax)//TODO make it async
         {
             if (ax.Any(ind => ind.axisNum > _mAxishand.Length - 1))
             {
@@ -399,7 +399,7 @@ private async Task DeviceStateMonitorAsync()
         {
             //var velHigh = vel;
             var velHigh = vel / _axPRD[axisNum].ratio;
-            var velLow = velHigh / 2;
+            var velLow = velHigh/* / 2*/;
 
             Motion.mAcm_SetProperty(_mAxishand[axisNum], (uint)PropertyID.PAR_AxVelHigh, ref velHigh, 8).CheckResult(axisNum);
             Motion.mAcm_SetProperty(_mAxishand[axisNum], (uint)PropertyID.PAR_AxVelLow, ref velLow, 8).CheckResult(axisNum);
@@ -753,8 +753,10 @@ private async Task DeviceStateMonitorAsync()
                 {
                     //ThrowMessage?.Invoke($"{ex.StackTrace} :\n {ex.Message}", 0);
                     throw new MotionException($"In the {nameof(HomeMovingAsync)} method {nameof(SetAxisVelocity)} failed for the axis number {axvel.axisNum} ", ex);
-                    break;
                 }
+
+
+                
 
                 _result = Motion.mAcm_AxHome(_mAxishand[axvel.axisNum], axvel.mode, (uint)HomeDir.NegDir);
 
@@ -793,6 +795,7 @@ private async Task DeviceStateMonitorAsync()
             foreach (var axvel in axs)
             {
                 SetAxisVelocity(axvel.axisNum, axvel.velocity);
+
                 _result = Motion.mAcm_AxHome(_mAxishand[axvel.axisNum], (uint)axvel.homeMode, (uint)axvel.direction);
 
                 if (!Success(_result))

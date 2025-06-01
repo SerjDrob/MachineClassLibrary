@@ -73,7 +73,7 @@ namespace MachineClassLibrary.Machine.Machines
                         ax[i] = (_axes[axis].AxisNum, _places[place][i].pos, _axes[axis].LineCoefficient);
                     }
 
-                    _motionDevice.MoveAxesByCoorsPrecAsync(ax);
+                    await _motionDevice.MoveAxesByCoorsPrecAsync(ax);
                 }
                 else
                 {
@@ -84,7 +84,7 @@ namespace MachineClassLibrary.Machine.Machines
                         ax[i] = (_axes[axis].AxisNum, _places[place][i].pos);
                     }
 
-                    _motionDevice.MoveAxesByCoorsAsync(ax);
+                    _motionDevice.MoveAxesByCoorsAsync(ax);//TODO it's not realy async
                 }
             }
             else

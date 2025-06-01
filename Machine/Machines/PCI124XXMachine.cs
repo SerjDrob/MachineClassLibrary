@@ -322,9 +322,7 @@ namespace MachineClassLibrary.Machine.Machines
 
 
             var tasks = _homingConfigs
-                .Select(p =>
-
-                MoveAxInPosAsync(p.Key, p.Value.positionAfterHoming, true)
+                .Select(p => MoveAxInPosAsync(p.Key, p.Value.positionAfterHoming, true)
             ).ToArray();
 
 
