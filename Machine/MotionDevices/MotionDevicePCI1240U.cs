@@ -38,6 +38,8 @@ namespace MachineClassLibrary.Machine.MotionDevices
         private AxisState[] _axisStates;
         protected double _tolerance;
 
+        private (int ppu, double ratio, double discrete)[] _axPRD;
+
         private static IntPtr _deviceHandle;
         public event EventHandler<AxNumEventArgs> TransmitAxState;
 
@@ -61,6 +63,7 @@ namespace MachineClassLibrary.Machine.MotionDevices
             var gpEnableEvent = new uint[1];
 
             _mAxishand = new IntPtr[AxisCount];
+            _axPRD = Enumerable.Range(1, AxisCount).Select(n => (1000, 1d, 0d)).ToArray(); //new (int ppu, double ratio, double discrete)[AxisCount];
             for (var i = 0; i < axisEnableEvent.Length; i++)
             {
                 Motion.mAcm_AxOpen(_deviceHandle, (ushort)i, ref _mAxishand[i]).CheckResult(i);
@@ -269,8 +272,10 @@ private async Task DeviceStateMonitorAsync()
                         outState = bitData != 0 ? outState.SetBit(channel) : outState.ResetBit(channel);
                     }
 #endif
+                    /*
                     Motion.mAcm_AxGetCmdPosition(ax, ref cmdPosition).CheckResult(ax);
                     Motion.mAcm_AxGetActualPosition(ax, ref actPosition).CheckResult(ax);
+                    */
 
                     if (Success(eventResult))
                     {
@@ -282,8 +287,8 @@ private async Task DeviceStateMonitorAsync()
 
                     var axState = new AxisState
                     (
-                        cmdPosition/* * 360 / 12*/,//TODO change it
-                        actPosition/* * 360 / 12*/,
+                        cmdPosition = GetAxCmd(num),
+                        actPosition = GetAxActual(num),
                         sensorsState,
                         outState,
                         pLmt,
@@ -344,9 +349,14 @@ private async Task DeviceStateMonitorAsync()
 
             foreach (var item in ax)
             {
-                Motion.mAcm_AxMoveAbs(_mAxishand[item.axisNum], item.position);
+                //---
+                var position = GetRawCmd(item.axisNum, item.position);
+                //---
+
+                Motion.mAcm_AxMoveAbs(_mAxishand[item.axisNum], /*item.*/position);
             }
         }
+
 
         public async Task MoveAxesByCoorsPrecAsync((int axisNum, double position, double lineCoefficient)[] ax)
         {
@@ -356,11 +366,6 @@ private async Task DeviceStateMonitorAsync()
             }
 
             var tasks = new List<Task<double>>(ax.Length);
-
-            //foreach (var item in ax)
-            //{
-            //    tasks.Append(MoveAxisPreciselyAsync(item.axisNum, item.lineCoefficient, item.position));
-            //}
 
             tasks = ax.Select(p => MoveAxisPreciselyAsync(p.axisNum, p.lineCoefficient, p.position)).ToList();
 
@@ -385,10 +390,15 @@ private async Task DeviceStateMonitorAsync()
 
             return position /** lineCoefficient*/;
         }
+        
+        protected double CalcActualPosition(int axisNum) => _axPRD[axisNum].discrete != 0 ? GetAxActual(axisNum) : GetAxCmd(axisNum);
+
+        protected double GetRawCmd(int axisNum, double position) => position / _axPRD[axisNum].ratio;
 
         public void SetAxisVelocity(int axisNum, double vel)
         {
-            var velHigh = vel * (axisNum == 1 ? /*12d / 360*/1d/10 : 1); //TODO change it
+            //var velHigh = vel;
+            var velHigh = vel / _axPRD[axisNum].ratio;
             var velLow = velHigh / 2;
 
             Motion.mAcm_SetProperty(_mAxishand[axisNum], (uint)PropertyID.PAR_AxVelHigh, ref velHigh, 8).CheckResult(axisNum);
@@ -511,6 +521,10 @@ private async Task DeviceStateMonitorAsync()
             var axisMaxVel = 4000000;
             double axMaxVel = axisMaxVel / ppu;
             var buf = (uint)SwLmtEnable.SLMT_DIS;
+
+
+            _axPRD[axisNum] = (ppu, configs.ratio, configs.lineDiscrete); 
+
             if (_initErrorsDictionaryInBaseClass) _errors = new();
 
             //double homeVelLow = configs.homeVelLow;
@@ -571,13 +585,13 @@ private async Task DeviceStateMonitorAsync()
 
         protected double GetAxisVelocity(int axisNum)
         {
-            //uint res = 0;
             double vel = 0;
             uint bufLength = 8;
             _result = Motion.mAcm_GetProperty(_mAxishand[axisNum], (uint)PropertyID.PAR_AxVelHigh, ref vel, ref bufLength);
-            return vel;
+            return vel * _axPRD[axisNum].ratio;
         }
 
+        [Obsolete]
         public virtual async Task<double> MoveAxisPreciselyAsync1(int axisNum, double lineCoefficient, double position, int rec = 0)
         {
             if (rec > 20)
@@ -663,7 +677,7 @@ private async Task DeviceStateMonitorAsync()
         {
             var accuracy = _tolerance;//0.001;
             ushort state = default;
-            var vel = 1;// default(uint);
+            var vel = 1;
 
             Func<double, bool> gotIt = (double delta) =>
             {
@@ -675,14 +689,16 @@ private async Task DeviceStateMonitorAsync()
 
             await Task.Run(async () =>
             {
-                Motion.mAcm_AxMoveAbs(_mAxishand[axisNum], position).CheckResult(_mAxishand[axisNum]);
+                var rawPos = GetRawCmd(axisNum, position);
+                Motion.mAcm_AxMoveAbs(_mAxishand[axisNum], /*position*/ rawPos).CheckResult(_mAxishand[axisNum]);
                 do
                 {
                     Motion.mAcm_AxGetState(_mAxishand[axisNum], ref state);
                     await Task.Delay(100).ConfigureAwait(false);
                 } while ((AxState)state != AxState.STA_AX_READY);
 
-                diff = position - CalcActualPosition(axisNum, lineCoefficient);
+                //diff = position - CalcActualPosition(axisNum, lineCoefficient);
+                diff = position - CalcActualPosition(axisNum);
                 if (lineCoefficient == 0 || gotIt(diff)) return;
 
                 SetAxisVelocity(axisNum, vel);
@@ -697,7 +713,8 @@ private async Task DeviceStateMonitorAsync()
                     {
                         Motion.mAcm_AxGetState(_mAxishand[0], ref state);
                     } while ((AxState)state != AxState.STA_AX_READY);
-                    diff = position - CalcActualPosition(axisNum, lineCoefficient);
+                    //diff = position - CalcActualPosition(axisNum, lineCoefficient);
+                    diff = position - CalcActualPosition(axisNum);
                 }
             });
 
@@ -836,9 +853,10 @@ private async Task DeviceStateMonitorAsync()
 
         public async Task MoveAxisAsync(int axisNum, double position)
         {
-            if (Math.Abs(_axisStates[axisNum].cmdPos - position) < 0.001) return;
+            if (Math.Abs(GetAxCmd(axisNum) - position) < _tolerance) return;
             ushort state = default;
-            Motion.mAcm_AxMoveAbs(_mAxishand[axisNum], position);
+            var rawPos = GetRawCmd(axisNum, position);
+            Motion.mAcm_AxMoveAbs(_mAxishand[axisNum], /*position*/rawPos);
             do
             {
                 Motion.mAcm_AxGetState(_mAxishand[axisNum], ref state);
@@ -920,9 +938,14 @@ private async Task DeviceStateMonitorAsync()
 
         public double GetAxActual(int axNum)
         {
-            var pos = 0d;
-            Motion.mAcm_AxGetActualPosition(_mAxishand[axNum], ref pos).CheckResult(axNum);
-            return pos;
+            var position = 0d;
+            Motion.mAcm_AxGetActualPosition(_mAxishand[axNum], ref position).CheckResult(axNum);
+
+            //---
+            position *= _axPRD[axNum].ppu * _axPRD[axNum].discrete;
+            //---
+
+            return position;
         }
 
         public void SetPrecision(double tolerance) => _tolerance = tolerance;
@@ -936,6 +959,12 @@ private async Task DeviceStateMonitorAsync()
         {
             var position = 0d;
             Motion.mAcm_AxGetCmdPosition(_mAxishand[axNum], ref position).CheckResult(axNum);
+
+            //----
+            position *= _axPRD[axNum].ratio;
+            //----
+
+
             return position;
         }
 
