@@ -15,6 +15,8 @@ public class CommonMachineSettings
     public bool? XInvertEncoder { get; set; }
     public int? XJerk { get; set; }
     public int? XPPU { get; set; }
+    public double? XRatio { get; set; }
+    public double? XLineDiscrete { get; set; }
     public double? XVelHigh { get; set; }
     public double? XVelLow { get; set; }
     public double? XVelService { get; set; }
@@ -27,6 +29,8 @@ public class CommonMachineSettings
     public bool? YInvertEncoder { get; set; }
     public int? YJerk { get; set; }
     public int? YPPU { get; set; }
+    public double? YRatio { get; set; }
+    public double? YLineDiscrete { get; set; }
     public double? YVelHigh { get; set; }
     public double? YVelLow { get; set; }
     public double? YVelService { get; set; }
@@ -39,6 +43,8 @@ public class CommonMachineSettings
     public bool? ZInvertEncoder { get; set; }
     public int? ZJerk { get; set; }
     public int? ZPPU { get; set; }
+    public double? ZRatio { get; set; }
+    public double? ZLineDiscrete { get; set; }
     public double? ZVelHigh { get; set; }
     public double? ZVelLow { get; set; }
     public double? ZVelService { get; set; }
@@ -52,6 +58,8 @@ public class CommonMachineSettings
     public bool? UInvertDirSignal { get; set; }
     public bool? UInvertEncoder { get; set; }
     public int? UPPU { get; set; }
+    public double? URatio { get; set; }
+    public double? ULineDiscrete { get; set; }
     public int? UJerk { get; set; }
     public double? UVelService { get; set; }
 }

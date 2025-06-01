@@ -26,7 +26,8 @@ namespace MachineClassLibrary.Machine.MotionDevices
         public double homeVelLow;
         public double homeVelHigh;
         public int denominator;
-
+        public double ratio;
+        public double lineDiscrete;
         //public MotionDeviceConfigs()
         //{
         //}
