@@ -282,7 +282,7 @@ namespace MachineClassLibrary.Machine.MotionDevices
             //    _ => throw new MotionException($"{nameof(MoveAxisContiniouslyAsync)} for {axisNum} axis failed 'cause direction {dir} is not valid ")
             //}).CheckResult2(axisNum);
         }
-        public void MoveAxesByCoorsAsync((int axisNum, double position)[] ax)
+        public async Task MoveAxesByCoorsAsync((int axisNum, double position)[] ax)
         {
             if (ax.Any(ind => ind.axisNum >= _axisLogicalIDList.Length))
             {

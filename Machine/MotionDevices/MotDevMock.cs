@@ -69,7 +69,7 @@ namespace MachineClassLibrary.Machine.MotionDevices
             throw new NotImplementedException();
         }
 
-        public void MoveAxesByCoorsAsync((int axisNum, double position)[] ax)
+        public async Task MoveAxesByCoorsAsync((int axisNum, double position)[] ax)
         {
            // throw new NotImplementedException();
         }

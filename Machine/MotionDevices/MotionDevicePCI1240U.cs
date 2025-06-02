@@ -340,7 +340,7 @@ private async Task DeviceStateMonitorAsync()
             Motion.mAcm_AxMoveVel(_mAxishand[axisNum], (ushort)dir);
         }
 
-        public void MoveAxesByCoorsAsync((int axisNum, double position)[] ax)//TODO make it async
+        public async Task MoveAxesByCoorsAsync((int axisNum, double position)[] ax)//TODO make it async
         {
             if (ax.Any(ind => ind.axisNum > _mAxishand.Length - 1))
             {
@@ -352,8 +352,12 @@ private async Task DeviceStateMonitorAsync()
                 //---
                 var position = GetRawCmd(item.axisNum, item.position);
                 //---
+                
+                var tasks = new List<Task<double>>(ax.Length);
 
-                Motion.mAcm_AxMoveAbs(_mAxishand[item.axisNum], /*item.*/position);
+                tasks = ax.Select(p => MoveAxisPreciselyAsync(p.axisNum, 0, p.position)).ToList();
+
+                await Task.WhenAll(tasks).ConfigureAwait(false);
             }
         }
 
@@ -695,10 +699,12 @@ private async Task DeviceStateMonitorAsync()
                 {
                     Motion.mAcm_AxGetState(_mAxishand[axisNum], ref state);
                     await Task.Delay(100).ConfigureAwait(false);
+                    //if ((AxState)state == AxState.STA_AX_ERROR_STOP) break;
                 } while ((AxState)state != AxState.STA_AX_READY);
 
                 //diff = position - CalcActualPosition(axisNum, lineCoefficient);
                 diff = position - CalcActualPosition(axisNum);
+                //if ((AxState)state == AxState.STA_AX_ERROR_STOP) return;
                 if (lineCoefficient == 0 || gotIt(diff)) return;
 
                 SetAxisVelocity(axisNum, vel);
@@ -712,9 +718,11 @@ private async Task DeviceStateMonitorAsync()
                     do
                     {
                         Motion.mAcm_AxGetState(_mAxishand[0], ref state);
+                        //if ((AxState)state == AxState.STA_AX_ERROR_STOP) break;
                     } while ((AxState)state != AxState.STA_AX_READY);
                     //diff = position - CalcActualPosition(axisNum, lineCoefficient);
                     diff = position - CalcActualPosition(axisNum);
+                    if ((AxState)state == AxState.STA_AX_ERROR_STOP) break;
                 }
             });
 
@@ -863,6 +871,7 @@ private async Task DeviceStateMonitorAsync()
             do
             {
                 Motion.mAcm_AxGetState(_mAxishand[axisNum], ref state);
+               // if((AxState)state == AxState.STA_AX_PTP_MOT) break;
                 await Task.Delay(1).ConfigureAwait(false);
             } while ((AxState)state == AxState.STA_AX_PTP_MOT);
         }

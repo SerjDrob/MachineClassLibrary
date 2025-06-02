@@ -80,6 +80,9 @@ namespace MachineClassLibrary.SFC
         }
 
         private bool _hasStarted = false;
+        private ushort _freq;
+        private bool _onFreq;
+
         public void Stop()
         {
             lock (_modbusLock)
@@ -118,7 +121,6 @@ namespace MachineClassLibrary.SFC
         private async Task WatchingStateAsync(CancellationToken token)
         {
             ushort[] data = default;
-            bool onFreq = false;
             bool acc = false;
             bool dec = false;
             bool stop = false;
@@ -128,12 +130,11 @@ namespace MachineClassLibrary.SFC
                 try
                 {
                     int current;
-                    int freq;
                     //lock (_modbusLock)
                     //{
                     //data = _client.ReadHoldingRegisters(1, 0x3000, 1);
                     data = await _client.ReadHoldingRegistersAsync(1, 0x3000, 1);
-                    onFreq = data[0] == 0x0001 | data[0] == 0x0002;
+                    _onFreq = data[0] == 0x0001 | data[0] == 0x0002;
                     stop = data[0] == 0x0003;
 
                     //data = _client.ReadHoldingRegisters(1, 0x1004, 1);
@@ -142,7 +143,7 @@ namespace MachineClassLibrary.SFC
 
                     //data = _client.ReadHoldingRegisters(1, 0x1001, 1);
                     data = await _client.ReadHoldingRegistersAsync(1, 0x1001, 1);
-                    freq = data[0];
+                    _freq = data[0];
 
                     //data = _client.ReadHoldingRegisters(1, 0x7044, 2);
                     data = await _client.ReadHoldingRegistersAsync(1, 0x7044, 2);
@@ -151,7 +152,7 @@ namespace MachineClassLibrary.SFC
                     dec = (data[0] & 1) > 0 && (data[0] & 1 << 3) == 0;
                     //}
 
-                    GetSpindleState?.Invoke(this, new SpindleEventArgs(freq * 6, (double)current / 100, onFreq, acc, dec, stop));
+                    GetSpindleState?.Invoke(this, new SpindleEventArgs(_freq * 6, (double)current / 100, _onFreq, acc, dec, stop));
                 }
                 catch (ModbusException)
                 {
@@ -219,6 +220,22 @@ namespace MachineClassLibrary.SFC
             throw new NotImplementedException();
         }
 
-        public Task<bool> ChangeSpeedAsync(ushort rpm, int delay) => throw new NotImplementedException();
+        public async Task<bool> ChangeSpeedAsync(ushort rpm, int delay)
+        {
+            if (!_hasStarted) return false;
+            if (rpm == _freq * 6) return true;
+            try
+            {
+                SetSpeed(rpm);
+                if (_onFreq) return true;
+                await Task.Run(async () => { while (!_onFreq) await Task.Delay(50); });
+                await Task.Delay(delay);
+                return true;
+            }
+            catch
+            {
+                return false;
+            }
+        }
     }
 }

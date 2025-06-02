@@ -19,7 +19,7 @@ namespace MachineClassLibrary.Machine.MotionDevices
         bool GetAxisDout(int axisNum, ushort dOut);
         Task HomeMovingAsync((AxDir direction, HomeRst homeRst, HmMode homeMode, double velocity, int axisNum)[] axs);
         Task HomeMovingAsync((int axisNum, double vel, uint mode)[] axVels);
-        void MoveAxesByCoorsAsync((int axisNum, double position)[] ax);
+        Task MoveAxesByCoorsAsync((int axisNum, double position)[] ax);
         Task MoveAxesByCoorsPrecAsync((int axisNum, double position, double lineCoefficient)[] ax);
         Task MoveAxisAsync(int axisNum, double position);
         void MoveAxisContiniouslyAsync(int axisNum, AxDir dir);

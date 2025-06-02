@@ -84,7 +84,7 @@ namespace MachineClassLibrary.Machine.Machines
                         ax[i] = (_axes[axis].AxisNum, _places[place][i].pos);
                     }
 
-                    _motionDevice.MoveAxesByCoorsAsync(ax);//TODO it's not realy async
+                    await _motionDevice.MoveAxesByCoorsAsync(ax);//TODO it's not realy async
                 }
             }
             else
