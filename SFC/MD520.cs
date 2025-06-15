@@ -231,7 +231,7 @@ namespace MachineClassLibrary.SFC
             _client.Dispose();
         }
 
-        public void Connect()
+        public bool Connect()
         {
             throw new NotImplementedException();
         }

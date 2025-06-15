@@ -19,7 +19,7 @@ public class MD520Q : ISpindle
 
     public bool IsConnected { get; set; }
 
-    public void Connect()
+    public bool Connect()
     {
         if (_serialPort == null)
         {
@@ -31,6 +31,7 @@ public class MD520Q : ISpindle
         }
 
         IsConnected = true;
+        return true;
     }
 
     public void SetSpeed(ushort rpm)

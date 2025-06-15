@@ -11,7 +11,7 @@ namespace MachineClassLibrary.SFC
         public void SetSpeed(ushort rpm);
         public void Start();
         public void Stop();
-        void Connect();
+        bool Connect();
         Task<bool> ChangeSpeedAsync(ushort rpm, int delay);
 
         /// <summary>

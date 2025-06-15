@@ -97,7 +97,7 @@ namespace MachineClassLibrary.SFC
             });
         }
 
-        public void Connect()
+        public bool Connect()
         {
             throw new NotImplementedException();
         }
