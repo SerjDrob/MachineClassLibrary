@@ -45,8 +45,16 @@ namespace MachineClassLibrary.SFC
         {
             lock (_modbusLock)
             {
-                var data = _client.ReadHoldingRegisters(1, 0x3000, 1);
-                return data[0] == 0x0001 | data[0] == 0x0002;
+                try
+                {
+                    var data = _client.ReadHoldingRegisters(1, 0x3000, 1);//when timeout throw an exception
+                    return data[0] == 0x0001 | data[0] == 0x0002;
+                }
+                catch (Exception)
+                {
+                    return false;
+                    //throw;
+                }
             }
         }
 
@@ -65,7 +73,15 @@ namespace MachineClassLibrary.SFC
             rpm = (ushort)Math.Abs(rpm / 6);
             lock (_modbusLock)
             {
-                _client.WriteSingleRegister(1, 0x7310, rpm);
+                try
+                {
+                    _client.WriteSingleRegister(1, 0x7310, rpm);
+                }
+                catch (Exception)
+                {
+
+                    //throw;
+                }
             }
         }
 
