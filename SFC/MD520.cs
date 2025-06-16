@@ -7,7 +7,7 @@ using Modbus.Device;
 
 namespace MachineClassLibrary.SFC
 {
-    public class MD520 : ISpindle, IDisposable
+    public class MD520 : ISpindle, IDisposable//TODO create handling errors: overcurrent etc.
     {
         /// <summary>
         ///     85 Hz = 5100 rpm
@@ -231,7 +231,7 @@ namespace MachineClassLibrary.SFC
             _client.Dispose();
         }
 
-        public void Connect()
+        public bool Connect()
         {
             throw new NotImplementedException();
         }

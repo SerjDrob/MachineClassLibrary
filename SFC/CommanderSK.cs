@@ -30,14 +30,16 @@ namespace MachineClassLibrary.SFC
             HighFreqLimit = _spindleParams.MaxFreq;
         }
 
-        public void Connect()
+        public bool Connect()
         {
             if (EstablishConnection(_comPort, _baudRate))
             {
                 _watchingStateTask = WatchingStateAsync();
-                if (CheckSpindleWorking()) return;
+                if (CheckSpindleWorking()) return true;
                 if (!SetParams()) throw new SpindleException("SetParams is failed");
+                return true;
             }
+            else return false;
         }
         private bool CheckSpindleWorking()
         {
