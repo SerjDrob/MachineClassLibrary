@@ -28,6 +28,8 @@ namespace MachineClassLibrary.Miscellaneous
             {
                 return default;
             }
+            catch(DirectoryNotFoundException)
+            { return default; }
         }
         public static ObservableCollection<T> ToObservableCollection<T>(this IEnumerable<T> en)
         {
