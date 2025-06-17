@@ -20,23 +20,32 @@ namespace MachineClassLibrary.SFC
         private const ushort HighFreqLimit = 5500;
 
         private readonly object _modbusLock = new();
+        private readonly string _com;
+        private readonly int _baudRate;
         private ModbusSerialMaster _client;
         private SerialPort _serialPort;
 
         // TODO wait o cancel in the end, NEVER forget Tasks
         private Task _watchingStateTask;
 
-        public Spindle3()
+        //public Spindle3()
+        //{
+        //    if (EstablishConnection("COM1"))
+        //    {
+        //        _watchingStateTask = WatchingStateAsync();
+        //        if (CheckSpindleWorking())
+        //        {
+        //            return;
+        //        }
+        //        if (!SetParams()) throw new SpindleException("SetParams is failed");
+        //    }
+        //}
+
+
+        public Spindle3(string com, int baudRate)
         {
-            if (EstablishConnection("COM1"))
-            {
-                _watchingStateTask = WatchingStateAsync();
-                if (CheckSpindleWorking())
-                {
-                    return;
-                }
-                if (!SetParams()) throw new SpindleException("SetParams is failed");
-            }
+            _com = com;
+            _baudRate = baudRate;
         }
 
         private bool CheckSpindleWorking()
@@ -96,7 +105,7 @@ namespace MachineClassLibrary.SFC
             _serialPort = new SerialPort
             {
                 PortName = com,
-                BaudRate = 9600,
+                BaudRate = _baudRate,
                 Parity = Parity.Even,
                 WriteTimeout = 1000,
                 ReadTimeout = 100
@@ -200,9 +209,27 @@ namespace MachineClassLibrary.SFC
             _client.Dispose();
         }
 
-        public void Connect()
+        /// <summary>
+        /// Connects to the spindle
+        /// </summary>
+        /// <returns>true if success</returns>
+        /// <exception cref="SpindleException"></exception>
+        public bool Connect()
         {
-            throw new NotImplementedException();
+            if (EstablishConnection(_com))
+            {
+                _watchingStateTask = WatchingStateAsync();
+                if (CheckSpindleWorking())
+                {
+                    return true;
+                }
+                if (!SetParams()) throw new SpindleException("SetParams is failed");
+            }
+            else
+            {
+                return false;
+            }
+            return true;
         }
 
         public async Task<bool> ChangeSpeedAsync(ushort rpm, int delay) 

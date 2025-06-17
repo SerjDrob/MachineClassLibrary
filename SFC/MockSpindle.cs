@@ -14,9 +14,9 @@ namespace MachineClassLibrary.SFC
 
         public Task<bool> ChangeSpeedAsync(ushort rpm, int delay) => throw new NotImplementedException();
 
-        public void Connect()
+        public bool Connect()
         {
-            throw new NotImplementedException();
+            return true;
         }
 
         public void Dispose()

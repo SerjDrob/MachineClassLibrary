@@ -18,7 +18,7 @@ namespace MachineClassLibrary.Machine.MotionDevices
         public MotionDevicePCI1240U()
         {
             _bridges = new Dictionary<int, int>();
-            _tolerance = 0.001;
+            _tolerance = 0.005;
             var device = GetAvailableDevs().First();
             _deviceHandle = OpenDevice(device);
         }
@@ -703,7 +703,8 @@ private async Task DeviceStateMonitorAsync()
                 } while ((AxState)state != AxState.STA_AX_READY);
 
                 //diff = position - CalcActualPosition(axisNum, lineCoefficient);
-                diff = position - CalcActualPosition(axisNum);
+                var actPos = CalcActualPosition(axisNum);
+                diff = position - actPos;
                 //if ((AxState)state == AxState.STA_AX_ERROR_STOP) return;
                 if (lineCoefficient == 0 || gotIt(diff)) return;
 
@@ -714,13 +715,15 @@ private async Task DeviceStateMonitorAsync()
                 while (!gotIt(diff) && recurcy < 50)
                 {
                     recurcy++;
-                    Motion.mAcm_AxMoveRel(_mAxishand[axisNum], diff);
+                    var rawDiff = GetRawCmd(axisNum, diff);
+                    Motion.mAcm_AxMoveRel(_mAxishand[axisNum], rawDiff);
                     do
                     {
                         Motion.mAcm_AxGetState(_mAxishand[0], ref state);
                         //if ((AxState)state == AxState.STA_AX_ERROR_STOP) break;
                     } while ((AxState)state != AxState.STA_AX_READY);
                     //diff = position - CalcActualPosition(axisNum, lineCoefficient);
+                    await Task.Delay(200).ConfigureAwait(false);
                     diff = position - CalcActualPosition(axisNum);
                     if ((AxState)state == AxState.STA_AX_ERROR_STOP) break;
                 }
