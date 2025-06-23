@@ -164,40 +164,40 @@ namespace MachineClassLibrary.SFC
         {
             lock (_modbusLock)
             {
-                _client.WriteMultipleRegisters(1, 0x0000, new ushort[]
-                {
+                _client.WriteMultipleRegisters(1, 0x0000,
+                [
                     0,
                     5000,
                     2,
                     LowFreqLimit, //500,//lower limiting frequency/10
                     HighFreqLimit, //upper limiting frequency/10
                     900 //acceleration time/10
-                });
+                ]);
 
-                _client.WriteMultipleRegisters(1, 0x000B, new ushort[]
-                {
+                _client.WriteMultipleRegisters(1, 0x000B,
+                [
                     60, //torque boost/10, 0.0 - 20.0%
                     5200, //basic running frequency/10
                     50 //maximum output voltage 50 - 500V
-                });
+                ]);
 
-                _client.WriteMultipleRegisters(1, 0x020F, new ushort[]
-                {
+                _client.WriteMultipleRegisters(1, 0x020F,
+                [
                     4999, //f3/10
                     30 //V3
-                });
+                ]);
 
-                _client.WriteMultipleRegisters(1, 0x020D, new ushort[]
-                {
+                _client.WriteMultipleRegisters(1, 0x020D,
+                [
                     1200, //f2/10
                     20 //V2
-                });
+                ]);
 
-                _client.WriteMultipleRegisters(1, 0x020B, new ushort[]
-                {
+                _client.WriteMultipleRegisters(1, 0x020B,
+                [
                     800, //f1/10
                     10 //V1
-                });
+                ]);
             }
 
             return true;
