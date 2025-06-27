@@ -123,7 +123,6 @@ namespace MachineClassLibrary.SFC
 
             return IsConnected = true;
         }
-
         private async Task WatchingStateAsync()
         {
             ushort[] data = default;
@@ -131,13 +130,14 @@ namespace MachineClassLibrary.SFC
             bool dec = false;
             bool stop = false;
 
-            while (true)
+            while (true)//TODO add cancellation token
             {
                 try
                 {
                     int current;
                     lock (_modbusLock)
                     {
+                        _serialPort?.DiscardInBuffer();
                         data = _client.ReadHoldingRegisters(1, 0xD000, 2);
                         current = data[1];
                         _freq = data[0];
@@ -155,7 +155,7 @@ namespace MachineClassLibrary.SFC
                     //throw;
                 }
 
-                await Task.Delay(100).ConfigureAwait(false);
+                await Task.Delay(100);
             }
 
         }

@@ -6,6 +6,8 @@ using System;
 using System.Collections.Generic;
 using System.Drawing;
 using System.Linq;
+using System.Reflection.PortableExecutable;
+using System.Threading;
 using System.Threading.Tasks;
 
 namespace MachineClassLibrary.Machine.Machines
@@ -367,6 +369,34 @@ namespace MachineClassLibrary.Machine.Machines
         {
             _videoCamera.StopCamera();
         }
+
+        private (Ax axis, bool isScanning) _scanHandle;
+        /// <summary>
+        /// Scan from current position both direction. After cancelling return to the position.
+        /// </summary>
+        /// <param name="ax">axis to be scanned</param>
+        /// <param name="amplitude">scanning amplitude. From current position to both sides with amplitude/2 </param>
+        /// <param name="speed">scanning speed. After scanning return VelocityRegime. The speed for the axis is immutable during scanning.</param>
+        /// <param name="cancellationToken"></param>
+        /// <returns></returns>
+        public async Task ScanByAxisAsync(Ax ax, double amplitude, double speed, CancellationToken cancellationToken)
+        {
+            if(_scanHandle.isScanning) return;
+            _scanHandle = (ax, true);
+            _exceptedVelAxis = ax;
+            var initPosition = GetAxActual(ax);
+            SetAxFeedSpeed(ax,speed);
+            while (!cancellationToken.IsCancellationRequested)
+            {
+                if (!cancellationToken.IsCancellationRequested) await MoveAxInPosAsync(Ax.X, initPosition + amplitude/2);
+                if (!cancellationToken.IsCancellationRequested) await MoveAxInPosAsync(Ax.X, initPosition - amplitude/2);
+            }
+            await MoveAxInPosAsync(ax, initPosition);
+            _exceptedVelAxis = null;
+            SetVelocity(VelocityRegime);
+            _scanHandle.isScanning = false;
+        }
+
 
         public int GetVideoCaptureDevicesCount() => _videoCamera.GetVideoCaptureDevicesCount();
 
