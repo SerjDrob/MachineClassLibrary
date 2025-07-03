@@ -146,6 +146,8 @@ namespace MachineClassLibrary.SFC
                         acc = data[0] == 0x0011 | data[0] == 0x0012;
                         dec = data[0] == 0x0014 | data[0] == 0x0015;
                         stop = data[0] == 0x0003;
+
+                        _hasStarted = _onFreq || acc;
                     }
                     
                     GetSpindleState?.Invoke(this, new SpindleEventArgs(_freq * 6,(double)current / 10,_onFreq, acc, dec, stop));
