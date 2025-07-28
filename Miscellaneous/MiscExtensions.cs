@@ -19,6 +19,8 @@ namespace MachineClassLibrary.Miscellaneous
         }
         public static T? DeserializeObject<T>(string filePath)
         {
+            if (filePath is null) return default;
+            if(!File.Exists(filePath)) return default;
             try
             {
                 var obj = JsonConvert.DeserializeObject(File.ReadAllText(filePath), typeof(T));

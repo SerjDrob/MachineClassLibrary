@@ -1,14 +1,13 @@
-﻿using MachineClassLibrary.Classes;
-using MachineClassLibrary.Machine.MotionDevices;
-using MachineClassLibrary.SFC;
-using MachineClassLibrary.VideoCapture;
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.Drawing;
 using System.Linq;
-using System.Reflection.PortableExecutable;
 using System.Threading;
 using System.Threading.Tasks;
+using MachineClassLibrary.Classes;
+using MachineClassLibrary.Machine.MotionDevices;
+using MachineClassLibrary.SFC;
+using MachineClassLibrary.VideoCapture;
 
 namespace MachineClassLibrary.Machine.Machines
 {
@@ -312,7 +311,7 @@ namespace MachineClassLibrary.Machine.Machines
             _spindleBlockers = new(blockers);
 
 
-            var absentBlockers  = _spindleBlockers.Where(blocker =>
+            var absentBlockers = _spindleBlockers.Where(blocker =>
             {
                 var axis = _axes[_sensors[blocker].axis];
                 var di = _sensors[blocker].dIn;
@@ -381,15 +380,15 @@ namespace MachineClassLibrary.Machine.Machines
         /// <returns></returns>
         public async Task ScanByAxisAsync(Ax ax, double amplitude, double speed, CancellationToken cancellationToken)
         {
-            if(_scanHandle.isScanning) return;
+            if (_scanHandle.isScanning) return;
             _scanHandle = (ax, true);
             _exceptedVelAxis = ax;
             var initPosition = GetAxActual(ax);
-            SetAxFeedSpeed(ax,speed);
+            SetAxFeedSpeed(ax, speed);
             while (!cancellationToken.IsCancellationRequested)
             {
-                if (!cancellationToken.IsCancellationRequested) await MoveAxInPosAsync(Ax.X, initPosition + amplitude/2);
-                if (!cancellationToken.IsCancellationRequested) await MoveAxInPosAsync(Ax.X, initPosition - amplitude/2);
+                if (!cancellationToken.IsCancellationRequested) await MoveAxInPosAsync(Ax.X, initPosition + amplitude / 2);
+                if (!cancellationToken.IsCancellationRequested) await MoveAxInPosAsync(Ax.X, initPosition - amplitude / 2);
             }
             await MoveAxInPosAsync(ax, initPosition);
             _exceptedVelAxis = null;
@@ -441,7 +440,7 @@ namespace MachineClassLibrary.Machine.Machines
             }
             catch (Exception)
             {
-                return false;                
+                return false;
             }
         }
 
@@ -459,7 +458,7 @@ namespace MachineClassLibrary.Machine.Machines
 
         protected override void OnVelocityRegimeChanged(Velocity velocity)
         {
-           // throw new NotImplementedException();
+            // throw new NotImplementedException();
         }
 
         public float GetBlurIndex()
