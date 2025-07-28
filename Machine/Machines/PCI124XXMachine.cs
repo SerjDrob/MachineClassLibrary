@@ -92,15 +92,12 @@ namespace MachineClassLibrary.Machine.Machines
 
         public async Task MoveAxInPosAsync(Ax axis, double position, bool precisely = false)
         {
-            if (!_axes[axis].Busy | _axes[axis].MotionDone)
+            if (!_axes[axis].Busy /*| _axes[axis].MotionDone*/)
             {
                 SetAxisBusy(axis);
 
                 if (precisely)
                 {
-                    //await _motionDevice.MoveAxisAsync(_axes[axis].AxisNum, position - 1).ConfigureAwait(false);
-
-
                     try
                     {
                         await _motionDevice.MoveAxisPreciselyAsync(_axes[axis].AxisNum, _axes[axis].LineCoefficient, position).ConfigureAwait(false);
@@ -109,8 +106,6 @@ namespace MachineClassLibrary.Machine.Machines
                     {
                         //TODO log the exception
                     }
-                    //await _motionDevice.MoveAxisPreciselyAsync_2(_axes[axis].AxisNum, _axes[axis].LineCoefficient, position).ConfigureAwait(false);
-
                 }
                 else
                 {
