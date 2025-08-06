@@ -251,7 +251,7 @@ namespace MachineClassLibrary.Machine.Machines
         public void SetBridgeOnSensors(Sensors sensor, bool setBridge)
         {
             var num = _axes[_sensors[sensor].axis].AxisNum;
-            _motionDevice.SetBridgeOnAxisDin(num, (int)_sensors[sensor].dIn/* - 1*/, setBridge);
+            _motionDevice.SetBridgeOnAxisDin(num, (int)_sensors[sensor].dIn - 1, setBridge);
         }
 
         public void SwitchOnValve(Valves valve)
@@ -316,7 +316,7 @@ namespace MachineClassLibrary.Machine.Machines
                 var axis = _axes[_sensors[blocker].axis];
                 var di = _sensors[blocker].dIn;
                 var result = axis.GetDi(di);
-                return !result ^ _sensors[blocker].invertion;
+                return !(result ^ _sensors[blocker].invertion);
             }).Select(blocker => _sensors[blocker].name);
 
             if (absentBlockers.Any()) throw new MachineException($"Отсутствует: {string.Join(", ", absentBlockers)}.");
@@ -424,7 +424,7 @@ namespace MachineClassLibrary.Machine.Machines
             {
                 if (sensor.Value.axis == ax)
                 {
-                    OnSensorStateChanged?.Invoke(this, new(sensor.Key, sensor.Value.invertion ^ (ins & (1 << ((int)sensor.Value.dIn /*- 1*/))) != 0));
+                    OnSensorStateChanged?.Invoke(this, new(sensor.Key, sensor.Value.invertion ^ (ins & (1 << ((int)sensor.Value.dIn - 1))) != 0));
                 }
             }
         }
