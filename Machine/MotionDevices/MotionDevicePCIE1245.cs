@@ -44,6 +44,8 @@ namespace MachineClassLibrary.Machine.MotionDevices
         private static ptrRegCallBack vhStartPtrCallBack;
         private static ptrRegCallBack vhEndPtrCallBack;
         private static int _deviceCount = 0;
+        //private (int ppu, double ratio, double discrete)[] _axPRD;
+
         public static IntPtr DeviceHandle
         {
             get; private set;
@@ -78,6 +80,8 @@ namespace MachineClassLibrary.Machine.MotionDevices
             }
             var logicalAxisCount = (uint)axesPerDev;
             var axIDs = new uint[logicalAxisCount];
+            //_axPRD = Enumerable.Range(1, AxisCount).Select(n => (1000, 1d, 0d)).ToArray(); 
+
             //Get Select Device Contains LogicalAxes
             result = Motion2.mAcm2_GetMappedLogicalIDList(ADV_OBJ_TYPE.ADV_AXIS, _devID, axIDs, ref logicalAxisCount);
             if (!Success(result))
@@ -323,6 +327,9 @@ namespace MachineClassLibrary.Machine.MotionDevices
 
             return position/* * lineCoefficient*/;
         }
+        
+        //protected double CalcActualPosition(int axisNum) => _axPRD[axisNum].discrete != 0 ? GetAxActual(axisNum) : GetAxCmd(axisNum);
+        //protected double GetRawCmd(int axisNum, double position) => position / _axPRD[axisNum].ratio;
         public void SetAxisVelocity(int axisNum, double vel)
         {
             var velHigh = vel;
@@ -335,6 +342,19 @@ namespace MachineClassLibrary.Machine.MotionDevices
 
             //Motion2.mAcm2_AxSetSpeedProfile(_axisLogicalIDList[axisNum].ID, _axisLogicalIDList[axisNum].AxVel).CheckResult2(axisNum);
         }
+        //public void SetAxisVelocity(int axisNum, double vel)
+        //{
+        //    var velHigh = vel / _axPRD[axisNum].ratio;
+        //    var velLow = velHigh;
+
+        //    _axisLogicalIDList[axisNum].ChangeSpeed(velLow, velHigh);
+
+        //    Motion2.mAcm2_SetProperty(_axisLogicalIDList[axisNum].ID, (uint)PropertyID2.PAR_AxVelHigh, velHigh).CheckResult2(axisNum);
+        //    Motion2.mAcm2_SetProperty(_axisLogicalIDList[axisNum].ID, (uint)PropertyID2.PAR_AxVelLow, velLow).CheckResult2(axisNum);
+        //}
+
+
+
         public void SetGroupVelocity(int groupNum)
         {
             Guard.IsLessThan(groupNum, _mGpHand.Count, $"{nameof(groupNum)} is not valid in the {nameof(SetGroupVelocity)}");
@@ -430,7 +450,7 @@ namespace MachineClassLibrary.Machine.MotionDevices
             var dec = configs.dec;
             var jerk = configs.jerk;
             var jerkFac = 2d;
-            var ppu = configs.ppu;
+            var ppu = configs.ppu / configs.ratio;
             double axMaxAcc = configs.maxAcc;
             double axMaxDec = configs.maxDec;
             var axisMaxVel = 4000000;
@@ -440,6 +460,7 @@ namespace MachineClassLibrary.Machine.MotionDevices
             double homeVelLow = configs.homeVelLow;
             double homeVelHigh = configs.homeVelHigh;
             var denominator = (uint)configs.denominator;
+            //_axPRD[axisNum] = (ppu, configs.ratio, configs.lineDiscrete);
 
             var speedProfile = new SPEED_PROFILE_PRM
             {
@@ -542,6 +563,13 @@ namespace MachineClassLibrary.Machine.MotionDevices
             Motion2.mAcm2_GetProperty(_axisLogicalIDList[axisNum].ID, (uint)PropertyID2.PAR_AxVelHigh, ref vel).CheckResult2(axisNum);
             return vel;
         }
+        //protected double GetAxisVelocity(int axisNum)
+        //{
+        //    Guard.IsLessThan(axisNum, _axisLogicalIDList.Length, $"{nameof(axisNum)} is invalid in the {nameof(GetAxisVelocity)}");
+        //    var vel = 0d;
+        //    Motion2.mAcm2_GetProperty(_axisLogicalIDList[axisNum].ID, (uint)PropertyID2.PAR_AxVelHigh, ref vel).CheckResult2(axisNum);
+        //    return vel * _axPRD[axisNum].ratio;
+        //}
         private bool ResetAxErrorsWithEmgStop(int axisNum)
         {
             var id = _axisLogicalIDList[axisNum].ID;
@@ -652,7 +680,8 @@ namespace MachineClassLibrary.Machine.MotionDevices
         //        return 0d;
         //    }
         //}
-        public async Task<double> MoveAxisPreciselyAsync(int axisNum, double lineCoefficient, double position, int rec = 0)
+        [Obsolete]
+        public async Task<double> MoveAxisPreciselyAsync_1(int axisNum, double lineCoefficient, double position, int rec = 0)
         {
             if (rec > 20)
             {
@@ -677,11 +706,6 @@ namespace MachineClassLibrary.Machine.MotionDevices
                 var gap = Math.Round(Math.Abs(diff), 3);
                 if (gap > tolerance)
                 {
-                    //var sign = Math.Sign(diff);
-                    //var positive = Math.Sign(diff) > 0;
-                    //Motion2.mAcm2_SetProperty(id, (uint)(positive ? PropertyID2.CFG_AxSwPelValue : PropertyID2.CFG_AxSwMelValue), position).CheckResult2(axisNum);
-                    //Motion2.mAcm2_SetProperty(id, (uint)(positive ? PropertyID2.CFG_AxSwPelEnable : PropertyID2.CFG_AxSwMelEnable), (double)SwLmtEnable.SLMT_EN).CheckResult2(axisNum);
-                    //direction = positive ? MOTION_DIRECTION.DIRECTION_POS : MOTION_DIRECTION.DIRECTION_NEG;
                     if (rec == 0)
                     {
                         _storedSpeeds[axisNum] = GetAxisVelocity(axisNum);
@@ -712,10 +736,6 @@ namespace MachineClassLibrary.Machine.MotionDevices
                             rrr = (AxState)st == AxState.STA_AX_READY;
                         } while ((!rdy || slmtp && slmtn && !token.Token.IsCancellationRequested)&&!rrr);
                     }, token.Token).ConfigureAwait(false);
-
-                    //Motion2.mAcm2_SetProperty(id, (uint)PropertyID2.CFG_AxSwPelEnable, (double)SwLmtEnable.SLMT_DIS).CheckResult2(axisNum);
-                    //Motion2.mAcm2_SetProperty(id, (uint)PropertyID2.CFG_AxSwMelEnable, (double)SwLmtEnable.SLMT_DIS).CheckResult2(axisNum);
-                    //Motion2.mAcm2_AxResetError(id).CheckResult2();
                     var st = 0u;
                     Motion2.mAcm2_AxGetState(id, AXIS_STATUS_TYPE.AXIS_STATE, ref st);
                     if ((AxState)st!=AxState.STA_AX_READY)
@@ -742,11 +762,12 @@ namespace MachineClassLibrary.Machine.MotionDevices
                     {
                         Task.Delay(1).Wait();
                         Motion2.mAcm2_AxGetState(id, AXIS_STATUS_TYPE.AXIS_STATE, ref state);
-                    } while ((AxState)state !=AxState.STA_AX_READY /*== AxState.STA_AX_WAIT_PTP*/);
+                    } while ((AxState)state !=AxState.STA_AX_READY);
                 });
                 return 0d;
             }
         }
+        [Obsolete]
         public async Task<double> MoveAxisPreciselyAsync_2(int axisNum, double lineCoefficient, double position, int rec = 0)
         {
             if (rec > 20)
@@ -822,6 +843,56 @@ namespace MachineClassLibrary.Machine.MotionDevices
                 });
                 return 0d;
             }
+        }
+        public virtual async Task<double> MoveAxisPreciselyAsync(int axisNum, double lineCoefficient, double position, int rec = 0)
+        {
+            var accuracy = _tolerance;
+            uint state = default;
+            var vel = 1;
+            var id = _axisLogicalIDList[axisNum].ID;
+
+            Func<double, bool> gotIt = (double delta) =>
+            {
+                return Math.Abs(delta) <= _tolerance;
+            };
+
+            var storedVelocity = GetAxisVelocity(axisNum);
+            var diff = _tolerance + 1;
+
+            await Task.Run(async () =>
+            {
+                //var rawPos = GetRawCmd(axisNum, position);
+                Motion2.mAcm2_AxPTP(id, ABS_MODE.MOVE_ABS, position).CheckResult2(axisNum);
+                do
+                {
+                    Motion2.mAcm2_AxGetState(id, AXIS_STATUS_TYPE.AXIS_STATE, ref state);
+                    await Task.Delay(100).ConfigureAwait(false);
+                } while ((AxState)state != AxState.STA_AX_READY);
+
+                var actPos = CalcActualPosition(axisNum, lineCoefficient);
+                diff = position - actPos;
+                if (lineCoefficient == 0 || gotIt(diff)) return;
+
+                SetAxisVelocity(axisNum, vel);
+
+                int recurcy = 0;
+
+                while (!gotIt(diff) && recurcy < 50)
+                {
+                    recurcy++;
+                    Motion2.mAcm2_AxPTP(id, ABS_MODE.MOVE_REL, diff);
+                    do
+                    {
+                        Motion2.mAcm2_AxGetState(id, AXIS_STATUS_TYPE.AXIS_STATE, ref state);
+                    } while ((AxState)state != AxState.STA_AX_READY);
+                    await Task.Delay(200).ConfigureAwait(false);
+                    diff = position - CalcActualPosition(axisNum, lineCoefficient);
+                    if ((AxState)state == AxState.STA_AX_ERROR_STOP) break;
+                }
+            });
+
+            SetAxisVelocity(axisNum, storedVelocity);
+            return diff;
         }
         public void ResetAxisCounter(int axisNum)
         {
@@ -951,7 +1022,8 @@ namespace MachineClassLibrary.Machine.MotionDevices
                 await MoveAxisPreciselyAsync(gpAxes[i].axisNum, gpAxes[i].lineCoefficient, position[i]);
             }
         }
-        public async Task MoveAxisAsync(int axisNum, double position)
+        [Obsolete]
+        public async Task MoveAxisAsync_1(int axisNum, double position)
         {
             var id = _axisLogicalIDList[axisNum].ID;
             if (Math.Abs(_axisStates[id].cmdPos - position) < _tolerance) return;
@@ -965,6 +1037,20 @@ namespace MachineClassLibrary.Machine.MotionDevices
                     Motion2.mAcm2_AxGetState(id, AXIS_STATUS_TYPE.AXIS_STATE, ref state);
                 } while ((AxState)state != AxState.STA_AX_READY);
             });
+        }
+        public async Task MoveAxisAsync(int axisNum, double position)
+        {
+            var id = _axisLogicalIDList[axisNum].ID;
+            if (Math.Abs(GetAxCmd(axisNum) - position) < _tolerance) return;
+            uint state = default;
+            //var rawPos = GetRawCmd(axisNum, position);
+            Motion2.mAcm2_AxPTP(id, ABS_MODE.MOVE_ABS, position);
+
+            do
+            {
+                Motion2.mAcm2_AxGetState(id, AXIS_STATUS_TYPE.AXIS_STATE, ref state);
+                await Task.Delay(1).ConfigureAwait(false);
+            } while ((AxState)state == AxState.STA_AX_PTP_MOT);
         }
         public void SetAxisCoordinate(int axisNum, double coordinate)
         {
@@ -1037,12 +1123,41 @@ namespace MachineClassLibrary.Machine.MotionDevices
             Motion2.mAcm2_AxGetPosition(_axisLogicalIDList[axNum].ID, POSITION_TYPE.POSITION_ACT, ref pos).CheckResult2(axNum);
             return pos;
         }
+        //public double GetAxActual(int axNum)
+        //{
+        //    var position = 0d;
+        //    Motion2.mAcm2_AxGetPosition(_axisLogicalIDList[axNum].ID, POSITION_TYPE.POSITION_ACT, ref position).CheckResult2(axNum);
+
+
+        //    //---
+        //    position *= _axPRD[axNum].ppu * _axPRD[axNum].discrete;
+        //    //---
+
+        //    return position;
+        //}
+
         public double GetAxCmd(int axNum)
         {
             var pos = 0d;
             Motion2.mAcm2_AxGetPosition(_axisLogicalIDList[axNum].ID, POSITION_TYPE.POSITION_CMD, ref pos).CheckResult2(axNum);
             return pos;
         }
+
+        //public double GetAxCmd(int axNum)
+        //{
+        //    var position = 0d;
+        //    Motion2.mAcm2_AxGetPosition(_axisLogicalIDList[axNum].ID, POSITION_TYPE.POSITION_CMD, ref position).CheckResult2(axNum);
+
+
+        //    //----
+        //    position *= _axPRD[axNum].ratio;
+        //    //----
+
+
+        //    return position;
+        //}
+
+
         public void SetPrecision(double tolerance) => _tolerance = tolerance;
         public void CloseDevice()
         {
