@@ -6,6 +6,8 @@ namespace MachineClassLibrary.Machine
     {
         CameraBladeOffset,
         ZBladeTouch,
-        CameraFocus
+        CameraFocus,
+        AdditionalBladeGap,
+        ScanLimit
     }
 }

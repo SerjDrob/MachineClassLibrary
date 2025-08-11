@@ -92,15 +92,12 @@ namespace MachineClassLibrary.Machine.Machines
 
         public async Task MoveAxInPosAsync(Ax axis, double position, bool precisely = false)
         {
-            if (!_axes[axis].Busy | _axes[axis].MotionDone)
+            if (!_axes[axis].Busy /*| _axes[axis].MotionDone*/)
             {
                 SetAxisBusy(axis);
 
                 if (precisely)
                 {
-                    //await _motionDevice.MoveAxisAsync(_axes[axis].AxisNum, position - 1).ConfigureAwait(false);
-
-
                     try
                     {
                         await _motionDevice.MoveAxisPreciselyAsync(_axes[axis].AxisNum, _axes[axis].LineCoefficient, position).ConfigureAwait(false);
@@ -109,8 +106,6 @@ namespace MachineClassLibrary.Machine.Machines
                     {
                         //TODO log the exception
                     }
-                    //await _motionDevice.MoveAxisPreciselyAsync_2(_axes[axis].AxisNum, _axes[axis].LineCoefficient, position).ConfigureAwait(false);
-
                 }
                 else
                 {
@@ -199,11 +194,21 @@ namespace MachineClassLibrary.Machine.Machines
             _motionDevice.SetGroupConfig(gpNum, configs);
         }
 
+        protected Ax? _exceptedVelAxis;
+
         public Velocity SetVelocity(Velocity velocity)
         {
             var oldVelocity = VelocityRegime;
+
+            var predicate = (KeyValuePair<Ax, IAxis> kv) =>
+            {
+                return _exceptedVelAxis is null ? true : kv.Key != _exceptedVelAxis;
+            };
             
-            foreach (var axis in _axes)
+            var resultAxes = _axes.Where(predicate).ToDictionary(kv => kv.Key, kv => kv.Value);
+
+
+            foreach (var axis in resultAxes)
             {
                 if (axis.Value.VelRegimes != null)
                 {
@@ -266,6 +271,24 @@ namespace MachineClassLibrary.Machine.Machines
             if (_velRegimes.TryGetValue(axis, out regimes))
             {
                 if (!regimes.TryGetValue(VelocityRegime, out velocity))
+                    throw new MachineException($"Заданный режим скорости не установлен для оси {axis}");
+            }
+            else
+            {
+                throw new MachineException($"Для оси {axis} не установленны режимы скоростные режимы");
+            }
+
+            return velocity;
+        }
+        
+        
+        public double GetAxisSetVelocity(Ax axis, Velocity forVelocityRegime)
+        {
+            var velocity = new double();
+            var regimes = new Dictionary<Velocity, double>();
+            if (_velRegimes.TryGetValue(axis, out regimes))
+            {
+                if (!regimes.TryGetValue(forVelocityRegime, out velocity))
                     throw new MachineException($"Заданный режим скорости не установлен для оси {axis}");
             }
             else

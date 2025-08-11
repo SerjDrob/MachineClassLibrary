@@ -1,12 +1,13 @@
-﻿using MachineClassLibrary.Classes;
-using MachineClassLibrary.Machine.MotionDevices;
-using MachineClassLibrary.SFC;
-using MachineClassLibrary.VideoCapture;
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.Drawing;
 using System.Linq;
+using System.Threading;
 using System.Threading.Tasks;
+using MachineClassLibrary.Classes;
+using MachineClassLibrary.Machine.MotionDevices;
+using MachineClassLibrary.SFC;
+using MachineClassLibrary.VideoCapture;
 
 namespace MachineClassLibrary.Machine.Machines
 {
@@ -250,7 +251,7 @@ namespace MachineClassLibrary.Machine.Machines
         public void SetBridgeOnSensors(Sensors sensor, bool setBridge)
         {
             var num = _axes[_sensors[sensor].axis].AxisNum;
-            _motionDevice.SetBridgeOnAxisDin(num, (int)_sensors[sensor].dIn/* - 1*/, setBridge);
+            _motionDevice.SetBridgeOnAxisDin(num, (int)_sensors[sensor].dIn - 1, setBridge);
         }
 
         public void SwitchOnValve(Valves valve)
@@ -310,12 +311,12 @@ namespace MachineClassLibrary.Machine.Machines
             _spindleBlockers = new(blockers);
 
 
-            var absentBlockers  = _spindleBlockers.Where(blocker =>
+            var absentBlockers = _spindleBlockers.Where(blocker =>
             {
                 var axis = _axes[_sensors[blocker].axis];
                 var di = _sensors[blocker].dIn;
                 var result = axis.GetDi(di);
-                return !result ^ _sensors[blocker].invertion;
+                return !(result ^ _sensors[blocker].invertion);
             }).Select(blocker => _sensors[blocker].name);
 
             if (absentBlockers.Any()) throw new MachineException($"Отсутствует: {string.Join(", ", absentBlockers)}.");
@@ -368,6 +369,34 @@ namespace MachineClassLibrary.Machine.Machines
             _videoCamera.StopCamera();
         }
 
+        private (Ax axis, bool isScanning) _scanHandle;
+        /// <summary>
+        /// Scan from current position both direction. After cancelling return to the position.
+        /// </summary>
+        /// <param name="ax">axis to be scanned</param>
+        /// <param name="amplitude">scanning amplitude. From current position to both sides with amplitude/2 </param>
+        /// <param name="speed">scanning speed. After scanning return VelocityRegime. The speed for the axis is immutable during scanning.</param>
+        /// <param name="cancellationToken"></param>
+        /// <returns></returns>
+        public async Task ScanByAxisAsync(Ax ax, double amplitude, double speed, CancellationToken cancellationToken)
+        {
+            if (_scanHandle.isScanning) return;
+            _scanHandle = (ax, true);
+            _exceptedVelAxis = ax;
+            var initPosition = GetAxActual(ax);
+            SetAxFeedSpeed(ax, speed);
+            while (!cancellationToken.IsCancellationRequested)
+            {
+                if (!cancellationToken.IsCancellationRequested) await MoveAxInPosAsync(Ax.X, initPosition + amplitude / 2);
+                if (!cancellationToken.IsCancellationRequested) await MoveAxInPosAsync(Ax.X, initPosition - amplitude / 2);
+            }
+            await MoveAxInPosAsync(ax, initPosition);
+            _exceptedVelAxis = null;
+            SetVelocity(VelocityRegime);
+            _scanHandle.isScanning = false;
+        }
+
+
         public int GetVideoCaptureDevicesCount() => _videoCamera.GetVideoCaptureDevicesCount();
 
 
@@ -395,7 +424,7 @@ namespace MachineClassLibrary.Machine.Machines
             {
                 if (sensor.Value.axis == ax)
                 {
-                    OnSensorStateChanged?.Invoke(this, new(sensor.Key, sensor.Value.invertion ^ (ins & (1 << ((int)sensor.Value.dIn /*- 1*/))) != 0));
+                    OnSensorStateChanged?.Invoke(this, new(sensor.Key, sensor.Value.invertion ^ (ins & (1 << ((int)sensor.Value.dIn - 1))) != 0));
                 }
             }
         }
@@ -411,7 +440,7 @@ namespace MachineClassLibrary.Machine.Machines
             }
             catch (Exception)
             {
-                return false;                
+                return false;
             }
         }
 
@@ -429,7 +458,7 @@ namespace MachineClassLibrary.Machine.Machines
 
         protected override void OnVelocityRegimeChanged(Velocity velocity)
         {
-           // throw new NotImplementedException();
+            // throw new NotImplementedException();
         }
 
         public float GetBlurIndex()
