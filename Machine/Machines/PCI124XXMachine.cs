@@ -5,6 +5,7 @@ using Microsoft.Toolkit.Diagnostics;
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Threading;
 using System.Threading.Tasks;
 //using Serilog;
 
@@ -90,7 +91,7 @@ namespace MachineClassLibrary.Machine.Machines
             _motionDevice.MoveAxisContiniouslyAsync(_axes[axis].AxisNum, direction);
         }
 
-        public async Task MoveAxInPosAsync(Ax axis, double position, bool precisely = false)
+        public async Task MoveAxInPosAsync(Ax axis, double position, bool precisely = false, CancellationToken? cancellationToken = null)
         {
             if (!_axes[axis].Busy /*| _axes[axis].MotionDone*/)
             {
@@ -100,7 +101,7 @@ namespace MachineClassLibrary.Machine.Machines
                 {
                     try
                     {
-                        await _motionDevice.MoveAxisPreciselyAsync(_axes[axis].AxisNum, _axes[axis].LineCoefficient, position).ConfigureAwait(false);
+                        await _motionDevice.MoveAxisPreciselyAsync(_axes[axis].AxisNum, _axes[axis].LineCoefficient, position, cancellationToken).ConfigureAwait(false);
                     }
                     catch (Exception ex)
                     {
@@ -109,7 +110,7 @@ namespace MachineClassLibrary.Machine.Machines
                 }
                 else
                 {
-                    await _motionDevice.MoveAxisAsync(_axes[axis].AxisNum, position).ConfigureAwait(false);
+                    await _motionDevice.MoveAxisAsync(_axes[axis].AxisNum, position, cancellationToken).ConfigureAwait(false);
                 }
                 ResetAxisBusy(axis);
             }

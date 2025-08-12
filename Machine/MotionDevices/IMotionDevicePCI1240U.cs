@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Threading;
 using System.Threading.Tasks;
 using System.Windows.Documents;
 using MachineClassLibrary.Classes;
@@ -21,9 +22,9 @@ namespace MachineClassLibrary.Machine.MotionDevices
         Task HomeMovingAsync((int axisNum, double vel, uint mode)[] axVels);
         Task MoveAxesByCoorsAsync((int axisNum, double position)[] ax);
         Task MoveAxesByCoorsPrecAsync((int axisNum, double position, double lineCoefficient)[] ax);
-        Task MoveAxisAsync(int axisNum, double position);
+        Task MoveAxisAsync(int axisNum, double position, CancellationToken? cancellationToken = null);
         void MoveAxisContiniouslyAsync(int axisNum, AxDir dir);
-        Task<double> MoveAxisPreciselyAsync(int axisNum, double lineCoefficient, double position, int rec = 0);
+        Task<double> MoveAxisPreciselyAsync(int axisNum, double lineCoefficient, double position, CancellationToken? cancellationToken = null);
         Task<double> MoveAxisPreciselyAsync_2(int axisNum, double lineCoefficient, double position, int rec = 0);
         Task MoveGroupAsync(int groupNum, double[] position);
         Task MoveGroupPreciselyAsync(int groupNum, double[] position, (int axisNum, double lineCoefficient)[] gpAxes);

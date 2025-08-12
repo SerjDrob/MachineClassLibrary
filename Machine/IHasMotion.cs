@@ -3,6 +3,7 @@ using MachineClassLibrary.Machine.Machines;
 using MachineClassLibrary.Machine.MotionDevices;
 using System;
 using System.Collections.Generic;
+using System.Threading;
 using System.Threading.Tasks;
 
 namespace MachineClassLibrary.Machine
@@ -43,7 +44,7 @@ namespace MachineClassLibrary.Machine
         public void SetPrecision(double tolerance);
         public Task MoveGpInPosAsync(Groups group, double[] position, bool precisely = false);
         public Task MoveGpRelativeAsync(Groups group, double[] offset, bool precisely = false);
-        public Task MoveAxInPosAsync(Ax axis, double position, bool precisely = false);
+        public Task MoveAxInPosAsync(Ax axis, double position, bool precisely = false, CancellationToken? cancellationToken = null);
         public Task MoveAxRelativeAsync(Ax axis, double diffPosition, bool precisely = false);        
         public void EmgScenario();
         public IHasMotion AddGroup(Groups group, Ax[] axes);

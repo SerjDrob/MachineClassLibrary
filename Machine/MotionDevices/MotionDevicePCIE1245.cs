@@ -743,7 +743,7 @@ namespace MachineClassLibrary.Machine.MotionDevices
                         var result = (AxState)st;
                         throw new MotionException($"Reset axis errors failed. axis number {axisNum}");
                     }
-                    await MoveAxisPreciselyAsync(axisNum, lineCoefficient, position, ++rec);
+                    await MoveAxisPreciselyAsync(axisNum, lineCoefficient, position);
                     rec--;
                     if (rec == 0)
                     {
@@ -844,8 +844,19 @@ namespace MachineClassLibrary.Machine.MotionDevices
                 return 0d;
             }
         }
-        public virtual async Task<double> MoveAxisPreciselyAsync(int axisNum, double lineCoefficient, double position, int rec = 0)
+        public virtual async Task<double> MoveAxisPreciselyAsync(int axisNum, double lineCoefficient, double position, CancellationToken? cancellationToken = null)
         {
+            Func<bool> isTokenRequested;
+            if (cancellationToken.HasValue)
+            {
+                isTokenRequested = () => cancellationToken.Value.IsCancellationRequested;
+                cancellationToken.Value.Register(() => StopAxis(axisNum));
+            }
+            else
+            {
+                isTokenRequested = () => false;
+            }
+
             var accuracy = _tolerance;
             uint state = default;
             var vel = 1;
@@ -858,6 +869,7 @@ namespace MachineClassLibrary.Machine.MotionDevices
 
             var storedVelocity = GetAxisVelocity(axisNum);
             var diff = _tolerance + 1;
+            if (isTokenRequested()) return position - CalcActualPosition(axisNum, lineCoefficient);
 
             await Task.Run(async () =>
             {
@@ -877,7 +889,7 @@ namespace MachineClassLibrary.Machine.MotionDevices
 
                 int recurcy = 0;
 
-                while (!gotIt(diff) && recurcy < 50)
+                while (!gotIt(diff) && recurcy < 50 && !isTokenRequested())
                 {
                     recurcy++;
                     Motion2.mAcm2_AxPTP(id, ABS_MODE.MOVE_REL, diff);
@@ -1038,19 +1050,34 @@ namespace MachineClassLibrary.Machine.MotionDevices
                 } while ((AxState)state != AxState.STA_AX_READY);
             });
         }
-        public async Task MoveAxisAsync(int axisNum, double position)
+        public async Task MoveAxisAsync(int axisNum, double position, CancellationToken? cancellationToken = null)
         {
+            Func<bool> isTokenRequested;
+            if (cancellationToken.HasValue)
+            {
+                isTokenRequested = () => cancellationToken.Value.IsCancellationRequested;
+                cancellationToken.Value.Register(() => StopAxis(axisNum));
+            }
+            else
+            {
+                isTokenRequested = () => false;
+            }
+            if (isTokenRequested()) return;
             var id = _axisLogicalIDList[axisNum].ID;
             if (Math.Abs(GetAxCmd(axisNum) - position) < _tolerance) return;
             uint state = default;
             //var rawPos = GetRawCmd(axisNum, position);
-            Motion2.mAcm2_AxPTP(id, ABS_MODE.MOVE_ABS, position);
 
-            do
+
+            await Task.Run(async () =>
             {
-                Motion2.mAcm2_AxGetState(id, AXIS_STATUS_TYPE.AXIS_STATE, ref state);
-                await Task.Delay(1).ConfigureAwait(false);
-            } while ((AxState)state == AxState.STA_AX_PTP_MOT);
+                Motion2.mAcm2_AxPTP(id, ABS_MODE.MOVE_ABS, position);
+                do
+                {
+                    Motion2.mAcm2_AxGetState(id, AXIS_STATUS_TYPE.AXIS_STATE, ref state);
+                    await Task.Delay(1).ConfigureAwait(false);
+                } while ((AxState)state == AxState.STA_AX_PTP_MOT && !isTokenRequested());
+            });
         }
         public void SetAxisCoordinate(int axisNum, double coordinate)
         {

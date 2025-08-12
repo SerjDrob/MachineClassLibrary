@@ -79,7 +79,7 @@ namespace MachineClassLibrary.Machine.MotionDevices
             throw new NotImplementedException();
         }
 
-        public async Task MoveAxisAsync(int axisNum, double position)
+        public async Task MoveAxisAsync(int axisNum, double position, CancellationToken? cancellationToken = null)
         {
             _axisFeatures[axisNum].PositionTarget = position;
             _axisFeatures[axisNum].IsPosTargetSet = true;
@@ -135,7 +135,7 @@ namespace MachineClassLibrary.Machine.MotionDevices
         }
 
 
-        public async Task<double> MoveAxisPreciselyAsync(int axisNum, double lineCoefficient, double position, int rec = 0)
+        public async Task<double> MoveAxisPreciselyAsync(int axisNum, double lineCoefficient, double position, CancellationToken? cancellationToken = null)
         {
             await Task.Delay(1000);
             return 0d;

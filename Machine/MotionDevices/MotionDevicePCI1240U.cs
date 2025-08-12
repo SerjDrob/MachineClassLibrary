@@ -652,7 +652,7 @@ private async Task DeviceStateMonitorAsync()
                         var result = (AxState)st;
                         throw new MotionException($"Reset axis errors failed. axis number {axisNum}");
                     }
-                    await MoveAxisPreciselyAsync(axisNum, lineCoefficient, position, ++rec);
+                    await MoveAxisPreciselyAsync(axisNum, lineCoefficient, position);
                     rec--;
                     if (rec == 0)
                     {
@@ -677,8 +677,19 @@ private async Task DeviceStateMonitorAsync()
             }
         }
 
-        public virtual async Task<double> MoveAxisPreciselyAsync(int axisNum, double lineCoefficient, double position, int rec = 0)
+        public virtual async Task<double> MoveAxisPreciselyAsync(int axisNum, double lineCoefficient, double position, CancellationToken? cancellationToken = null)
         {
+            Func<bool> isTokenRequested;
+            if (cancellationToken.HasValue)
+            {
+                isTokenRequested = () => cancellationToken.Value.IsCancellationRequested;
+                cancellationToken.Value.Register(() => StopAxis(axisNum));
+            }
+            else 
+            {
+                isTokenRequested = () => false;
+            }
+            
             var accuracy = _tolerance;//0.001;
             ushort state = default;
             var vel = 1;
@@ -690,39 +701,34 @@ private async Task DeviceStateMonitorAsync()
 
             var storedVelocity = GetAxisVelocity(axisNum);
             var diff = _tolerance + 1;
-
+            if (isTokenRequested()) return position - CalcActualPosition(axisNum);
             await Task.Run(async () =>
             {
                 var rawPos = GetRawCmd(axisNum, position);
-                Motion.mAcm_AxMoveAbs(_mAxishand[axisNum], /*position*/ rawPos).CheckResult(_mAxishand[axisNum]);
+                Motion.mAcm_AxMoveAbs(_mAxishand[axisNum], rawPos).CheckResult(_mAxishand[axisNum]);
                 do
                 {
                     Motion.mAcm_AxGetState(_mAxishand[axisNum], ref state);
                     await Task.Delay(100).ConfigureAwait(false);
-                    //if ((AxState)state == AxState.STA_AX_ERROR_STOP) break;
                 } while ((AxState)state != AxState.STA_AX_READY);
 
-                //diff = position - CalcActualPosition(axisNum, lineCoefficient);
                 var actPos = CalcActualPosition(axisNum);
                 diff = position - actPos;
-                //if ((AxState)state == AxState.STA_AX_ERROR_STOP) return;
                 if (lineCoefficient == 0 || gotIt(diff)) return;
 
                 SetAxisVelocity(axisNum, vel);
 
-                int recurcy = 0;
+                int recursion = 0;
 
-                while (!gotIt(diff) && recurcy < 50)
+                while (!gotIt(diff) && recursion < 50 && !isTokenRequested())
                 {
-                    recurcy++;
+                    recursion++;
                     var rawDiff = GetRawCmd(axisNum, diff);
                     Motion.mAcm_AxMoveRel(_mAxishand[axisNum], rawDiff);
                     do
                     {
                         Motion.mAcm_AxGetState(_mAxishand[0], ref state);
-                        //if ((AxState)state == AxState.STA_AX_ERROR_STOP) break;
                     } while ((AxState)state != AxState.STA_AX_READY);
-                    //diff = position - CalcActualPosition(axisNum, lineCoefficient);
                     await Task.Delay(200).ConfigureAwait(false);
                     diff = position - CalcActualPosition(axisNum);
                     if ((AxState)state == AxState.STA_AX_ERROR_STOP) break;
@@ -865,18 +871,32 @@ private async Task DeviceStateMonitorAsync()
             }
         }
 
-        public async Task MoveAxisAsync(int axisNum, double position)
+        public async Task MoveAxisAsync(int axisNum, double position, CancellationToken? cancellationToken = null)
         {
-            if (Math.Abs(GetAxCmd(axisNum) - position) < _tolerance) return;
-            ushort state = default;
-            var rawPos = GetRawCmd(axisNum, position);
-            Motion.mAcm_AxMoveAbs(_mAxishand[axisNum], /*position*/rawPos);
-            do
+            Func<bool> isTokenRequested;
+            if (cancellationToken.HasValue)
             {
-                Motion.mAcm_AxGetState(_mAxishand[axisNum], ref state);
-               // if((AxState)state == AxState.STA_AX_PTP_MOT) break;
-                await Task.Delay(1).ConfigureAwait(false);
-            } while ((AxState)state == AxState.STA_AX_PTP_MOT);
+                isTokenRequested = () => cancellationToken.Value.IsCancellationRequested;
+                cancellationToken.Value.Register(() => StopAxis(axisNum));
+            }
+            else
+            {
+                isTokenRequested = () => false;
+            }
+            if (isTokenRequested()) return;
+            await Task.Run(async () =>
+            {
+                if (Math.Abs(GetAxCmd(axisNum) - position) < _tolerance) return;
+                ushort state = default;
+                var rawPos = GetRawCmd(axisNum, position);
+                Motion.mAcm_AxMoveAbs(_mAxishand[axisNum], /*position*/rawPos);
+                do
+                {
+                    Motion.mAcm_AxGetState(_mAxishand[axisNum], ref state);
+                    // if((AxState)state == AxState.STA_AX_PTP_MOT) break;
+                    await Task.Delay(1).ConfigureAwait(false);
+                } while ((AxState)state == AxState.STA_AX_PTP_MOT && !isTokenRequested());
+            });
         }
 
         private static IntPtr OpenDevice(in DEV_LIST device)
