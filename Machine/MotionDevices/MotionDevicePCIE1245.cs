@@ -6,6 +6,7 @@ using System.Threading.Tasks;
 using Advantech.Motion;
 using MachineClassLibrary.Classes;
 using Microsoft.Toolkit.Diagnostics;
+using SharpDX;
 using AxState = Advantech.Motion.AxisState;
 
 namespace MachineClassLibrary.Machine.MotionDevices
@@ -118,14 +119,14 @@ namespace MachineClassLibrary.Machine.MotionDevices
                 Motion2.mAcm2_AxGetState(_axisLogicalIDList[i].ID, AXIS_STATUS_TYPE.AXIS_STATE, ref state);
                 if (state!=(uint)AxState.STA_AX_READY) Motion2.mAcm2_AxMotionStop([_axisLogicalIDList[i].ID], MOTION_STOP_MODE.MOTION_STOP_MODE_EMG, 180);
                 var token = new CancellationTokenSource(TimeSpan.FromSeconds(1)).Token;
-                await Task.Run(async () =>
+                await Task.Run(() =>
                 {
                     do
                     {
-                        await Task.Delay(100);
+                        Thread.Sleep(100);
                         Motion2.mAcm2_AxGetState(_axisLogicalIDList[i].ID, AXIS_STATUS_TYPE.AXIS_STATE, ref state);
                     } while (state == (uint)AxState.STA_AX_STOPPING && !token.IsCancellationRequested);
-                },token);
+                }, token).ConfigureAwait(false);
                 Motion2.mAcm2_AxGetState(_axisLogicalIDList[i].ID, AXIS_STATUS_TYPE.AXIS_STATE, ref state);
                 if (state == (uint)AxState.STA_AX_ERROR_STOP) Motion2.mAcm2_AxResetError(_axisLogicalIDList[i].ID).CheckResult2(i);
                 Motion2.mAcm2_AxGetState(_axisLogicalIDList[i].ID, AXIS_STATUS_TYPE.AXIS_STATE, ref state);
@@ -170,7 +171,7 @@ namespace MachineClassLibrary.Machine.MotionDevices
         {
             try
             {
-                await DeviceStateMonitorAsync();
+                await DeviceStateMonitorAsync().ConfigureAwait(false);
             }
             catch (Exception ex)
             {
@@ -244,10 +245,10 @@ namespace MachineClassLibrary.Machine.MotionDevices
                     }
                     catch (Exception ex)
                     {
-                        await Console.Error.WriteLineAsync(ex.Message);
+                        await Console.Error.WriteLineAsync(ex.Message).ConfigureAwait(false);
                     }
                 }
-                await Task.Delay(1).ConfigureAwait(false);
+                await Task.Delay(10).ConfigureAwait(false);
             }
 
         }
@@ -846,17 +847,8 @@ namespace MachineClassLibrary.Machine.MotionDevices
         }
         public virtual async Task<double> MoveAxisPreciselyAsync(int axisNum, double lineCoefficient, double position, CancellationToken? cancellationToken = null)
         {
-            Func<bool> isTokenRequested;
-            if (cancellationToken.HasValue)
-            {
-                isTokenRequested = () => cancellationToken.Value.IsCancellationRequested;
-                cancellationToken.Value.Register(() => StopAxis(axisNum));
-            }
-            else
-            {
-                isTokenRequested = () => false;
-            }
-
+            var ct = cancellationToken ?? CancellationToken.None;
+            ct.Register(() => StopAxis(axisNum));
             var accuracy = _tolerance;
             uint state = default;
             var vel = 1;
@@ -869,43 +861,47 @@ namespace MachineClassLibrary.Machine.MotionDevices
 
             var storedVelocity = GetAxisVelocity(axisNum);
             var diff = _tolerance + 1;
-            if (isTokenRequested()) return position - CalcActualPosition(axisNum, lineCoefficient);
+            if (ct.IsCancellationRequested) return position - CalcActualPosition(axisNum, lineCoefficient);
 
-            await Task.Run(async () =>
+            Motion2.mAcm2_AxPTP(id, ABS_MODE.MOVE_ABS, position).CheckResult2(axisNum);
+            var result = await WaitAxisIsReadyAsync(id, ct).ConfigureAwait(false);
+
+            var actPos = CalcActualPosition(axisNum, lineCoefficient);
+            diff = position - actPos;
+            if (!(lineCoefficient == 0 || gotIt(diff)))
             {
-                //var rawPos = GetRawCmd(axisNum, position);
-                Motion2.mAcm2_AxPTP(id, ABS_MODE.MOVE_ABS, position).CheckResult2(axisNum);
-                do
-                {
-                    Motion2.mAcm2_AxGetState(id, AXIS_STATUS_TYPE.AXIS_STATE, ref state);
-                    await Task.Delay(100).ConfigureAwait(false);
-                } while ((AxState)state != AxState.STA_AX_READY);
-
-                var actPos = CalcActualPosition(axisNum, lineCoefficient);
-                diff = position - actPos;
-                if (lineCoefficient == 0 || gotIt(diff)) return;
-
                 SetAxisVelocity(axisNum, vel);
-
-                int recurcy = 0;
-
-                while (!gotIt(diff) && recurcy < 50 && !isTokenRequested())
+                int recursion = 0;
+                while (!gotIt(diff) && recursion < 50 && !ct.IsCancellationRequested)
                 {
-                    recurcy++;
+                    recursion++;
                     Motion2.mAcm2_AxPTP(id, ABS_MODE.MOVE_REL, diff);
-                    do
-                    {
-                        Motion2.mAcm2_AxGetState(id, AXIS_STATUS_TYPE.AXIS_STATE, ref state);
-                    } while ((AxState)state != AxState.STA_AX_READY);
+                    result = await WaitAxisIsReadyAsync(id, ct).ConfigureAwait(false);
                     await Task.Delay(200).ConfigureAwait(false);
                     diff = position - CalcActualPosition(axisNum, lineCoefficient);
                     if ((AxState)state == AxState.STA_AX_ERROR_STOP) break;
                 }
-            });
-
+            }
             SetAxisVelocity(axisNum, storedVelocity);
             return diff;
         }
+
+        private Task<bool> WaitAxisIsReadyAsync(uint axisId, CancellationToken ct = default)
+        {
+            return Task.Run(() =>
+            {
+                uint state = default;
+                do
+                {
+                    Motion2.mAcm2_AxGetState(axisId, AXIS_STATUS_TYPE.AXIS_STATE, ref state);
+                    Thread.Sleep(100);
+                } while ((AxState)state != AxState.STA_AX_READY && !ct.IsCancellationRequested);
+                return (AxState)state == AxState.STA_AX_READY;
+            });
+        }
+
+
+
         public void ResetAxisCounter(int axisNum)
         {
             Motion2.mAcm2_AxSetPosition(_axisLogicalIDList[axisNum].ID, POSITION_TYPE.POSITION_CMD, 0d).CheckResult2(axisNum);
@@ -952,7 +948,7 @@ namespace MachineClassLibrary.Machine.MotionDevices
                     } while ((AxState)state == AxState.STA_AX_HOMING);
                 }));
             }
-            await Task.WhenAll(homings);
+            await Task.WhenAll(homings).ConfigureAwait(false);
         }
         public async Task HomeMovingAsync((AxDir direction, HomeRst homeRst, HmMode homeMode, double velocity, int axisNum)[] axs)
         {
@@ -996,7 +992,7 @@ namespace MachineClassLibrary.Machine.MotionDevices
                 } while ((AxState)state == AxState.STA_AX_HOMING);
 
             })).ToArray();
-            await Task.WhenAll(tasks);
+            await Task.WhenAll(tasks).ConfigureAwait(false);
             foreach (var axis in axs.Select(a => a.axisNum))
             {
                 ResetAxisCounter(axis);
@@ -1028,10 +1024,10 @@ namespace MachineClassLibrary.Machine.MotionDevices
             }
 
 
-            await MoveGroupAsync(groupNum, position);
+            await MoveGroupAsync(groupNum, position).ConfigureAwait(false);
             for (var i = 0; i < gpAxes.Length; i++)
             {
-                await MoveAxisPreciselyAsync(gpAxes[i].axisNum, gpAxes[i].lineCoefficient, position[i]);
+                await MoveAxisPreciselyAsync(gpAxes[i].axisNum, gpAxes[i].lineCoefficient, position[i]).ConfigureAwait(false);
             }
         }
         [Obsolete]
@@ -1052,32 +1048,13 @@ namespace MachineClassLibrary.Machine.MotionDevices
         }
         public async Task MoveAxisAsync(int axisNum, double position, CancellationToken? cancellationToken = null)
         {
-            Func<bool> isTokenRequested;
-            if (cancellationToken.HasValue)
-            {
-                isTokenRequested = () => cancellationToken.Value.IsCancellationRequested;
-                cancellationToken.Value.Register(() => StopAxis(axisNum));
-            }
-            else
-            {
-                isTokenRequested = () => false;
-            }
-            if (isTokenRequested()) return;
+            var ct = cancellationToken ?? CancellationToken.None;
+            ct.Register(() => StopAxis(axisNum));
+            if (ct.IsCancellationRequested) return;
             var id = _axisLogicalIDList[axisNum].ID;
             if (Math.Abs(GetAxCmd(axisNum) - position) < _tolerance) return;
-            uint state = default;
-            //var rawPos = GetRawCmd(axisNum, position);
-
-
-            await Task.Run(async () =>
-            {
-                Motion2.mAcm2_AxPTP(id, ABS_MODE.MOVE_ABS, position);
-                do
-                {
-                    Motion2.mAcm2_AxGetState(id, AXIS_STATUS_TYPE.AXIS_STATE, ref state);
-                    await Task.Delay(1).ConfigureAwait(false);
-                } while ((AxState)state == AxState.STA_AX_PTP_MOT && !isTokenRequested());
-            });
+            Motion2.mAcm2_AxPTP(id, ABS_MODE.MOVE_ABS, position);
+            await WaitAxisIsReadyAsync(id, ct).ConfigureAwait(false);
         }
         public void SetAxisCoordinate(int axisNum, double coordinate)
         {
