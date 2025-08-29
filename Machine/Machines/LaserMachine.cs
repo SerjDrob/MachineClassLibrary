@@ -27,7 +27,7 @@ namespace MachineClassLibrary.Machine.Machines
         private Dictionary<LMPlace, double> _singlePlaces;
         private Dictionary<Valves, (Ax, Do)> _valves;
         private ISubject<IDeviceStateChanged> _subject;
-        private List<IDisposable> _subscriptions;
+        private readonly List<IDisposable> _subscriptions;
         private bool _motionDeviceOk;
         private bool _laserDeviceOk;
         private bool _videoCaptureDeviceOk;
@@ -97,6 +97,7 @@ namespace MachineClassLibrary.Machine.Machines
         {
             Guard.IsNotNull(markLaser, nameof(markLaser));
             Guard.IsNotNull(videoCapture, nameof(videoCapture));
+            _subscriptions = new();
             _markLaser = markLaser;
             var watchableLaser = _markLaser as WatchableDevice;
             watchableLaser?.OfType<HealthOK>()
@@ -501,7 +502,6 @@ namespace MachineClassLibrary.Machine.Machines
         public IDisposable Subscribe(IObserver<IDeviceStateChanged> observer)
         {
             _subject ??= new Subject<IDeviceStateChanged>();
-            _subscriptions ??= new List<IDisposable>();
             var subscription = _subject.Subscribe(observer);
             _subscriptions.Add(subscription);
             return subscription;

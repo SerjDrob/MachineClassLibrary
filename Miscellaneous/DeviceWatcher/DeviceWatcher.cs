@@ -95,7 +95,7 @@ namespace MachineClassLibrary.Miscellaneous
     public abstract class WatchableDevice : IWatchableDevice
     {
         private ISubject<IDeviceInfo>? _subject;
-        private List<IDisposable>? _subscriptions;
+        private readonly List<IDisposable> _subscriptions = new();
         private PlugMeWatcher _plugMeWatcher;
         public void HasHealthProblem(string message, Exception exception, object device = null)
         {
@@ -120,7 +120,6 @@ namespace MachineClassLibrary.Miscellaneous
         public IDisposable Subscribe(IObserver<IDeviceInfo> observer)
         {
             _subject ??= new Subject<IDeviceInfo>();
-            _subscriptions ??= new List<IDisposable>();
             var subscription = _subject.Subscribe(observer);
             _subscriptions.Add(subscription);
             return subscription;

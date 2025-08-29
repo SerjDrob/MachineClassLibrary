@@ -59,6 +59,9 @@ namespace MachineClassLibrary.Machine.MotionDevices
             //}
             finally { }
 
+
+
+
             var axisEnableEvent = new uint[AxisCount];
             var gpEnableEvent = new uint[1];
 

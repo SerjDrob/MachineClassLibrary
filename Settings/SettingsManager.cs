@@ -9,7 +9,7 @@ namespace MachineClassLibrary.Settings
     {
         private readonly string _settingsPath;
         private ISubject<T> _subject;
-        private List<IDisposable> _subscriptions;
+        private readonly List<IDisposable> _subscriptions = new();
         private bool disposedValue;
 
         public T? Settings
@@ -54,7 +54,6 @@ namespace MachineClassLibrary.Settings
         public IDisposable Subscribe(IObserver<T> observer)
         {
             _subject ??= new Subject<T>();
-            _subscriptions ??= new();
             var subscription = _subject.Subscribe(observer);
             _subscriptions.Add(subscription);
             return subscription;
