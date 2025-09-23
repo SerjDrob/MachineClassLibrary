@@ -16,6 +16,7 @@ namespace MachineClassLibrary.SFC
             Accelerating = accelerating;
             Deccelarating = deccelarating;
             Stop = stop;
+            IsOk = true;
         }
 
         public int Rpm { get; init; } //= 0;
@@ -25,5 +26,7 @@ namespace MachineClassLibrary.SFC
         public bool Deccelarating { get; init; }// = false;
         public bool Stop { get; init; } //= true;
         public bool IsOk { get; set; }
+        public string FaultDescription { get; set; }
+        public int FaultCode { get; set; }
     }
 }

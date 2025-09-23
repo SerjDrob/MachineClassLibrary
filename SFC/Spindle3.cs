@@ -1,5 +1,6 @@
 ﻿using System;
 using System.IO.Ports;
+using System.Threading;
 using System.Threading.Tasks;
 using System.Windows.Documents;
 using EasyModbus.Exceptions;
@@ -157,7 +158,7 @@ namespace MachineClassLibrary.SFC
                     //throw;
                 }
 
-                await Task.Delay(100);
+                await Task.Delay(100).ConfigureAwait(false);
             }
 
         }
@@ -234,21 +235,51 @@ namespace MachineClassLibrary.SFC
             return true;
         }
 
-        public async Task<bool> ChangeSpeedAsync(ushort rpm, int delay) 
+        public Task<bool> ChangeSpeedAsync(ushort rpm, int delay) 
         {
-            if (!_hasStarted) return false;
-            if (rpm == _freq * 6) return true;
+            if (!_hasStarted) return Task.FromResult(false);//false;
+            if (rpm == _freq * 6) return Task.FromResult(true);//true;
             try
             {
                 SetSpeed(rpm);
-                if (_onFreq) return true;
-                await Task.Run(async () => { while (!_onFreq) await Task.Delay(50); });
-                await Task.Delay(delay);
-                return true;
+                var cts = new CancellationTokenSource(delay);
+                var tcs = new TaskCompletionSource<bool>();
+                GetSpindleState += ReachedFreq;
+                void ReachedFreq(object sender, SpindleEventArgs args)
+                {
+                    if (cts.Token.IsCancellationRequested)
+                    {
+                        GetSpindleState -= ReachedFreq;
+                        cts.Dispose();
+                        tcs.TrySetResult(args.OnFreq);
+                    }
+                    else if (args.OnFreq)
+                    {
+                        GetSpindleState -= ReachedFreq;
+                        cts.Dispose();
+                        tcs.TrySetResult(true);
+                    }
+                    else if(!args.IsOk || args.Stop)
+                    {
+                        GetSpindleState -= ReachedFreq;
+                        cts.Dispose();
+                        tcs.TrySetResult(false);
+                    }
+                }
+                //if (_onFreq) return true;
+                //await Task.Run(() =>
+                //{
+                //    while (!_onFreq)
+                //        Task.Delay(50).Wait();
+                //}).ConfigureAwait(false);
+                //var result = await tcs.Task.ConfigureAwait(false);
+                //await Task.Delay(delay).ConfigureAwait(false);
+                //return true;
+                return tcs.Task;
             }
             catch
             {
-                return false;
+                return Task.FromResult(false);//false;
             }
         }
     }
