@@ -305,11 +305,11 @@ private async Task DeviceStateMonitorAsync()
                 
                 Motion.mAcm_AxGetState(ax, ref state).CheckResult(ax);
 
-                if (!(axStates.TryGetValue(ax,out var st) && st==(AxState)state))
-                {
-                    axStates[ax] = (AxState)state;
+                //if (!(axStates.TryGetValue(ax,out var st) && st==(AxState)state))
+                //{
+                //    axStates[ax] = (AxState)state;
                     OnAxStateChanged?.Invoke(ax, (AxState)state);
-                }
+                //}
 
                 try
                 {
@@ -940,11 +940,11 @@ private async Task DeviceStateMonitorAsync()
             ReleaseUnmanagedResources();
             // TODO: set large fields to null
             _deviceHandle = IntPtr.Zero;
-            for (int i = 0; i < _mAxisHand.Length; i++)
+            if(_mAxisHand is not null) for (int i = 0; i < _mAxisHand.Length; i++)
             {
                 _mAxisHand[i] = IntPtr.Zero;
             }
-            for (int i = 0; i < _mGpHand.Count; i++)
+            if(_mGpHand is not null) for (int i = 0; i < _mGpHand.Count; i++)
             {
                 _mGpHand[i] = IntPtr.Zero;
             }

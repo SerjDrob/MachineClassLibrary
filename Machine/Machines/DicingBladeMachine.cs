@@ -495,6 +495,8 @@ namespace MachineClassLibrary.Machine.Machines
 
                     _spindle.Dispose();
                     _motionDevice.Dispose();
+                    _videoCamera.OnBitmapChanged -= _videoCamera_OnBitmapChanged;
+                    _videoCamera.StopCamera();
                 }
 
                 // TODO: free unmanaged resources (unmanaged objects) and override finalizer

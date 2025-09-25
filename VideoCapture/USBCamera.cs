@@ -147,8 +147,6 @@ namespace MachineClassLibrary.VideoCapture
         {
             _isStarted = false;
             _localCamera.SignalToStop();
-            _localCamera = null;
-            //_localCamera.WaitForStop();//.Stop();
         }
 
         public int GetVideoCaptureDevicesCount()
