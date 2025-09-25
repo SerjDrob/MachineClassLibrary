@@ -2,8 +2,7 @@
 using System.IO.Ports;
 using System.Threading;
 using System.Threading.Tasks;
-using System.Windows.Documents;
-using EasyModbus.Exceptions;
+using Microsoft.Extensions.Logging;
 using Modbus.Device;
 
 namespace MachineClassLibrary.SFC
@@ -13,68 +12,92 @@ namespace MachineClassLibrary.SFC
         /// <summary>
         ///     300 Hz = 18000 rpm
         /// </summary>
-        private const ushort LowFreqLimit = 3000;
+        private const ushort LOW_FREQ_LIMIT = 3000;
 
         /// <summary>
         ///     550 Hz = 33000 rpm
         /// </summary>
-        private const ushort HighFreqLimit = 5500;
+        private const ushort HIGH_FREQ_LIMIT = 5500;
+        private const ushort READ_FREQ_CURRENT = 0xD000;
+
+        private const ushort READ_STATE = 0x2000;
+
+        private const ushort WRITE_COMMAND = 0x1001;
+
+        private const ushort COMMAND_STOP = 0x0003;
+        private const ushort COMMAND_START_FWD = 0x0001;
+
+        private const ushort STATE_ON_FREQ_FWD = 0x0001;
+        private const ushort STATE_ON_FREQ_REV = 0x0002;
+        private const ushort STATE_ACC_FWD = 0x0011;
+        private const ushort STATE_ACC_REV = 0x0012;
+        private const ushort STATE_DEC_FWD = 0x0014;
+        private const ushort STATE_DEC_REV = 0x0015;
+        private const ushort STATE_STOP = 0x0003;
 
         private readonly object _modbusLock = new();
         private readonly string _com;
         private readonly int _baudRate;
+        private readonly ILogger<Spindle3> _logger;
         private ModbusSerialMaster _client;
         private SerialPort _serialPort;
+        private bool _hasStarted = false;
+        private int _freq;
+        private bool _onFreq;
+        private CancellationTokenSource _watchingStateCancellationTokenSource;
 
         // TODO wait o cancel in the end, NEVER forget Tasks
         private Task _watchingStateTask;
 
-        //public Spindle3()
-        //{
-        //    if (EstablishConnection("COM1"))
-        //    {
-        //        _watchingStateTask = WatchingStateAsync();
-        //        if (CheckSpindleWorking())
-        //        {
-        //            return;
-        //        }
-        //        if (!SetParams()) throw new SpindleException("SetParams is failed");
-        //    }
-        //}
-
-
-        public Spindle3(string com, int baudRate)
+        public Spindle3(string com, int baudRate, ILogger<Spindle3> logger)
         {
             _com = com;
             _baudRate = baudRate;
+            _logger = logger;
         }
-
+        public event EventHandler<SpindleEventArgs> GetSpindleState;
+        public bool IsConnected { get; set; } = false;
         private bool CheckSpindleWorking()
         {
             lock (_modbusLock)
             {
-                var data = _client.ReadHoldingRegisters(1, 0xD000, 1);
-
-                return data[0] != 0;
+                if (_client == null)
+                {
+                    _logger.LogWarning("Attempted to check spindle state, but Modbus client is not initialized.");
+                    return false;
+                }
+                try
+                {
+                    var data = _client.ReadHoldingRegisters(1, 0xD000, 1);
+                    return data[0] != 0;
+                }
+                catch (Exception ex)
+                {
+                    _logger.LogError(ex, $"Failed to 0xD000");
+                    return false;
+                }
             }
         }
 
-
-        public event EventHandler<SpindleEventArgs> GetSpindleState;
-
-
-        public bool IsConnected { get; set; } = false;
-
         public void SetSpeed(ushort rpm)
         {
-            if (!(rpm / 6 > LowFreqLimit && rpm / 6 < HighFreqLimit))
+            if (!(rpm / 6 > LOW_FREQ_LIMIT && rpm / 6 < HIGH_FREQ_LIMIT))
             {
-                throw new SpindleException($"{rpm}rpm is out of ({LowFreqLimit * 6},{HighFreqLimit * 6}) rpm range");
+                throw new SpindleException($"{rpm}rpm is out of ({LOW_FREQ_LIMIT * 6},{HIGH_FREQ_LIMIT * 6}) rpm range");
             }
             rpm = (ushort)Math.Abs(rpm / 6);
             lock (_modbusLock)
             {
-                _client.WriteSingleRegister(1, 0x0001, rpm);
+                try
+                {
+                    _client.WriteSingleRegister(1, 0x0001, rpm);
+                    _logger.LogInformation($"Successfully 0x0001: {rpm} rpm");
+                }
+                catch (Exception ex)
+                {
+                    _logger.LogError(ex, $"Failed to 0x0001");
+                    throw;
+                }
             }
         }
 
@@ -82,87 +105,92 @@ namespace MachineClassLibrary.SFC
         {
             lock (_modbusLock)
             {
-                // _client.WriteSingleRegister(1, 0x1001, 0x0020);
-                _client.WriteSingleRegister(1, 0x1001, 0x0001);
-                _hasStarted = true;
+                try
+                {
+                    _client.WriteSingleRegister(1, WRITE_COMMAND, COMMAND_START_FWD);
+                    _logger.LogInformation($"Successfully {WRITE_COMMAND}: {COMMAND_START_FWD}");
+                    _hasStarted = true;
+                }
+                catch (Exception ex)
+                {
+                    _logger.LogError(ex, $"Failed to {WRITE_COMMAND}: {COMMAND_START_FWD}");
+                    throw;
+                }
             }
         }
-
-        private bool _hasStarted = false;
-        private int _freq;
-        private bool _onFreq;
-
         public void Stop()
         {
             lock (_modbusLock)
             {
-                _client.WriteSingleRegister(1, 0x1001, 0x0003);
-                _hasStarted = false;
+                try
+                {
+                    _client.WriteSingleRegister(1, WRITE_COMMAND, COMMAND_STOP);
+                    _logger.LogInformation($"Successfully {WRITE_COMMAND}: {COMMAND_STOP}");
+                    _hasStarted = false;
+                }
+                catch (Exception ex)
+                {
+                    _logger.LogError(ex, $"Failed to {WRITE_COMMAND}: {COMMAND_STOP}");
+                    throw;
+                }
             }
         }
-
-        private bool EstablishConnection(string com)
+        private bool EstablishConnection()
         {
             _serialPort = new SerialPort
             {
-                PortName = com,
+                PortName = _com,
                 BaudRate = _baudRate,
                 Parity = Parity.Even,
                 WriteTimeout = 1000,
                 ReadTimeout = 100
             };
-
+            _logger.LogInformation("Attempting to open serial port: {PortName}", _com);
             _serialPort.Open();
             if (_serialPort.IsOpen)
             {
                 _client = ModbusSerialMaster.CreateRtu(_serialPort);
+                _logger.LogInformation("Serial port {PortName} opened successfully. Modbus client created.", _com);
             }
             else
             {
+                _logger.LogWarning("Failed to open serial port: {PortName}", _com);
                 return false;
             }
 
             return IsConnected = true;
         }
-        private async Task WatchingStateAsync()
+        private async Task WatchingStateAsync(CancellationToken token)
         {
             ushort[] data = default;
             bool acc = false;
             bool dec = false;
             bool stop = false;
-
-            while (true)//TODO add cancellation token
+            await Task.Delay(100).ConfigureAwait(false);
+            while (!token.IsCancellationRequested)
             {
                 try
                 {
                     int current;
-                    lock (_modbusLock)
-                    {
-                        _serialPort?.DiscardInBuffer();
-                        data = _client.ReadHoldingRegisters(1, 0xD000, 2);
-                        current = data[1];
-                        _freq = data[0];
-                        data = _client.ReadHoldingRegisters(1, 0x2000, 1);
-                        _onFreq = data[0] == 0x0001 | data[0] == 0x0002;
-                        acc = data[0] == 0x0011 | data[0] == 0x0012;
-                        dec = data[0] == 0x0014 | data[0] == 0x0015;
-                        stop = data[0] == 0x0003;
-
-                        _hasStarted = _onFreq || acc;
-                    }
-                    
-                    GetSpindleState?.Invoke(this, new SpindleEventArgs(_freq * 6,(double)current / 10,_onFreq, acc, dec, stop));
+                    _serialPort?.DiscardInBuffer();
+                    data = await _client.ReadHoldingRegistersAsync(1, READ_FREQ_CURRENT, 2).ConfigureAwait(false);
+                    current = data[1];
+                    _freq = data[0];
+                    data = await _client.ReadHoldingRegistersAsync(1, READ_STATE, 1).ConfigureAwait(false);
+                    _onFreq = data[0] == STATE_ON_FREQ_FWD | data[0] == STATE_ON_FREQ_REV;
+                    acc = data[0] == STATE_ACC_FWD | data[0] == STATE_ACC_REV;
+                    dec = data[0] == STATE_DEC_FWD | data[0] == STATE_DEC_REV;
+                    stop = data[0] == STATE_STOP;
+                    _hasStarted = _onFreq || acc;
+                    GetSpindleState?.Invoke(this, new SpindleEventArgs(_freq * 6, (double)current / 10, _onFreq, acc, dec, stop));
                 }
-                catch (ModbusException)
+                catch (Exception ex)
                 {
-                    //throw;
+                    _logger.LogError(ex, $"Failed {nameof(WatchingStateAsync)}");//TODO count how many frequent
                 }
-
                 await Task.Delay(100).ConfigureAwait(false);
             }
-
         }
-
         private bool SetParams()
         {
             lock (_modbusLock)
@@ -172,8 +200,8 @@ namespace MachineClassLibrary.SFC
                     0,
                     5000,
                     2,
-                    LowFreqLimit, //500,//lower limiting frequency/10
-                    HighFreqLimit, //upper limiting frequency/10
+                    LOW_FREQ_LIMIT, //500,//lower limiting frequency/10
+                    HIGH_FREQ_LIMIT, //upper limiting frequency/10
                     900 //acceleration time/10
                 ]);
 
@@ -202,16 +230,23 @@ namespace MachineClassLibrary.SFC
                     10 //V1
                 ]);
             }
-
             return true;
         }
-
         public void Dispose()
         {
-            _serialPort.Dispose();
-            _client.Dispose();
+            _watchingStateCancellationTokenSource?.Cancel();
+            try
+            {
+                _watchingStateTask?.Wait(1000);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogWarning(ex, "Spindle state monitoring task did not stop gracefully.");
+            }
+            _serialPort?.Dispose();
+            _client?.Dispose();
+            _watchingStateCancellationTokenSource?.Dispose();
         }
-
         /// <summary>
         /// Connects to the spindle
         /// </summary>
@@ -219,9 +254,10 @@ namespace MachineClassLibrary.SFC
         /// <exception cref="SpindleException"></exception>
         public bool Connect()
         {
-            if (EstablishConnection(_com))
+            if (EstablishConnection())
             {
-                _watchingStateTask = WatchingStateAsync();
+                _watchingStateCancellationTokenSource = new CancellationTokenSource();
+                _watchingStateTask = WatchingStateAsync(_watchingStateCancellationTokenSource.Token);
                 if (CheckSpindleWorking())
                 {
                     return true;
@@ -234,52 +270,49 @@ namespace MachineClassLibrary.SFC
             }
             return true;
         }
-
-        public Task<bool> ChangeSpeedAsync(ushort rpm, int delay) 
+        public Task<bool> ChangeSpeedAsync(ushort rpm, int delay)
         {
-            if (!_hasStarted) return Task.FromResult(false);//false;
-            if (rpm == _freq * 6) return Task.FromResult(true);//true;
+            if (!_hasStarted) return Task.FromResult(false);
+            if (rpm == _freq * 6) return Task.FromResult(true);
             try
             {
                 SetSpeed(rpm);
                 var cts = new CancellationTokenSource(delay);
                 var tcs = new TaskCompletionSource<bool>();
-                GetSpindleState += ReachedFreq;
+
                 void ReachedFreq(object sender, SpindleEventArgs args)
                 {
-                    if (cts.Token.IsCancellationRequested)
+                    if (args.OnFreq)
                     {
-                        GetSpindleState -= ReachedFreq;
-                        cts.Dispose();
-                        tcs.TrySetResult(args.OnFreq);
+                        CleanupAndSetResult(true);
                     }
-                    else if (args.OnFreq)
+                    else if (!args.IsOk || args.Stop)
                     {
-                        GetSpindleState -= ReachedFreq;
-                        cts.Dispose();
-                        tcs.TrySetResult(true);
-                    }
-                    else if(!args.IsOk || args.Stop)
-                    {
-                        GetSpindleState -= ReachedFreq;
-                        cts.Dispose();
-                        tcs.TrySetResult(false);
+                        CleanupAndSetResult(false);
                     }
                 }
-                //if (_onFreq) return true;
-                //await Task.Run(() =>
-                //{
-                //    while (!_onFreq)
-                //        Task.Delay(50).Wait();
-                //}).ConfigureAwait(false);
-                //var result = await tcs.Task.ConfigureAwait(false);
-                //await Task.Delay(delay).ConfigureAwait(false);
-                //return true;
+
+                void CleanupAndSetResult(bool result)
+                {
+                    GetSpindleState -= ReachedFreq;
+                    cts.Dispose();
+                    tcs.TrySetResult(result);
+                }
+
+                GetSpindleState += ReachedFreq;
+
+                cts.Token.Register(() =>
+                {
+                    GetSpindleState -= ReachedFreq;
+                    tcs.TrySetResult(false);
+                });
+
                 return tcs.Task;
             }
-            catch
+            catch (Exception ex)
             {
-                return Task.FromResult(false);//false;
+                _logger.LogError(ex, "Exception in ChangeSpeedAsync");
+                return Task.FromResult(false);
             }
         }
     }

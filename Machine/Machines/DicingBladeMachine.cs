@@ -74,7 +74,7 @@ namespace MachineClassLibrary.Machine.Machines
                         ax[i] = (_axes[axis].AxisNum, _places[place][i].pos, _axes[axis].LineCoefficient);
                     }
 
-                    await _motionDevice.MoveAxesByCoorsPrecAsync(ax);
+                    await _motionDevice.MoveAxesByCoorsPrecAsync(ax).ConfigureAwait(false);
                 }
                 else
                 {
@@ -85,7 +85,7 @@ namespace MachineClassLibrary.Machine.Machines
                         ax[i] = (_axes[axis].AxisNum, _places[place][i].pos);
                     }
 
-                    await _motionDevice.MoveAxesByCoorsAsync(ax);//TODO it's not realy async
+                    await _motionDevice.MoveAxesByCoorsAsync(ax).ConfigureAwait(false);//TODO it's not realy async
                 }
             }
             else
@@ -349,11 +349,6 @@ namespace MachineClassLibrary.Machine.Machines
         {
             OnSpindleStateChanging?.Invoke(null, e);
         }
-        public void Dispose()
-        {
-            _spindle.Dispose();
-        }
-
         public void StartCamera(int ind, int capabilitiesInd = 0)
         {
             _videoCamera.StartCamera(ind, capabilitiesInd);
@@ -370,6 +365,8 @@ namespace MachineClassLibrary.Machine.Machines
         }
 
         private (Ax axis, bool isScanning) _scanHandle;
+        private bool disposedValue;
+
         /// <summary>
         /// Scan from current position both direction. After cancelling return to the position.
         /// </summary>
@@ -486,6 +483,38 @@ namespace MachineClassLibrary.Machine.Machines
                 var ps = _positions.Select(p => (p.Key, p.Value)).ToArray();
                 _places[_configuringPlace] = ps;
             }
+        }
+
+        protected virtual void Dispose(bool disposing)
+        {
+            if (!disposedValue)
+            {
+                if (disposing)
+                {
+                    // TODO: dispose managed state (managed objects)
+
+                    _spindle.Dispose();
+                    _motionDevice.Dispose();
+                }
+
+                // TODO: free unmanaged resources (unmanaged objects) and override finalizer
+                // TODO: set large fields to null
+                disposedValue = true;
+            }
+        }
+
+        // // TODO: override finalizer only if 'Dispose(bool disposing)' has code to free unmanaged resources
+        // ~DicingBladeMachine()
+        // {
+        //     // Do not change this code. Put cleanup code in 'Dispose(bool disposing)' method
+        //     Dispose(disposing: false);
+        // }
+
+        public void Dispose()
+        {
+            // Do not change this code. Put cleanup code in 'Dispose(bool disposing)' method
+            Dispose(disposing: true);
+            GC.SuppressFinalize(this);
         }
 
 

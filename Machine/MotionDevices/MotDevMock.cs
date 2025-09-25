@@ -87,7 +87,7 @@ namespace MachineClassLibrary.Machine.MotionDevices
             await MovingAxis(axisNum, dirSign);
         }
 
-        public async void MoveAxisContiniouslyAsync(int axisNum, AxDir dir)
+        public async void MoveAxisContinuouslyAsync(int axisNum, AxDir dir)
         {
             var dirSign = dir switch { AxDir.Pos => 1, AxDir.Neg => -1 };
             await MovingAxis(axisNum, dirSign);

@@ -136,28 +136,28 @@ public class MD520Q : ISpindle, IDisposable//TODO create handling errors: overcu
             }
         }
     }
-    private bool EstablishConnection(string com)
+    private bool EstablishConnection()
     {
         _serialPort = new SerialPort
         {
-            PortName = com,
-            BaudRate = 38400,
+            PortName = _com,
+            BaudRate = _baudRate,
             Parity = Parity.None,
             WriteTimeout = 1000,
             ReadTimeout = 100,
             DataBits = 8,
             StopBits = StopBits.One
         };
-        _logger.LogInformation("Attempting to open serial port: {PortName}", com);
+        _logger.LogInformation("Attempting to open serial port: {PortName}", _com);
         _serialPort.Open();
         if (_serialPort.IsOpen)
         {
             _client = ModbusSerialMaster.CreateRtu(_serialPort);
-            _logger.LogInformation("Serial port {PortName} opened successfully. Modbus client created.", com);
+            _logger.LogInformation("Serial port {PortName} opened successfully. Modbus client created.", _com);
         }
         else
         {
-            _logger.LogWarning("Failed to open serial port: {PortName}", com);
+            _logger.LogWarning("Failed to open serial port: {PortName}", _com);
             return false;
         }
 
@@ -174,6 +174,7 @@ public class MD520Q : ISpindle, IDisposable//TODO create handling errors: overcu
             try
             {
                 SpindleEventArgs args;
+                _serialPort?.DiscardInBuffer();
                 args = await ReadStateGetArgsAsync().ConfigureAwait(false);
                 data = await _client.ReadHoldingRegistersAsync(1, READ_AC_DRIVE_FAULT, 1).ConfigureAwait(false);
 
@@ -275,7 +276,7 @@ public class MD520Q : ISpindle, IDisposable//TODO create handling errors: overcu
 
     public bool Connect()
     {
-        if (EstablishConnection(_com))
+        if (EstablishConnection())
         {
             _watchingStateCancellationTokenSource = new CancellationTokenSource();
             _watchingStateTask = WatchingStateAsync(_watchingStateCancellationTokenSource.Token);
@@ -314,7 +315,6 @@ public class MD520Q : ISpindle, IDisposable//TODO create handling errors: overcu
     {
         if (!_hasStarted) return Task.FromResult(false);
         if (rpm == _freq * 6) return Task.FromResult(true);
-
         try
         {
             SetSpeed(rpm);

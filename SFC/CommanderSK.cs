@@ -13,7 +13,7 @@ namespace MachineClassLibrary.SFC
         private readonly ushort HighFreqLimit;
         private readonly object _modbusLock = new();
         private readonly string _comPort;
-        private readonly uint _baudRate;
+        private readonly int _baudRate;
         private readonly SpindleParams _spindleParams;
         private ModbusSerialMaster _client;
         private SerialPort _serialPort;
@@ -21,7 +21,7 @@ namespace MachineClassLibrary.SFC
         // TODO wait or cancel in the end, NEVER forget Tasks
         private Task _watchingStateTask;
 
-        public CommanderSK(string comPort, uint baudRate, SpindleParams spindleParams)
+        public CommanderSK(string comPort, int baudRate, SpindleParams spindleParams)
         {
             _comPort = comPort;
             _baudRate = baudRate;
@@ -128,12 +128,12 @@ namespace MachineClassLibrary.SFC
             }
         }
 
-        private bool EstablishConnection(string com, uint baudRate)
+        private bool EstablishConnection(string com, int baudRate)
         {
             _serialPort = new SerialPort
             {
                 PortName = com,
-                BaudRate = (int)baudRate,
+                BaudRate = baudRate,
                 Parity = Parity.None,
                 WriteTimeout = 1000,
                 ReadTimeout = 500

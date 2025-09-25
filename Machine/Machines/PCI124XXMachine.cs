@@ -88,7 +88,7 @@ namespace MachineClassLibrary.Machine.Machines
             ResetErrors(axis);
             _axes[axis].SetMotionStarted();
 
-            _motionDevice.MoveAxisContiniouslyAsync(_axes[axis].AxisNum, direction);
+            _motionDevice.MoveAxisContinuouslyAsync(_axes[axis].AxisNum, direction);
         }
 
         public async Task MoveAxInPosAsync(Ax axis, double position, bool precisely = false, CancellationToken? cancellationToken = null)

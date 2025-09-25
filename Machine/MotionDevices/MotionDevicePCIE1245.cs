@@ -267,9 +267,9 @@ namespace MachineClassLibrary.Machine.MotionDevices
             _mGpHand.Add(group);
             return _mGpHand.IndexOf(group);
         }
-        public void MoveAxisContiniouslyAsync(int axisNum, AxDir dir)
+        public void MoveAxisContinuouslyAsync(int axisNum, AxDir dir)
         {
-            Guard.IsLessThan(axisNum, _axisLogicalIDList.Length, $"{nameof(axisNum)} in the {nameof(MoveAxisContiniouslyAsync)}");
+            Guard.IsLessThan(axisNum, _axisLogicalIDList.Length, $"{nameof(axisNum)} in the {nameof(MoveAxisContinuouslyAsync)}");
             uint state = default;
             Motion2.mAcm2_AxGetState(_axisLogicalIDList[axisNum].ID, AXIS_STATUS_TYPE.AXIS_STATE, ref state);
             if ((AxState)state == AxState.STA_AX_BUSY
