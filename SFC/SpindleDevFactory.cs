@@ -26,9 +26,9 @@ public class SpindleDevFactory
         if (_configuration.IsMD520) 
             return new MD520Q(_configuration.SpindlePort, _configuration.SpindleBaudRate, _serviceProvider.GetRequiredService<ILogger<MD520Q>>()) ?? throw new NullReferenceException("Getting service MD520 returned null");
         if (_configuration.IsSpindle3) 
-            return new Spindle3(_configuration.SpindlePort, _configuration.SpindleBaudRate, _serviceProvider.GetRequiredService<ILogger<Spindle3>>()) ?? throw new NullReferenceException("Getting service Spindle3 returned null");
+            return new Sunfar(_configuration.SpindlePort, _configuration.SpindleBaudRate, _serviceProvider.GetRequiredService<ILogger<Sunfar>>()) ?? throw new NullReferenceException("Getting service Spindle3 returned null");
         if (_configuration.IsCommanderSK) 
-            return new CommanderSK(_configuration.SpindlePort, _configuration.SpindleBaudRate, new SpindleParams
+            return new CommanderSK(_configuration.SpindlePort, _configuration.SpindleBaudRate, _serviceProvider.GetRequiredService<ILogger<CommanderSK>>(), new SpindleParams
             {
                 Acc = 5,
                 Dec = 5,
@@ -38,7 +38,7 @@ public class SpindleDevFactory
                 RatedVoltage = 60
             }) ?? throw new NullReferenceException("Getting service MockSpindle returned null");
         if (_configuration.IsMockSpindle) 
-            return new MockSpindle() ?? throw new NullReferenceException("Getting service MockSpindle returned null");
+            return new MockSpindle(_configuration.SpindlePort, _configuration.SpindleBaudRate, _serviceProvider.GetRequiredService<ILogger<MockSpindle>>()) ?? throw new NullReferenceException("Getting service MockSpindle returned null");
         throw new ArgumentException($"The spindle isn't defined.");
 
     }

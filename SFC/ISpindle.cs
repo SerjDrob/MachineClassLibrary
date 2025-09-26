@@ -8,10 +8,10 @@ namespace MachineClassLibrary.SFC
     public interface ISpindle : IDisposable
     {
         public bool IsConnected { get; set; }
-        public void SetSpeed(ushort rpm);
-        public void Start();
-        public void Stop();
-        bool Connect();
+        public Task SetSpeedAsync(ushort rpm);
+        public Task StartAsync();
+        public Task StopAsync();
+        Task<bool> ConnectAsync();
         Task<bool> ChangeSpeedAsync(ushort rpm, int delay);
 
         /// <summary>

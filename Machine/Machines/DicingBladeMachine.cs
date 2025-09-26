@@ -298,7 +298,7 @@ namespace MachineClassLibrary.Machine.Machines
         {
             try
             {
-                _spindle.SetSpeed((ushort)frequency);
+                _spindle.SetSpeedAsync((ushort)frequency);
             }
             catch (SpindleException ex)
             {
@@ -321,7 +321,7 @@ namespace MachineClassLibrary.Machine.Machines
 
             if (absentBlockers.Any()) throw new MachineException($"Отсутствует: {string.Join(", ", absentBlockers)}.");
 
-            _spindle.Start();
+            _spindle.StartAsync();
         }
 
         private List<Sensors> _spindleBlockers;
@@ -342,7 +342,7 @@ namespace MachineClassLibrary.Machine.Machines
         }
         public void StopSpindle()
         {
-            _spindle.Stop();
+            _spindle.StopAsync();
         }
 
         private void _spindle_GetSpindleState(object obj, SpindleEventArgs e)
@@ -432,7 +432,7 @@ namespace MachineClassLibrary.Machine.Machines
         {
             try
             {
-                _spindle.Connect();
+                _spindle.ConnectAsync();
                 return true;
             }
             catch (Exception)

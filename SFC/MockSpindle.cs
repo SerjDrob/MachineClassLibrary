@@ -3,40 +3,90 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using Microsoft.Extensions.Logging;
 
-namespace MachineClassLibrary.SFC
+namespace MachineClassLibrary.SFC;
+
+//public class MockSpindle : ISpindle
+//{
+//    public bool IsConnected { get; set; }
+
+//    public event EventHandler<SpindleEventArgs> GetSpindleState;
+
+//    public Task<bool> ChangeSpeedAsync(ushort rpm, int delay) => throw new NotImplementedException();
+
+//    public bool Connect()
+//    {
+//        return true;
+//    }
+
+//    public void Dispose()
+//    {
+//        //throw new NotImplementedException();
+//    }
+
+//    public void SetSpeedAsync(ushort rpm)
+//    {
+//        //throw new NotImplementedException();
+//    }
+
+//    public void StartAsync()
+//    {
+//        //throw new NotImplementedException();
+//    }
+
+//    public void Stop()
+//    {
+//        //throw new NotImplementedException();
+//    }
+//}
+
+
+public class MockSpindle : SpindleBase<MockSpindle>
 {
-    public class MockSpindle : ISpindle
+    public MockSpindle(string com, int baudRate, ILogger<MockSpindle> logger) : base(com, baudRate, logger)
     {
-        public bool IsConnected { get; set; }
+    }
 
-        public event EventHandler<SpindleEventArgs> GetSpindleState;
+    protected override Task<bool> CheckIfSpindleSpinningAsync()
+    {
+        return Task.FromResult(true);
+    }
 
-        public Task<bool> ChangeSpeedAsync(ushort rpm, int delay) => throw new NotImplementedException();
+    protected override Task<int> GetCurrentAsync()
+    {
+        return Task<int>.FromResult(0);
+    }
 
-        public bool Connect()
-        {
-            return true;
-        }
+    protected override Task<int> GetFrequencyAsync()
+    {
+        return Task.FromResult(0);
+    }
 
-        public void Dispose()
-        {
-            //throw new NotImplementedException();
-        }
+    protected override Task<SpinStatus> GetStatusAsync()
+    {
+        return Task.FromResult(
+            new SpinStatus(false, false, false, true)
+            );
+    }
 
-        public void SetSpeed(ushort rpm)
-        {
-            //throw new NotImplementedException();
-        }
+    protected override Task StartFWDCommandAsync()
+    {
+        return Task.CompletedTask;
+    }
 
-        public void Start()
-        {
-            //throw new NotImplementedException();
-        }
+    protected override Task StopCommandAsync()
+    {
+        return Task.CompletedTask;
+    }
 
-        public void Stop()
-        {
-            //throw new NotImplementedException();
-        }
+    protected override Task WriteRPMAsync(ushort rpm)
+    {
+        return Task.CompletedTask;
+    }
+
+    protected override Task WriteSettingsAsync()
+    {
+        return Task.CompletedTask;
     }
 }
