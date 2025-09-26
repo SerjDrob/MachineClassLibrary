@@ -104,12 +104,12 @@ namespace MachineClassLibrary.Machine.Machines
         }
         public async Task MoveGpInPlaceAsync(Groups group, Place place, bool precisely = false)
         {
-            MoveGpInPosAsync(group, _places[place].Select(p => p.pos).ToArray(), precisely);
+            await MoveGpInPosAsync(group, _places[place].Select(p => p.pos).ToArray(), precisely).ConfigureAwait(false);
         }
 
         public async Task MoveAxesInPlaceAsync(Place place)
         {
-            foreach (var axpos in _places[place]) await MoveAxInPosAsync(axpos.axis, axpos.pos);
+            foreach (var axpos in _places[place]) await MoveAxInPosAsync(axpos.axis, axpos.pos).ConfigureAwait(false);
         }
 
         /// <summary>
@@ -384,10 +384,10 @@ namespace MachineClassLibrary.Machine.Machines
             SetAxFeedSpeed(ax, speed);
             while (!cancellationToken.IsCancellationRequested)
             {
-                if (!cancellationToken.IsCancellationRequested) await MoveAxInPosAsync(Ax.X, initPosition + amplitude / 2);
-                if (!cancellationToken.IsCancellationRequested) await MoveAxInPosAsync(Ax.X, initPosition - amplitude / 2);
+                if (!cancellationToken.IsCancellationRequested) await MoveAxInPosAsync(Ax.X, initPosition + amplitude / 2).ConfigureAwait(false);
+                if (!cancellationToken.IsCancellationRequested) await MoveAxInPosAsync(Ax.X, initPosition - amplitude / 2).ConfigureAwait(false);
             }
-            await MoveAxInPosAsync(ax, initPosition);
+            await MoveAxInPosAsync(ax, initPosition).ConfigureAwait(false);
             _exceptedVelAxis = null;
             SetVelocity(VelocityRegime);
             _scanHandle.isScanning = false;

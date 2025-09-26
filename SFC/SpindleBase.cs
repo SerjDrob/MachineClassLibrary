@@ -50,14 +50,16 @@ public abstract class SpindleBase<T>: ISpindle, IDisposable
     {
         //if (!_hasStarted) return Task.FromResult(false);
         if (rpm == _freq * 6) return true;// Task.FromResult(true);
+        await _semaphoreSlim.WaitAsync().ConfigureAwait(false);
         try
         {
-            SetSpeedAsync(rpm);
+            await CalculateAndSetSpeedAsync(rpm).ConfigureAwait(false);
             if (!_hasStarted)
             {
-                StartAsync();
-                await Task.Delay(3000).ConfigureAwait(false);
+                await ClearStartAsync().ConfigureAwait(false);
+                await Task.Delay(300).ConfigureAwait(false);
             }
+            _semaphoreSlim.Release();
             var cts = new CancellationTokenSource(TimeSpan.FromMilliseconds(delay));
             var tcs = new TaskCompletionSource<bool>();
 
@@ -94,6 +96,10 @@ public abstract class SpindleBase<T>: ISpindle, IDisposable
         {
             _logger.LogError(ex, "Exception in ChangeSpeedAsync");
             return false;// Task.FromResult(false);
+        }
+        finally
+        {
+            _semaphoreSlim.Release();
         }
     }
     /// <summary>
@@ -138,42 +144,41 @@ public abstract class SpindleBase<T>: ISpindle, IDisposable
 
     public async Task SetSpeedAsync(ushort rpm)
     {
-        if (!(rpm / 6 > LOW_FREQ_LIMIT && rpm / 6 < HIGH_FREQ_LIMIT))
-        {
-            throw new SpindleException($"{rpm}rpm is out of ({LOW_FREQ_LIMIT * 6},{HIGH_FREQ_LIMIT * 6}) rpm range");
-        }
-        rpm = (ushort)Math.Abs(rpm / 6);
-        //lock (_modbusLock)
-        //{
-
         await _semaphoreSlim.WaitAsync().ConfigureAwait(false);
         try
         {
-            await WriteRPMAsync(rpm).ConfigureAwait(false);
-            _logger.LogInformation($"Successfully 0x0001: {rpm} rpm");
+            await CalculateAndSetSpeedAsync(rpm).ConfigureAwait(false);
+            _logger.LogInformation($"Successfully set rotation speed: {rpm} rpm");
         }
         catch (Exception ex)
         {
-            _logger.LogError(ex, $"Failed to 0x0001");
-            throw new SpindleException($"Failed to set {rpm} rpm", ex);
+            _logger.LogError(ex, $"Failed to set rotation speed: {rpm} rpm");
+            throw new SpindleException($"Failed  set rotation speed: {rpm} rpm", ex);
         }
         finally
         {
             _semaphoreSlim?.Release();
         }
-        //}
     }
+    private async Task CalculateAndSetSpeedAsync(ushort rpm)
+    {
+        if (!(rpm / 6 > LOW_FREQ_LIMIT && rpm / 6 < HIGH_FREQ_LIMIT))
+        {
+            throw new SpindleException($"{rpm}rpm is out of ({LOW_FREQ_LIMIT * 6},{HIGH_FREQ_LIMIT * 6}) rpm range");
+        }
+        rpm = (ushort)Math.Abs(rpm / 6);
+        await WriteRPMAsync(rpm).ConfigureAwait(false);
+    }
+
+
 
     public async Task StartAsync()
     {
-        //lock (_modbusLock)
-        //{
         await _semaphoreSlim.WaitAsync().ConfigureAwait(false);
         try
         {
-            await StartFWDCommandAsync().ConfigureAwait(false);
+            await ClearStartAsync().ConfigureAwait(false);
             _logger.LogInformation($"Successfully wrote started forward command");
-            _hasStarted = true;
         }
         catch (Exception ex)
         {
@@ -184,7 +189,12 @@ public abstract class SpindleBase<T>: ISpindle, IDisposable
         {
             _semaphoreSlim?.Release();
         }
-        //}
+    }
+
+    private async Task ClearStartAsync()
+    {
+        await StartFWDCommandAsync().ConfigureAwait(false);
+        _hasStarted = true;
     }
 
     public async Task StopAsync()
@@ -301,6 +311,7 @@ public abstract class SpindleBase<T>: ISpindle, IDisposable
         await Task.Delay(100).ConfigureAwait(false);
         while (!token.IsCancellationRequested)
         {
+            await _semaphoreSlim.WaitAsync().ConfigureAwait(false);
             try
             {
                 int current;
@@ -322,6 +333,10 @@ public abstract class SpindleBase<T>: ISpindle, IDisposable
             catch (Exception ex)
             {
                 _logger.LogError(ex, $"Failed {nameof(WatchingStateAsync)}");//TODO count how many frequent
+            }
+            finally 
+            {
+                _semaphoreSlim.Release();
             }
             await Task.Delay(100).ConfigureAwait(false);
         }
