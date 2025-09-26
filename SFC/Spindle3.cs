@@ -96,7 +96,7 @@ namespace MachineClassLibrary.SFC
                 catch (Exception ex)
                 {
                     _logger.LogError(ex, $"Failed to 0x0001");
-                    throw;
+                    throw new SpindleException($"Failed to set {rpm} rpm",ex);
                 }
             }
         }
@@ -114,7 +114,7 @@ namespace MachineClassLibrary.SFC
                 catch (Exception ex)
                 {
                     _logger.LogError(ex, $"Failed to {WRITE_COMMAND}: {COMMAND_START_FWD}");
-                    throw;
+                    throw new SpindleException($"Failed to start fwd",ex);
                 }
             }
         }
@@ -243,8 +243,9 @@ namespace MachineClassLibrary.SFC
             {
                 _logger.LogWarning(ex, "Spindle state monitoring task did not stop gracefully.");
             }
-            _serialPort?.Dispose();
             _client?.Dispose();
+            _serialPort?.Close();
+            _serialPort?.Dispose();
             _watchingStateCancellationTokenSource?.Dispose();
         }
         /// <summary>
@@ -270,14 +271,19 @@ namespace MachineClassLibrary.SFC
             }
             return true;
         }
-        public Task<bool> ChangeSpeedAsync(ushort rpm, int delay)
+        public async Task<bool> ChangeSpeedAsync(ushort rpm, int delay)
         {
-            if (!_hasStarted) return Task.FromResult(false);
-            if (rpm == _freq * 6) return Task.FromResult(true);
+            //if (!_hasStarted) return Task.FromResult(false);
+            if (rpm == _freq * 6) return true;// Task.FromResult(true);
             try
             {
                 SetSpeed(rpm);
-                var cts = new CancellationTokenSource(delay);
+                if (!_hasStarted)
+                {
+                    Start();
+                    await Task.Delay(3000).ConfigureAwait(false);
+                }
+                var cts = new CancellationTokenSource(TimeSpan.FromMilliseconds(delay));
                 var tcs = new TaskCompletionSource<bool>();
 
                 void ReachedFreq(object sender, SpindleEventArgs args)
@@ -307,12 +313,12 @@ namespace MachineClassLibrary.SFC
                     tcs.TrySetResult(false);
                 });
 
-                return tcs.Task;
+                return await tcs.Task.ConfigureAwait(false);
             }
             catch (Exception ex)
             {
                 _logger.LogError(ex, "Exception in ChangeSpeedAsync");
-                return Task.FromResult(false);
+                return false;// Task.FromResult(false);
             }
         }
     }
