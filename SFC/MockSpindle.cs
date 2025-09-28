@@ -44,7 +44,7 @@ namespace MachineClassLibrary.SFC;
 
 public class MockSpindle : SpindleBase<MockSpindle>
 {
-    public MockSpindle(string com, int baudRate, ILogger<MockSpindle> logger) : base(com, baudRate, logger)
+    public MockSpindle(SerialPortSettings serialPortSettings, ILogger<MockSpindle> logger) : base(serialPortSettings, logger)
     {
     }
 

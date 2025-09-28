@@ -533,7 +533,7 @@ public class MD520Q : SpindleBase<MD520Q>
     private const ushort STATE_1_STOPPED = 0x0003;
     private const ushort COMMAND_AC_DRIVE_2_RUN_FORWARD = 0x0001;
     private const ushort COMMAND_AC_DRIVE_2_DEC_STOP = 0x0006;
-    public MD520Q(string com, int baudRate, ILogger<MD520Q> logger) : base(com, baudRate, logger)
+    public MD520Q(SerialPortSettings serialPortSettings, ILogger<MD520Q> logger) : base(serialPortSettings, logger)
     {
     }
 

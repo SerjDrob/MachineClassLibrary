@@ -23,7 +23,7 @@ public class Sunfar : SpindleBase<Sunfar>
     private const ushort STATUS_DEC_REV = 0x0015;
     private const ushort STATUS_STOP = 0x0003;
 
-    public Sunfar(string com, int baudRate, ILogger<Sunfar> logger) : base(com, baudRate, logger)
+    public Sunfar(SerialPortSettings serialPortSettings, ILogger<Sunfar> logger) : base(serialPortSettings, logger)
     {
     }
 

@@ -7,7 +7,8 @@ using Modbus.Device;
 
 namespace MachineClassLibrary.SFC;
 
-public abstract class SpindleBase<T>: ISpindle, IDisposable
+
+public abstract class SpindleBase<T> : ISpindle, IDisposable
 {
     /// <summary>
     ///     300 Hz = 18000 rpm
@@ -19,13 +20,12 @@ public abstract class SpindleBase<T>: ISpindle, IDisposable
     /// </summary>
     public const ushort HIGH_FREQ_LIMIT = 5500;
 
-    private readonly int _baudRate;
-    private readonly string _com;
+    private readonly SerialPortSettings _serialPortSettings;
     protected readonly ILogger<T> _logger;
 
     private readonly object _modbusLock = new();
     protected ModbusSerialMaster _client;
-    private SemaphoreSlim _semaphoreSlim = new(1,1);
+    private SemaphoreSlim _semaphoreSlim = new(1, 1);
     protected int _freq;
     private bool _hasStarted = false;
     private bool _onFreq;
@@ -36,10 +36,9 @@ public abstract class SpindleBase<T>: ISpindle, IDisposable
     // TODO wait o cancel in the end, NEVER forget Tasks
     private Task _watchingStateTask;
 
-    protected SpindleBase(string com, int baudRate, ILogger<T> logger)
+    protected SpindleBase(SerialPortSettings serialPortSettings, ILogger<T> logger)
     {
-        _com = com;
-        _baudRate = baudRate;
+        _serialPortSettings = serialPortSettings;
         _logger = logger;
     }
     public bool IsConnected { get; set; } = false;
@@ -220,7 +219,7 @@ public abstract class SpindleBase<T>: ISpindle, IDisposable
         //}
     }
     protected record SpinStatus(bool OnFreq, bool Acc, bool Dec, bool Stop);
-    protected record SpinFault(bool IsOk,  int FaultCode, string FaultDescription);
+    protected record SpinFault(bool IsOk, int FaultCode, string FaultDescription);
     protected abstract Task<bool> CheckIfSpindleSpinningAsync();
     protected abstract Task<int> GetCurrentAsync();
     protected abstract Task<int> GetFrequencyAsync();
@@ -261,24 +260,17 @@ public abstract class SpindleBase<T>: ISpindle, IDisposable
 
     private bool EstablishConnection()
     {
-        _serialPort = new SerialPort
-        {
-            PortName = _com,
-            BaudRate = _baudRate,
-            Parity = Parity.Even,
-            WriteTimeout = 1000,
-            ReadTimeout = 100
-        };
-        _logger.LogInformation("Attempting to open serial port: {PortName}", _com);
+        _serialPort = SerialPortFactory.Create(_serialPortSettings);
+        _logger.LogInformation("Attempting to open serial port: {PortName}", _serialPortSettings.PortName);
         _serialPort.Open();
         if (_serialPort.IsOpen)
         {
             _client = ModbusSerialMaster.CreateRtu(_serialPort);
-            _logger.LogInformation("Serial port {PortName} opened successfully. Modbus client created.", _com);
+            _logger.LogInformation("Serial port {PortName} opened successfully. Modbus client created.", _serialPortSettings.PortName);
         }
         else
         {
-            _logger.LogWarning("Failed to open serial port: {PortName}", _com);
+            _logger.LogWarning("Failed to open serial port: {PortName}", _serialPortSettings.PortName);
             return false;
         }
 
@@ -297,9 +289,9 @@ public abstract class SpindleBase<T>: ISpindle, IDisposable
         catch (Exception ex)
         {
             _logger.LogError(ex, $"Failed to set params");
-            return false;   
+            return false;
         }
-        finally 
+        finally
         {
             _semaphoreSlim?.Release();
         }
@@ -323,7 +315,7 @@ public abstract class SpindleBase<T>: ISpindle, IDisposable
                 var fault = await GetSpinFaultAsync().ConfigureAwait(false);
                 _onFreq = status.OnFreq;
                 _hasStarted = _onFreq || status.Acc;
-                GetSpindleState?.Invoke(this, new SpindleEventArgs(_freq * 6, (double)current / 10, _onFreq, status.Acc, status.Dec, status.Stop) 
+                GetSpindleState?.Invoke(this, new SpindleEventArgs(_freq * 6, (double)current / 10, _onFreq, status.Acc, status.Dec, status.Stop)
                 {
                     IsOk = fault.IsOk,
                     FaultCode = fault.FaultCode,
@@ -334,7 +326,7 @@ public abstract class SpindleBase<T>: ISpindle, IDisposable
             {
                 _logger.LogError(ex, $"Failed {nameof(WatchingStateAsync)}");//TODO count how many frequent
             }
-            finally 
+            finally
             {
                 _semaphoreSlim.Release();
             }

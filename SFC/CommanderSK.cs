@@ -214,7 +214,7 @@ public class CommanderSK : SpindleBase<CommanderSK>
 {
     private readonly SpindleParams _spindleParams;
 
-    public CommanderSK(string com, int baudRate, ILogger<CommanderSK> logger, SpindleParams spindleParams) : base(com, baudRate, logger)
+    public CommanderSK(SerialPortSettings serialPortSettings, ILogger<CommanderSK> logger, SpindleParams spindleParams) : base(serialPortSettings, logger)
     {
         _spindleParams = spindleParams;
     }
