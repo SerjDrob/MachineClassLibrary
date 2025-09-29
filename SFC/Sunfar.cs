@@ -62,6 +62,7 @@ public class Sunfar : SpindleBase<Sunfar>
 
     protected override async Task WriteSettingsAsync()
     {
+        await Task.Delay(100).ConfigureAwait(false);
         await _client.WriteMultipleRegistersAsync(1, 0x0000,
         [
             0,
