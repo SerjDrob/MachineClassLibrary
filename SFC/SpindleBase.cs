@@ -57,7 +57,7 @@ public abstract class SpindleBase<T> : ISpindle, IDisposable
     {
         //if (!_hasStarted) return Task.FromResult(false);
         if (rpm == _freq * 6) return true;// Task.FromResult(true);
-        await _semaphoreSlim.WaitAsync().ConfigureAwait(false);
+        await _semaphoreSlim.WaitAsync(TimeSpan.FromMilliseconds(300));//.ConfigureAwait(false);
         try
         {
             await CalculateAndSetSpeedAsync(rpm).ConfigureAwait(false);
@@ -147,11 +147,12 @@ public abstract class SpindleBase<T> : ISpindle, IDisposable
         _serialPort?.Close();
         _serialPort?.Dispose();
         _watchingStateCancellationTokenSource?.Dispose();
+        _semaphoreSlim?.Dispose();
     }
 
     public async Task SetSpeedAsync(ushort rpm)
     {
-        await _semaphoreSlim.WaitAsync().ConfigureAwait(false);
+        await _semaphoreSlim.WaitAsync(TimeSpan.FromMilliseconds(300));//.ConfigureAwait(false);
         try
         {
             await CalculateAndSetSpeedAsync(rpm).ConfigureAwait(false);
@@ -181,7 +182,7 @@ public abstract class SpindleBase<T> : ISpindle, IDisposable
 
     public async Task StartAsync()
     {
-        await _semaphoreSlim.WaitAsync().ConfigureAwait(false);
+        await _semaphoreSlim.WaitAsync(TimeSpan.FromMilliseconds(300));//.ConfigureAwait(false);
         try
         {
             await ClearStartAsync().ConfigureAwait(false);
@@ -208,7 +209,7 @@ public abstract class SpindleBase<T> : ISpindle, IDisposable
     {
         //lock (_modbusLock)
         //{
-        await _semaphoreSlim.WaitAsync().ConfigureAwait(false);
+        await _semaphoreSlim.WaitAsync(TimeSpan.FromMilliseconds(300));//.ConfigureAwait(false);
         try
         {
             await StopCommandAsync().ConfigureAwait(false);
@@ -244,7 +245,7 @@ public abstract class SpindleBase<T> : ISpindle, IDisposable
     {
         //lock (_modbusLock)
         //{
-        await _semaphoreSlim.WaitAsync().ConfigureAwait(false);
+        await _semaphoreSlim.WaitAsync(TimeSpan.FromMilliseconds(300));//.ConfigureAwait(false);
         if (_client == null)
         {
             _logger.LogWarning("Attempted to check spindle state, but Modbus client is not initialized.");
@@ -298,7 +299,7 @@ public abstract class SpindleBase<T> : ISpindle, IDisposable
     {
         //lock (_modbusLock)
         //{
-        await _semaphoreSlim.WaitAsync().ConfigureAwait(false);
+        await _semaphoreSlim.WaitAsync(TimeSpan.FromMilliseconds(300));//.ConfigureAwait(false);
         try
         {
             await WriteSettingsAsync().ConfigureAwait(false);
@@ -321,11 +322,11 @@ public abstract class SpindleBase<T> : ISpindle, IDisposable
         await Task.Delay(100).ConfigureAwait(false);
         while (!token.IsCancellationRequested)
         {
-            await _semaphoreSlim.WaitAsync().ConfigureAwait(false);
+            await _semaphoreSlim.WaitAsync(TimeSpan.FromMilliseconds(300), token);//.ConfigureAwait(false);
             try
             {
                 int current;
-                _serialPort?.DiscardInBuffer();
+                //_serialPort?.DiscardInBuffer();
                 current = await GetCurrentAsync().ConfigureAwait(false);
                 _freq = await GetFrequencyAsync().ConfigureAwait(false);
 
