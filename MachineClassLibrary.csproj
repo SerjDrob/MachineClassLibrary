@@ -67,6 +67,7 @@
     <PackageReference Include="Newtonsoft.Json" Version="13.0.3" />
     <PackageReference Include="NModbus" Version="3.0.81" />
     <PackageReference Include="NModbus.Serial" Version="3.0.81" />
+    <PackageReference Include="NModbus.SerialPortStream" Version="3.0.81" />
     <PackageReference Include="NModbus4" Version="2.1.0" />
     <!--<PackageReference Include="OpenCvSharp4" Version="4.10.0.20240616" />
     <PackageReference Include="OpenCvSharp4.Extensions" Version="4.10.0.20240616" />

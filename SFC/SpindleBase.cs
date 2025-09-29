@@ -3,7 +3,14 @@ using System.IO.Ports;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.Extensions.Logging;
-using Modbus.Device;
+using NModbus;
+//using Modbus.Device;
+
+//using Modbus.Device;
+using NModbus.Serial;
+using NModbus.SerialPortStream;
+using RJCP.IO.Ports;
+
 
 namespace MachineClassLibrary.SFC;
 
@@ -24,7 +31,8 @@ public abstract class SpindleBase<T> : ISpindle, IDisposable
     protected readonly ILogger<T> _logger;
 
     private readonly object _modbusLock = new();
-    protected ModbusSerialMaster _client;
+    //protected ModbusSerialMaster _client;
+    protected IModbusMaster _client;
     private SemaphoreSlim _semaphoreSlim = new(1, 1);
     protected int _freq;
     private bool _hasStarted = false;
@@ -260,12 +268,22 @@ public abstract class SpindleBase<T> : ISpindle, IDisposable
 
     private bool EstablishConnection()
     {
-        _serialPort = SerialPortFactory.Create(_serialPortSettings);
+        //_serialPort = SerialPortFactory.Create(_serialPortSettings);
         _logger.LogInformation("Attempting to open serial port: {PortName}", _serialPortSettings.PortName);
-        _serialPort.Open();
-        if (_serialPort.IsOpen)
+        
+        var factory = new ModbusFactory();
+        var parity = RJCP.IO.Ports.Parity.Even;
+        var stopbits = RJCP.IO.Ports.StopBits.One;
+        var stream = new SerialPortStream
+                (_serialPortSettings.PortName, _serialPortSettings.BaudRate, _serialPortSettings.DataBits, parity, stopbits);
+        //_serialPort.Open();
+        stream.Open();
+        if (/*_serialPort.IsOpen*/stream.IsOpen)
         {
-            _client = ModbusSerialMaster.CreateRtu(_serialPort);
+            //_client = ModbusSerialMaster.CreateRtu(_serialPort);
+            
+            var adapter = new SerialPortStreamAdapter(stream);
+            _client = factory.CreateRtuMaster(adapter);
             _logger.LogInformation("Serial port {PortName} opened successfully. Modbus client created.", _serialPortSettings.PortName);
         }
         else
