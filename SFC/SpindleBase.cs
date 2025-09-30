@@ -267,17 +267,41 @@ public abstract class SpindleBase<T> : ISpindle, IDisposable
         }
         //}
     }
-
+    private static RJCP.IO.Ports.Parity ToRJCPParity(System.IO.Ports.Parity parity)
+    {
+        return parity switch
+        {
+            System.IO.Ports.Parity.None => RJCP.IO.Ports.Parity.None,
+            System.IO.Ports.Parity.Odd => RJCP.IO.Ports.Parity.Odd,
+            System.IO.Ports.Parity.Even => RJCP.IO.Ports.Parity.Even,
+            System.IO.Ports.Parity.Mark => RJCP.IO.Ports.Parity.Mark,
+            System.IO.Ports.Parity.Space => RJCP.IO.Ports.Parity.Space,
+            _ => throw new ArgumentOutOfRangeException(nameof(parity), parity, null)
+        };
+    }
+    private static RJCP.IO.Ports.StopBits ToRJCPStopBits(System.IO.Ports.StopBits stopBits)
+    {
+        return stopBits switch
+        {
+            System.IO.Ports.StopBits.One => RJCP.IO.Ports.StopBits.One,
+            System.IO.Ports.StopBits.OnePointFive => RJCP.IO.Ports.StopBits.One5,
+            System.IO.Ports.StopBits.Two => RJCP.IO.Ports.StopBits.Two,
+            System.IO.Ports.StopBits.None => RJCP.IO.Ports.StopBits.One, // fallback
+            _ => throw new ArgumentOutOfRangeException(nameof(stopBits), stopBits, null)
+        };
+    }
     private bool EstablishConnection()
     {
         //_serialPort = SerialPortFactory.Create(_serialPortSettings);
         _logger.LogInformation("Attempting to open serial port: {PortName}", _serialPortSettings.PortName);
         
         var factory = new ModbusFactory();
-        var parity = RJCP.IO.Ports.Parity.Even;
-        var stopbits = RJCP.IO.Ports.StopBits.One;
+        var parity = ToRJCPParity(_serialPortSettings.Parity); 
+        var stopbits = ToRJCPStopBits(_serialPortSettings.StopBits);
         var stream = new SerialPortStream
                 (_serialPortSettings.PortName, _serialPortSettings.BaudRate, _serialPortSettings.DataBits, parity, stopbits);
+        stream.ReadTimeout = _serialPortSettings.ReadTimeout;
+        stream.WriteTimeout = _serialPortSettings.WriteTimeout;
         //_serialPort.Open();
         stream.Open();
         if (/*_serialPort.IsOpen*/stream.IsOpen)
