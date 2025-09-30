@@ -12,7 +12,7 @@ namespace MachineClassLibrary.SFC
         public Task StartAsync();
         public Task StopAsync();
         Task<bool> ConnectAsync();
-        Task<bool> ChangeSpeedAsync(ushort rpm, int delay);
+        Task<bool> ChangeSpeedAsync(ushort rpm, TimeSpan delay);
 
         /// <summary>
         ///     Gets frequency, current, spinning state

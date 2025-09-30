@@ -441,7 +441,7 @@ namespace MachineClassLibrary.Machine.Machines
             }
         }
 
-        public Task<bool> ChangeSpindleFreqOnFlyAsync(ushort rpm, int delay) => _spindle.ChangeSpeedAsync(rpm, delay);
+        public Task<bool> ChangeSpindleFreqOnFlyAsync(ushort rpm, TimeSpan delay) => _spindle.ChangeSpeedAsync(rpm, delay);
 
         public override void MotionDevInitialized()
         {
