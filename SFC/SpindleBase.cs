@@ -55,59 +55,57 @@ public abstract class SpindleBase<T> : ISpindle, IDisposable
 
     public async Task<bool> ChangeSpeedAsync(ushort rpm, TimeSpan delay)
     {
-        //if (!_hasStarted) return Task.FromResult(false);
-        if (Math.Abs(rpm - _freq * 6) < 20) return true;// Task.FromResult(true);
-        await _semaphoreSlim.WaitAsync(/*TimeSpan.FromMilliseconds(300)*/);//.ConfigureAwait(false);
+        if (Math.Abs(rpm - _freq * 6) < 20) return true;
+        await _semaphoreSlim.WaitAsync(/*TimeSpan.FromMilliseconds(300)*/).ConfigureAwait(false);
         try
         {
             await CalculateAndSetSpeedAsync(rpm).ConfigureAwait(false);
             if (!_hasStarted)
             {
-                await ClearStartAsync();//.ConfigureAwait(false);
-                await Task.Delay(300);//.ConfigureAwait(false);
+                await ClearStartAsync().ConfigureAwait(false);
+                await Task.Delay(300).ConfigureAwait(false);
             }
-            _semaphoreSlim.Release();
-            var cts = new CancellationTokenSource(delay);
-            var tcs = new TaskCompletionSource<bool>();
-
-            void ReachedFreq(object sender, SpindleEventArgs args)
-            {
-                if (args.OnFreq)
-                {
-                    CleanupAndSetResult(true);
-                }
-                else if (!args.IsOk || args.Stop)
-                {
-                    CleanupAndSetResult(false);
-                }
-            }
-
-            void CleanupAndSetResult(bool result)
-            {
-                GetSpindleState -= ReachedFreq;
-                cts.Dispose();
-                tcs.TrySetResult(result);
-            }
-
-            GetSpindleState += ReachedFreq;
-
-            cts.Token.Register(() =>
-            {
-                GetSpindleState -= ReachedFreq;
-                tcs.TrySetResult(false);
-            });
-            var result = await tcs.Task;//.ConfigureAwait(false);
-            return result;
         }
         catch (Exception ex)
         {
             _logger.LogError(ex, "Exception in ChangeSpeedAsync");
-            return false;// Task.FromResult(false);
+            return false;
         }
         finally
         {
             _semaphoreSlim.Release();
         }
+        var cts = new CancellationTokenSource(delay);
+        var tcs = new TaskCompletionSource<bool>();
+
+        void ReachedFreq(object sender, SpindleEventArgs args)
+        {
+            if (args.OnFreq)
+            {
+                CleanupAndSetResult(true);
+            }
+            else if (!args.IsOk || args.Stop)
+            {
+                CleanupAndSetResult(false);
+            }
+        }
+
+        void CleanupAndSetResult(bool result)
+        {
+            GetSpindleState -= ReachedFreq;
+            cts.Dispose();
+            tcs.TrySetResult(result);
+        }
+
+        GetSpindleState += ReachedFreq;
+
+        cts.Token.Register(() =>
+        {
+            GetSpindleState -= ReachedFreq;
+            tcs.TrySetResult(false);
+        });
+        var result = await tcs.Task.ConfigureAwait(false);
+        return result;
     }
     /// <summary>
     /// Connects to the spindle
@@ -152,7 +150,7 @@ public abstract class SpindleBase<T> : ISpindle, IDisposable
 
     public async Task SetSpeedAsync(ushort rpm)
     {
-        await _semaphoreSlim.WaitAsync(/*TimeSpan.FromMilliseconds(300)*/);//.ConfigureAwait(false);
+        await _semaphoreSlim.WaitAsync(/*TimeSpan.FromMilliseconds(300)*/).ConfigureAwait(false);
         try
         {
             await CalculateAndSetSpeedAsync(rpm).ConfigureAwait(false);
@@ -182,10 +180,10 @@ public abstract class SpindleBase<T> : ISpindle, IDisposable
 
     public async Task StartAsync()
     {
-        await _semaphoreSlim.WaitAsync(/*TimeSpan.FromMilliseconds(300)*/);//.ConfigureAwait(false);
+        await _semaphoreSlim.WaitAsync(/*TimeSpan.FromMilliseconds(300)*/).ConfigureAwait(false);
         try
         {
-            await ClearStartAsync();//.ConfigureAwait(false);
+            await ClearStartAsync().ConfigureAwait(false);
             _logger.LogInformation($"Successfully wrote started forward command");
         }
         catch (Exception ex)
@@ -201,19 +199,17 @@ public abstract class SpindleBase<T> : ISpindle, IDisposable
 
     private async Task ClearStartAsync()
     {
-        await StartFWDCommandAsync();//.ConfigureAwait(false);
-        await Task.Delay(3000);
+        await StartFWDCommandAsync().ConfigureAwait(false);
+        await Task.Delay(3000).ConfigureAwait(false);
         _hasStarted = true;
     }
 
     public async Task StopAsync()
     {
-        //lock (_modbusLock)
-        //{
-        await _semaphoreSlim.WaitAsync(/*TimeSpan.FromMilliseconds(300)*/);//.ConfigureAwait(false);
+        await _semaphoreSlim.WaitAsync(/*TimeSpan.FromMilliseconds(300)*/).ConfigureAwait(false);
         try
         {
-            await StopCommandAsync();//.ConfigureAwait(false);
+            await StopCommandAsync().ConfigureAwait(false);
             _logger.LogInformation($"Successfully wrote stop command");
             _hasStarted = false;
         }
@@ -226,7 +222,6 @@ public abstract class SpindleBase<T> : ISpindle, IDisposable
         {
             _semaphoreSlim?.Release();
         }
-        //}
     }
     protected record SpinStatus(bool OnFreq, bool Acc, bool Dec, bool Stop);
     protected record SpinFault(bool IsOk, int FaultCode, string FaultDescription);
@@ -244,9 +239,7 @@ public abstract class SpindleBase<T> : ISpindle, IDisposable
 
     private async Task<bool> CheckSpindleWorkingAsync()
     {
-        //lock (_modbusLock)
-        //{
-        await _semaphoreSlim.WaitAsync(/*TimeSpan.FromMilliseconds(300)*/);//.ConfigureAwait(false);
+        await _semaphoreSlim.WaitAsync(/*TimeSpan.FromMilliseconds(300)*/).ConfigureAwait(false);
         if (_client == null)
         {
             _logger.LogWarning("Attempted to check spindle state, but Modbus client is not initialized.");
@@ -265,7 +258,6 @@ public abstract class SpindleBase<T> : ISpindle, IDisposable
         {
             _semaphoreSlim?.Release();
         }
-        //}
     }
     private static RJCP.IO.Ports.Parity ToRJCPParity(System.IO.Ports.Parity parity)
     {
@@ -322,12 +314,10 @@ public abstract class SpindleBase<T> : ISpindle, IDisposable
     }
     private async Task<bool> SetParamsAsync()
     {
-        //lock (_modbusLock)
-        //{
-        await _semaphoreSlim.WaitAsync(/*TimeSpan.FromMilliseconds(300)*/);//.ConfigureAwait(false);
+        await _semaphoreSlim.WaitAsync(/*TimeSpan.FromMilliseconds(300)*/).ConfigureAwait(false);
         try
         {
-            await WriteSettingsAsync();//.ConfigureAwait(false);
+            await WriteSettingsAsync().ConfigureAwait(false);
             _logger.LogInformation("Successfully set spindle params");
         }
         catch (Exception ex)
@@ -339,24 +329,23 @@ public abstract class SpindleBase<T> : ISpindle, IDisposable
         {
             _semaphoreSlim?.Release();
         }
-        //}
         return true;
     }
     private async Task WatchingStateAsync(CancellationToken token)
     {
-        await Task.Delay(100);//.ConfigureAwait(false);
+        await Task.Delay(100).ConfigureAwait(false);
         while (!token.IsCancellationRequested)
         {
-            await _semaphoreSlim.WaitAsync(/*TimeSpan.FromMilliseconds(300),*/ token);//.ConfigureAwait(false);
+            await _semaphoreSlim.WaitAsync(/*TimeSpan.FromMilliseconds(300),*/ token).ConfigureAwait(false);
             try
             {
                 int current;
                 //_serialPort?.DiscardInBuffer();
-                current = await GetCurrentAsync();//.ConfigureAwait(false);
-                _freq = await GetFrequencyAsync();//.ConfigureAwait(false);
+                current = await GetCurrentAsync().ConfigureAwait(false);
+                _freq = await GetFrequencyAsync().ConfigureAwait(false);
 
-                var status = await GetStatusAsync();//.ConfigureAwait(false);
-                var fault = await GetSpinFaultAsync();//.ConfigureAwait(false);
+                var status = await GetStatusAsync().ConfigureAwait(false);
+                var fault = await GetSpinFaultAsync().ConfigureAwait(false);
                 _onFreq = status.OnFreq;
                 _hasStarted = _onFreq || status.Acc;
                 GetSpindleState?.Invoke(this, new SpindleEventArgs(_freq * 6, (double)current / 10, _onFreq, status.Acc, status.Dec, status.Stop)
@@ -374,7 +363,7 @@ public abstract class SpindleBase<T> : ISpindle, IDisposable
             {
                 _semaphoreSlim.Release();
             }
-            await Task.Delay(100);//.ConfigureAwait(false);
+            await Task.Delay(100).ConfigureAwait(false);
         }
     }
 }
