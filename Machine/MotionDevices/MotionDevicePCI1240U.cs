@@ -503,7 +503,18 @@ private async Task DeviceStateMonitorAsync()
         Motion.mAcm_AxDoGetBit(_mAxisHand[axisNum], dOut, ref data);
         return data != 0;
     }
-
+    /*
+ set order:
+CFG_AxPPU
+CFG_AxMaxVel
+CFG_AxMaxAcc
+CFG_AxMaxDec
+PAR_AxAcc
+PAR_AxDec
+PAR_AxJerk
+PAR_AxVelLow                                 | Check
+PAR_AxVelLow<= PAR_AxVelHigh <= CFG_AxMaxVel | if Jerk = 1 (S-Curve)
+ */
     public virtual void SetAxisConfig(int axisNum, MotionDeviceConfigs configs)
     {
         //uint res;
@@ -513,8 +524,8 @@ private async Task DeviceStateMonitorAsync()
         var ppu = configs.ppu;
         double axMaxAcc = configs.maxAcc;
         double axMaxDec = configs.maxDec;
-        var axisMaxVel = 4000000;
-        double axMaxVel = axisMaxVel / ppu;
+        //var axisMaxVel = 4000000;
+        double axMaxVel = configs.maxVel / configs.ratio; /*axisMaxVel / ppu;*/
         var buf = (uint)SwLmtEnable.SLMT_DIS;
 
 
@@ -526,23 +537,22 @@ private async Task DeviceStateMonitorAsync()
         //double homeVelHigh = configs.homeVelHigh;
         var denominator = configs.denominator;
 
-        _result = Motion.mAcm_SetProperty(_mAxisHand[axisNum], (uint)PropertyID.CFG_AxHomeResetEnable, ref configs.reset, 4); _errors.Add(PropertyID.CFG_AxHomeResetEnable, _result);
-
 
         _result = Motion.mAcm_SetProperty(_mAxisHand[axisNum], (uint)PropertyID.CFG_AxPPU, ref ppu, 4); _errors.Add(PropertyID.CFG_AxPPU, _result);
-
+        _result = Motion.mAcm_SetProperty(_mAxisHand[axisNum], (uint)PropertyID.CFG_AxMaxVel, ref axMaxVel, 8); _errors.Add(PropertyID.CFG_AxMaxVel, _result);
         _result = Motion.mAcm_SetProperty(_mAxisHand[axisNum], (uint)PropertyID.CFG_AxMaxAcc, ref axMaxAcc, 8); _errors.Add(PropertyID.CFG_AxMaxAcc, _result);
         _result = Motion.mAcm_SetProperty(_mAxisHand[axisNum], (uint)PropertyID.CFG_AxMaxDec, ref axMaxDec, 8); _errors.Add(PropertyID.CFG_AxMaxDec, _result);
-        _result = Motion.mAcm_SetProperty(_mAxisHand[axisNum], (uint)PropertyID.CFG_AxMaxVel, ref axMaxVel, 8); _errors.Add(PropertyID.CFG_AxMaxVel, _result);
-        _result = Motion.mAcm_SetProperty(_mAxisHand[axisNum], (uint)PropertyID.CFG_AxPulseInMode, ref configs.plsInMde, 4); _errors.Add(PropertyID.CFG_AxPulseInMode, _result);
+        _result = Motion.mAcm_SetProperty(_mAxisHand[axisNum], (uint)PropertyID.PAR_AxAcc, ref acc, 8); _errors.Add(PropertyID.PAR_AxAcc, _result);
+        _result = Motion.mAcm_SetProperty(_mAxisHand[axisNum], (uint)PropertyID.PAR_AxDec, ref dec, 8); _errors.Add(PropertyID.PAR_AxDec, _result);
+        // _result = Motion.mAcm_SetProperty(_mAxishand[axisNum], (uint)PropertyID.PAR_AxJerk, ref jerk, 8); _errors.Add(PropertyID.PAR_AxJerk, _result);
 
+        _result = Motion.mAcm_SetProperty(_mAxisHand[axisNum], (uint)PropertyID.CFG_AxHomeResetEnable, ref configs.reset, 4); _errors.Add(PropertyID.CFG_AxHomeResetEnable, _result);
+        _result = Motion.mAcm_SetProperty(_mAxisHand[axisNum], (uint)PropertyID.CFG_AxPulseInMode, ref configs.plsInMde, 4); _errors.Add(PropertyID.CFG_AxPulseInMode, _result);
         _result = Motion.mAcm_SetProperty(_mAxisHand[axisNum], (uint)PropertyID.CFG_AxPulseOutMode, ref configs.plsOutMde, 4); _errors.Add(PropertyID.CFG_AxPulseOutMode, _result);
         // not supported in pci1240            _result = Motion.mAcm_SetProperty(_mAxishand[axisNum], (uint)PropertyID.CFG_AxDirLogic, ref configs.axDirLogic, 4); _errors.Add(PropertyID.CFG_AxDirLogic, _result);
         // not supported in pci1240            _result = Motion.mAcm_SetProperty(_mAxishand[axisNum], (uint)PropertyID.CFG_AxPulseInLogic, ref configs.plsInLogic, 4); _errors.Add(PropertyID.CFG_AxPulseInLogic, _result);
 
-        _result = Motion.mAcm_SetProperty(_mAxisHand[axisNum], (uint)PropertyID.PAR_AxAcc, ref acc, 8); _errors.Add(PropertyID.PAR_AxAcc, _result);
-        _result = Motion.mAcm_SetProperty(_mAxisHand[axisNum], (uint)PropertyID.PAR_AxDec, ref dec, 8); _errors.Add(PropertyID.PAR_AxDec, _result);
-        // _result = Motion.mAcm_SetProperty(_mAxishand[axisNum], (uint)PropertyID.PAR_AxJerk, ref jerk, 8); _errors.Add(PropertyID.PAR_AxJerk, _result);
+       
 
         // result = Motion.mAcm_SetProperty(_mAxishand[axisNum], (uint)PropertyID.PAR_AxHomeVelLow, ref homeVelLow, 8); errors.Add(PropertyID.PAR_AxHomeVelLow, result);
         // result = Motion.mAcm_SetProperty(_mAxishand[axisNum], (uint)PropertyID.PAR_AxHomeVelHigh, ref homeVelHigh, 8); errors.Add(PropertyID.PAR_AxHomeVelHigh, result);
@@ -964,5 +974,53 @@ private async Task DeviceStateMonitorAsync()
         // Do not change this code. Put cleanup code in 'Dispose(bool disposing)' method
         Dispose(disposing: true);
         GC.SuppressFinalize(this);
+    }
+}
+
+
+public static class PCI1240UCalculator
+{
+    public static (double min, double max) GetValidRange_CFG_AxMaxVel(int cfg_AxPPU)
+    {
+        return (8000d/cfg_AxPPU, 
+                4000_000d/cfg_AxPPU);//For pci1240 FT_AxMaxVel = 4000000
+    }
+    public static (double min, double max) GetValidRange_PAR_AxVelLow(double cfg_AxMaxVel)
+    {
+        return (cfg_AxMaxVel/8000, 
+                cfg_AxMaxVel);
+    }
+    
+    public static (double min, double max) GetValidRange_CFG_AxMaxAcc(int cfg_AxPPU, double cfg_AxMaxVel)
+    {
+        var max = 500_000_000d / cfg_AxPPU;
+        var noGreaterThan = 125 * cfg_AxMaxVel;
+        return (125d/cfg_AxPPU,
+                (noGreaterThan < max) ? noGreaterThan : max);//For pci1240 FT_AxMaxAcc = 500000000
+    }
+    public static (double min, double max) GetValidRange_PAR_AxAcc(double cfg_AxMaxAcc, double cfg_AxMaxVel)
+    {
+        return (cfg_AxMaxVel / 64,
+                cfg_AxMaxAcc);
+    }
+    
+    public static (double min, double max) GetValidRange_CFG_AxMaxDec(int cfg_AxPPU, double cfg_AxMaxVel)
+    {
+        var max = 500_000_000d / cfg_AxPPU;
+        var noGreaterThan = 125 * cfg_AxMaxVel;
+        return (125d / cfg_AxPPU,
+                (noGreaterThan < max) ? noGreaterThan : max);//For pci1240 FT_AxMaxAcc = 500000000
+    }
+    public static (double min, double max) GetValidRange_PAR_AxDec(double cfg_AxMaxAcc, double cfg_AxMaxVel)
+    {
+        return (cfg_AxMaxVel / 64,
+                cfg_AxMaxAcc);
+    }
+
+    public static bool IsVelRangeValidWhenSCurve(double par_VelLow, double par_VelHigh, double acc, double cfg_AxMaxVel)
+    {
+        var diff = par_VelHigh - par_VelLow;
+        if (diff < 0) return false;
+        return diff > acc * acc / (78125 * cfg_AxMaxVel) && diff < 8.4 * acc * acc / cfg_AxMaxVel;
     }
 }

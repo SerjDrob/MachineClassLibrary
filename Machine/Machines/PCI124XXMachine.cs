@@ -30,7 +30,7 @@ namespace MachineClassLibrary.Machine.Machines
             //    _motionDevice.TransmitAxState += MotionDevice_TransmitAxState;
             //}
 
-            _motionDevice.DevicesConnection()
+            _ = _motionDevice.DevicesConnection()
                 .ContinueWith(result =>
                 {
                     IsMotionDeviceInit = result.Result;
@@ -38,7 +38,7 @@ namespace MachineClassLibrary.Machine.Machines
                     {
                         MotionDevInitialized();
                         _motionDevice.TransmitAxState += MotionDevice_TransmitAxState;
-                        _motionDevice.StartMonitoringAsync();
+                        _ = _motionDevice.StartMonitoringAsync();
                     }
                 },TaskScheduler.Default);
         }
@@ -161,7 +161,7 @@ namespace MachineClassLibrary.Machine.Machines
 
                 var gpAxes = axesNums.Zip(lineCoeffs, (a, b) => new ValueTuple<int, double>(a, b)).ToArray();
 
-                await _motionDevice.MoveGroupPreciselyAsync(_axesGroups[group].groupNum, positions, gpAxes);
+                await _motionDevice.MoveGroupPreciselyAsync(_axesGroups[group].groupNum, positions, gpAxes).ConfigureAwait(false);
 
                 motionDones.Select(ax => _axes[ax.ax].SetMotionDone())
                 .ToList();
@@ -171,7 +171,7 @@ namespace MachineClassLibrary.Machine.Machines
         {
             var initialPos = precisely ? GetAxActual(axis) : GetAxCmd(axis); //TODO can it influence?
             var pos = initialPos + diffPosition;
-            await MoveAxInPosAsync(axis, pos, precisely);
+            await MoveAxInPosAsync(axis, pos, precisely).ConfigureAwait(false);
         }
         public async Task MoveGpRelativeAsync(Groups group, double[] offset, bool precisely = false)
         {
@@ -179,7 +179,7 @@ namespace MachineClassLibrary.Machine.Machines
 
             var offsets = _axesGroups[group].axes.Select(ax => _axes[ax].ActualPosition).Zip(offset, (a, o) => a + o).ToArray();
 
-            await MoveGpInPosAsync(group, offsets, precisely);
+            await MoveGpInPosAsync(group, offsets, precisely).ConfigureAwait(false);
 
         }
         public void ResetErrors(Ax axis = Ax.All)
@@ -262,7 +262,7 @@ namespace MachineClassLibrary.Machine.Machines
 
         public async Task WaitUntilAxisStopAsync(Ax axis)
         {
-            while (!_axes[axis].MotionDone) await Task.Delay(10);
+            while (!_axes[axis].MotionDone) await Task.Delay(10).ConfigureAwait(false);//TODO fix it!
         }
 
         public double GetAxisSetVelocity(Ax axis)
@@ -341,7 +341,7 @@ namespace MachineClassLibrary.Machine.Machines
 
             _homingConfigs.Select(a => _axes[a.Key].SetMotionStarted()).ToList();
 
-            await _motionDevice.HomeMovingAsync(par);
+            await _motionDevice.HomeMovingAsync(par).ConfigureAwait(false);
 
 
 
