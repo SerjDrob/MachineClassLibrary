@@ -22,6 +22,12 @@ public class SpindleDevFactory
         };
         if (machineConfiguration.IsSpindle3) _serialPortSettings.Parity = System.IO.Ports.Parity.Even;
         if (machineConfiguration.IsCommanderSK) _serialPortSettings.ReadTimeout = 500;
+        if (machineConfiguration.IsMD520)
+        {
+            _serialPortSettings.DataBits = 8;
+            _serialPortSettings.Parity = System.IO.Ports.Parity.None;
+            _serialPortSettings.StopBits = System.IO.Ports.StopBits.Two;
+        }
     }
     public ISpindle GetSpindle()
     {

@@ -537,6 +537,7 @@ PAR_AxVelLow<= PAR_AxVelHigh <= CFG_AxMaxVel | if Jerk = 1 (S-Curve)
         //double homeVelHigh = configs.homeVelHigh;
         var denominator = configs.denominator;
 
+        var dir = (PulseOutMode)configs.plsOutMde;
 
         _result = Motion.mAcm_SetProperty(_mAxisHand[axisNum], (uint)PropertyID.CFG_AxPPU, ref ppu, 4); _errors.Add(PropertyID.CFG_AxPPU, _result);
         _result = Motion.mAcm_SetProperty(_mAxisHand[axisNum], (uint)PropertyID.CFG_AxMaxVel, ref axMaxVel, 8); _errors.Add(PropertyID.CFG_AxMaxVel, _result);
