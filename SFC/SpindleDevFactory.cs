@@ -20,13 +20,16 @@ public class SpindleDevFactory
             PortName = machineConfiguration.SpindlePort,
             BaudRate = machineConfiguration.SpindleBaudRate
         };
-        if (machineConfiguration.IsSpindle3) _serialPortSettings.Parity = System.IO.Ports.Parity.Even;
+        if (machineConfiguration.IsSpindle3)
+        {
+            _serialPortSettings.Parity = System.IO.Ports.Parity.Even;
+        }
         if (machineConfiguration.IsCommanderSK) _serialPortSettings.ReadTimeout = 500;
         if (machineConfiguration.IsMD520)
         {
-            _serialPortSettings.DataBits = 8;
-            _serialPortSettings.Parity = System.IO.Ports.Parity.None;
             _serialPortSettings.StopBits = System.IO.Ports.StopBits.Two;
+            _serialPortSettings.ReadTimeout = -1;
+            _serialPortSettings.WriteTimeout = -1;
         }
     }
     public ISpindle GetSpindle()
