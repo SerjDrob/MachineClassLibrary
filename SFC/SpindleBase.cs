@@ -43,6 +43,7 @@ public abstract class SpindleBase<T> : ISpindle, IDisposable
 
     // TODO wait o cancel in the end, NEVER forget Tasks
     private Task _watchingStateTask;
+    private SerialPortStream _serialPortStream;
 
     protected SpindleBase(SerialPortSettings serialPortSettings, ILogger<T> logger)
     {
@@ -141,9 +142,11 @@ public abstract class SpindleBase<T> : ISpindle, IDisposable
         {
             _logger.LogWarning(ex, "Spindle state monitoring task did not stop gracefully.");
         }
+        _serialPortStream?.Close();
+        _serialPortStream?.Dispose();
         _client?.Dispose();
-        _serialPort?.Close();
-        _serialPort?.Dispose();
+        //_serialPort?.Close();
+        //_serialPort?.Dispose();
         _watchingStateCancellationTokenSource?.Dispose();
         _semaphoreSlim?.Dispose();
     }
@@ -290,17 +293,18 @@ public abstract class SpindleBase<T> : ISpindle, IDisposable
         var factory = new ModbusFactory();
         var parity = ToRJCPParity(_serialPortSettings.Parity); 
         var stopbits = ToRJCPStopBits(_serialPortSettings.StopBits);
-        var stream = new SerialPortStream
+        _serialPortStream = new SerialPortStream
                 (_serialPortSettings.PortName, _serialPortSettings.BaudRate, _serialPortSettings.DataBits, parity, stopbits);
-        stream.ReadTimeout = _serialPortSettings.ReadTimeout;
-        stream.WriteTimeout = _serialPortSettings.WriteTimeout;
+        _serialPortStream.ReadTimeout = _serialPortSettings.ReadTimeout;
+        _serialPortStream.WriteTimeout = _serialPortSettings.WriteTimeout;
         //_serialPort.Open();
-        stream.Open();
-        if (/*_serialPort.IsOpen*/stream.IsOpen)
+        _serialPortStream.Open();
+        _serialPortStream.DiscardInBuffer();
+        if (/*_serialPort.IsOpen*/_serialPortStream.IsOpen)
         {
             //_client = ModbusSerialMaster.CreateRtu(_serialPort);
             
-            var adapter = new SerialPortStreamAdapter(stream);
+            var adapter = new SerialPortStreamAdapter(_serialPortStream);
             _client = factory.CreateRtuMaster(adapter);
             _logger.LogInformation("Serial port {PortName} opened successfully. Modbus client created.", _serialPortSettings.PortName);
         }

@@ -11,7 +11,7 @@ namespace MachineClassLibrary.SFC;
 /// Перечисление кодов ошибок частотного преобразователя MD520.
 /// Соответствует значениям, возвращаемым регистром Modbus 8000H.
 /// </summary>
-public enum MD520FaultCode
+public enum MD520FaultCode:ushort
 {
     /// <summary>
     /// Нет ошибки / Неизвестная ошибка. Значение по умолчанию.
