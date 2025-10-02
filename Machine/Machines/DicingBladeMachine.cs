@@ -342,7 +342,7 @@ namespace MachineClassLibrary.Machine.Machines
         }
         public void StopSpindle()
         {
-            _spindle.StopAsync();
+            _ = _spindle.StopAsync();
         }
 
         private void _spindle_GetSpindleState(object obj, SpindleEventArgs e)

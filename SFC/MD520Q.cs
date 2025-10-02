@@ -55,9 +55,13 @@ public class MD520Q : SpindleBase<MD520Q>
         var CheckData = (ushort data, int bitNum) => (data & 1 << bitNum) != 0;
         data = await _client.ReadHoldingRegistersAsync(1, READ_AC_DRIVE_STATE_2, 1).ConfigureAwait(false);
         var onFreq = CheckData(data[0], 3);
-        acc = onFreq ? false : data[0] > _freq;
-        dec = onFreq ? false : data[0] < _freq;
+        data = await _client.ReadHoldingRegistersAsync(1,READ_AC_DRIVE_STATE_1, 1).ConfigureAwait(false);
         stop = data[0] == STATE_1_STOPPED;
+
+        await Task.Delay(100).ConfigureAwait(false);
+        var f = await GetFrequencyAsync().ConfigureAwait(false);
+        acc = onFreq | stop ? false : f > _freq;
+        dec = onFreq | stop ? false : f < _freq;
         data = await _client.ReadHoldingRegistersAsync(1, READ_OUTPUT_CURRENT, 1).ConfigureAwait(false);
         current = data[0];
 
