@@ -235,6 +235,7 @@ private async Task DeviceStateMonitorAsync()
         var state = default(ushort);
         var axStates = new Dictionary<IntPtr, AxState>();
 
+        var startTime = DateTime.Now;
 
         var getState = (int state, int ch) =>
         {
@@ -244,114 +245,148 @@ private async Task DeviceStateMonitorAsync()
 
         var axesStates = new Dictionary<int, (int clearIns, int bridgedIns, int outs)>();
 
-        while (!token.IsCancellationRequested && !_disposedValue)
+        try
         {
-            eventResult = Motion.mAcm_CheckMotionEvent(_deviceHandle, axEvtStatusArray, gpEvtStatusArray, (uint)AxisCount, 0, 10);
-            for (int num = 0; num < _mAxisHand.Length; num++)
+            while (!token.IsCancellationRequested && !_disposedValue)
             {
-                IntPtr ax = _mAxisHand[num];
-                Motion.mAcm_AxGetMotionIO(ax, ref ioStatus).CheckResult();
-
-                nLmt = (ioStatus & (uint)Ax_Motion_IO.AX_MOTION_IO_LMTN) > 0;
-                pLmt = (ioStatus & (uint)Ax_Motion_IO.AX_MOTION_IO_LMTP) > 0;
-                ez = (ioStatus & (uint)Ax_Motion_IO.AX_MOTION_IO_EZ) > 0;
-                org = (ioStatus & (uint)Ax_Motion_IO.AX_MOTION_IO_ORG) > 0;
-
-                var clearState = 0;
-                var sensorsState = 0;
-                var outState = 0;
-
-                for (var channel = 0; channel < 4; channel++)
+                eventResult = Motion.mAcm_CheckMotionEvent(_deviceHandle, axEvtStatusArray, gpEvtStatusArray, (uint)AxisCount, 0, 10);
+                for (int num = 0; num < _mAxisHand.Length; num++)
                 {
-                    Motion.mAcm_AxDiGetBit(ax, (ushort)channel, ref bitData).CheckResult();
-                    sensorsState = bitData != 0 ? sensorsState.SetBit(channel) : sensorsState.ResetBit(channel);
-                }
+                    IntPtr ax = _mAxisHand[num];
+                    Motion.mAcm_AxGetMotionIO(ax, ref ioStatus).CheckResult();
+
+                    nLmt = (ioStatus & (uint)Ax_Motion_IO.AX_MOTION_IO_LMTN) > 0;
+                    pLmt = (ioStatus & (uint)Ax_Motion_IO.AX_MOTION_IO_LMTP) > 0;
+                    ez = (ioStatus & (uint)Ax_Motion_IO.AX_MOTION_IO_EZ) > 0;
+                    org = (ioStatus & (uint)Ax_Motion_IO.AX_MOTION_IO_ORG) > 0;
+
+                    var clearState = 0;
+                    var sensorsState = 0;
+                    var outState = 0;
+
+                    for (var channel = 0; channel < 4; channel++)
+                    {
+                        Motion.mAcm_AxDiGetBit(ax, (ushort)channel, ref bitData).CheckResult();
+                        sensorsState = bitData != 0 ? sensorsState.SetBit(channel) : sensorsState.ResetBit(channel);
+                    }
 #if PCI1245
                 Motion.mAcm_AxDoGetByte(ax, 0, ref bitData).CheckResult();
 #endif
-                var bridge = 0;
-                if (_bridges != null && _bridges.Keys.Contains(num))
-                {
-                    bridge = _bridges[num];
-                }
-                         
+                    var bridge = 0;
+                    if (_bridges != null && _bridges.Keys.Contains(num))
+                    {
+                        bridge = _bridges[num];
+                    }
 
 
-                clearState = sensorsState;
-                sensorsState |= bridge;
+
+                    clearState = sensorsState;
+                    sensorsState |= bridge;
 
 
 #if PCI1245
                 Motion.mAcm_AxDoGetByte(ax, 0, ref bitData).CheckResult(ax);//TODO fix it
 #else
-                for (var channel = 4; channel < 8; channel++)
-                {
-                    Motion.mAcm_AxDoGetBit(ax, (ushort)channel, ref bitData).CheckResult();
-                    outState = bitData != 0 ? outState.SetBit(channel) : outState.ResetBit(channel);
-                }
+                    for (var channel = 4; channel < 8; channel++)
+                    {
+                        Motion.mAcm_AxDoGetBit(ax, (ushort)channel, ref bitData).CheckResult();
+                        outState = bitData != 0 ? outState.SetBit(channel) : outState.ResetBit(channel);
+                    }
 #endif
-                axesStates[num] = (clearState, sensorsState, outState);
-               
-                /*
-                Motion.mAcm_AxGetCmdPosition(ax, ref cmdPosition).CheckResult(ax);
-                Motion.mAcm_AxGetActualPosition(ax, ref actPosition).CheckResult(ax);
-                */
+                    axesStates[num] = (clearState, sensorsState, outState);
 
-                if (Success(eventResult))
-                {
-                    motionDone = (axEvtStatusArray[num] & (uint)EventType.EVT_AX_MOTION_DONE) > 0;
-                    //axState.homeDone = (axEvtStatusArray[num] & (uint)EventType.EVT_AX_HOME_DONE) > 0;
-                    vhStart = (axEvtStatusArray[num] & (uint)EventType.EVT_AX_VH_START) > 0;
-                    vhEnd = (axEvtStatusArray[num] & (uint)EventType.EVT_AX_VH_END) > 0;
-                }
+                    /*
+                    Motion.mAcm_AxGetCmdPosition(ax, ref cmdPosition).CheckResult(ax);
+                    Motion.mAcm_AxGetActualPosition(ax, ref actPosition).CheckResult(ax);
+                    */
 
-                var axState = new AxisState
-                (
-                    cmdPosition = GetAxCmd(num),
-                    actPosition = GetAxActual(num),
-                    sensorsState,
-                    outState,
-                    pLmt,
-                    nLmt,
-                    motionDone,
-                    homeDone,
-                    vhStart,
-                    vhEnd,
-                    ez,
-                    org
-                );
-                
-                Motion.mAcm_AxGetState(ax, ref state).CheckResult(ax);
+                    if (Success(eventResult))
+                    {
+                        motionDone = (axEvtStatusArray[num] & (uint)EventType.EVT_AX_MOTION_DONE) > 0;
+                        //axState.homeDone = (axEvtStatusArray[num] & (uint)EventType.EVT_AX_HOME_DONE) > 0;
+                        vhStart = (axEvtStatusArray[num] & (uint)EventType.EVT_AX_VH_START) > 0;
+                        vhEnd = (axEvtStatusArray[num] & (uint)EventType.EVT_AX_VH_END) > 0;
+                    }
 
-                //if (!(axStates.TryGetValue(ax,out var st) && st==(AxState)state))
-                //{
-                //    axStates[ax] = (AxState)state;
+                    var axState = new AxisState
+                    (
+                        cmdPosition = GetAxCmd(num),
+                        actPosition = GetAxActual(num),
+                        sensorsState,
+                        outState,
+                        pLmt,
+                        nLmt,
+                        motionDone,
+                        homeDone,
+                        vhStart,
+                        vhEnd,
+                        ez,
+                        org
+                    );
+
+                    Motion.mAcm_AxGetState(ax, ref state).CheckResult(ax);
+
+                    //if (!(axStates.TryGetValue(ax,out var st) && st==(AxState)state))
+                    //{
+                    //    axStates[ax] = (AxState)state;
                     OnAxStateChanged?.Invoke(ax, (AxState)state);
-                //}
+                    //}
 
-                try
-                {
-                    TransmitAxState?.Invoke(this, new AxNumEventArgs(num, axState));
+                    try
+                    {
+                        TransmitAxState?.Invoke(this, new AxNumEventArgs(num, axState));
+                    }
+                    catch (Exception ex)
+                    {
+                        await Console.Error.WriteLineAsync(ex.Message).ConfigureAwait(false);
+                    }
                 }
-                catch (Exception ex)
+
+                if (DateTime.Now - startTime >= TimeSpan.FromMilliseconds(50))
                 {
-                    await Console.Error.WriteLineAsync(ex.Message).ConfigureAwait(false);
+                    var line = 0;
+                    var r = 0;
+                    Console.CursorVisible = false;
+
+                    void writeIN(int state, int inNum)
+                    {
+                        Console.Write($"IN{inNum}:");
+                        r = getState(state, inNum);
+                        Console.ForegroundColor = r == 0 ? ConsoleColor.Green : ConsoleColor.Red;
+                        Console.Write($"{r}, ");
+                        Console.ForegroundColor = ConsoleColor.White;
+                    };
+
+                    foreach (var item in axesStates)
+                    {
+                        Console.SetCursorPosition(0, line); line++;
+                        Console.WriteLine($"----------------------------------Axis{item.Key} --------------------------------------");
+                        Console.WriteLine();
+                        Console.SetCursorPosition(0, line); line++;
+                        var st = item.Value.clearIns;
+                        var bst = item.Value.bridgedIns;
+                        var vs = item.Value.outs;
+                        Console.SetCursorPosition(0, line); line++;
+                        Console.Write("ClearSensors: ");
+                        writeIN(st, 0);
+                        writeIN(st, 1);
+                        writeIN(st, 2);
+                        writeIN(st, 3);
+                        Console.SetCursorPosition(0, line); line++;
+                        Console.WriteLine("BridgeSensors: IN0:{0}, IN1:{1}, IN2:{2}, IN3:{3}", getState(bst, 0), getState(bst, 1), getState(bst, 2), getState(bst, 3));
+                        Console.SetCursorPosition(0, line); line++;
+                        Console.WriteLine("Valves: OUT4:{0}, OUT5:{1}, OUT6:{2}, OUT7:{3}", getState(vs, 4), getState(vs, 5), getState(vs, 6), getState(vs, 7));
+                    }
+                    startTime = DateTime.Now;
                 }
+                await Task.Delay(1).ConfigureAwait(false);
             }
-
-            foreach (var item in axesStates)
-            {
-                Console.Clear();
-                Console.WriteLine($"----------------------------------Axis{item.Key} --------------------------------------");
-                var st = item.Value.clearIns;
-                var bst = item.Value.bridgedIns;
-                var vs = item.Value.outs;
-                Console.WriteLine("ClearSensors: IN0:{0}, IN1:{1}, IN2:{2}, IN3:{3}", getState(st, 0), getState(st, 1), getState(st, 2), getState(st, 3));
-                Console.WriteLine("BridgeSensors: IN0:{0}, IN1:{1}, IN2:{2}, IN3:{3}", getState(bst, 0), getState(bst, 1), getState(bst, 2), getState(bst, 3));
-                Console.WriteLine("Valves: OUT4:{0}, OUT5:{1}, OUT6:{2}, OUT7:{3}", getState(vs, 4), getState(vs, 5), getState(vs, 6), getState(vs, 7));
-            }         
-
-            await Task.Delay(1).ConfigureAwait(false);
+        }
+        catch (Exception ex)
+        {
+            Console.ForegroundColor = ConsoleColor.Red;
+            Console.WriteLine(ex.ToString());
+            Console.ResetColor();
         }
     }
 

@@ -494,6 +494,18 @@ namespace MachineClassLibrary.Machine.Machines
                         eZ: state.ez,
                         org: state.org));
 
+                    var gap = axis switch 
+                    {
+                        Ax.X => 0,
+                        Ax.Y => 25,
+                        Ax.Z => 50,
+                        Ax.U => 75,
+                        _=>100
+                    };
+                    Console.SetCursorPosition(gap, 20);
+                    Console.ForegroundColor = ConsoleColor.Cyan;
+                    Console.Write("{0} outs:{1,-3} sensors:{2,-3}", axis,state.outs,state.sensors);
+                    Console.ResetColor();
                     GetAxOutNIn(axis, state.outs, state.sensors);
                 }
             }

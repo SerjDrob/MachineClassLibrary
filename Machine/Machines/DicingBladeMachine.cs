@@ -417,11 +417,26 @@ namespace MachineClassLibrary.Machine.Machines
                 }
             }
             if (_sensors is null) return;
+            var gap = ax switch
+            {
+                Ax.X => 0,
+                Ax.Y => 30,
+                Ax.Z => 60,
+                Ax.U => 90,
+                _ => 120
+            };
+            var line = 0;
             foreach (var sensor in _sensors)
             {
                 if (sensor.Value.axis == ax)
                 {
-                    OnSensorStateChanged?.Invoke(this, new(sensor.Key, sensor.Value.invertion ^ (ins & (1 << ((int)sensor.Value.dIn - 1))) != 0));
+                    var s = sensor.Value.invertion ^ (ins & (1 << ((int)sensor.Value.dIn/* - 1*/))) != 0;
+                    OnSensorStateChanged?.Invoke(this, new(sensor.Key, s));
+                    Console.ForegroundColor = ConsoleColor.Yellow;
+                    Console.SetCursorPosition(gap, 21 + line);
+                    Console.Write("{0}:{1}: {2,-5}",ax,sensor.Value.name,s);
+                    Console.ResetColor();
+                    line++;
                 }
             }
         }
