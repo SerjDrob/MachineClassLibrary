@@ -234,6 +234,16 @@ private async Task DeviceStateMonitorAsync()
         var org = false;
         var state = default(ushort);
         var axStates = new Dictionary<IntPtr, AxState>();
+
+
+        var getState = (int state, int ch) =>
+        {
+            var result = state & (1 << ch);
+            return result == 0 ? 0 : 1;
+        };
+
+        var axesStates = new Dictionary<int, (int clearIns, int bridgedIns, int outs)>();
+
         while (!token.IsCancellationRequested && !_disposedValue)
         {
             eventResult = Motion.mAcm_CheckMotionEvent(_deviceHandle, axEvtStatusArray, gpEvtStatusArray, (uint)AxisCount, 0, 10);
@@ -247,6 +257,7 @@ private async Task DeviceStateMonitorAsync()
                 ez = (ioStatus & (uint)Ax_Motion_IO.AX_MOTION_IO_EZ) > 0;
                 org = (ioStatus & (uint)Ax_Motion_IO.AX_MOTION_IO_ORG) > 0;
 
+                var clearState = 0;
                 var sensorsState = 0;
                 var outState = 0;
 
@@ -263,7 +274,12 @@ private async Task DeviceStateMonitorAsync()
                 {
                     bridge = _bridges[num];
                 }
+                         
+
+
+                clearState = sensorsState;
                 sensorsState |= bridge;
+
 
 #if PCI1245
                 Motion.mAcm_AxDoGetByte(ax, 0, ref bitData).CheckResult(ax);//TODO fix it
@@ -274,6 +290,8 @@ private async Task DeviceStateMonitorAsync()
                     outState = bitData != 0 ? outState.SetBit(channel) : outState.ResetBit(channel);
                 }
 #endif
+                axesStates[num] = (clearState, sensorsState, outState);
+               
                 /*
                 Motion.mAcm_AxGetCmdPosition(ax, ref cmdPosition).CheckResult(ax);
                 Motion.mAcm_AxGetActualPosition(ax, ref actPosition).CheckResult(ax);
@@ -320,6 +338,19 @@ private async Task DeviceStateMonitorAsync()
                     await Console.Error.WriteLineAsync(ex.Message).ConfigureAwait(false);
                 }
             }
+
+            foreach (var item in axesStates)
+            {
+                Console.Clear();
+                Console.WriteLine($"----------------------------------Axis{item.Key} --------------------------------------");
+                var st = item.Value.clearIns;
+                var bst = item.Value.bridgedIns;
+                var vs = item.Value.outs;
+                Console.WriteLine("ClearSensors: IN0:{0}, IN1:{1}, IN2:{2}, IN3:{3}", getState(st, 0), getState(st, 1), getState(st, 2), getState(st, 3));
+                Console.WriteLine("BridgeSensors: IN0:{0}, IN1:{1}, IN2:{2}, IN3:{3}", getState(bst, 0), getState(bst, 1), getState(bst, 2), getState(bst, 3));
+                Console.WriteLine("Valves: OUT4:{0}, OUT5:{1}, OUT6:{2}, OUT7:{3}", getState(vs, 4), getState(vs, 5), getState(vs, 6), getState(vs, 7));
+            }         
+
             await Task.Delay(1).ConfigureAwait(false);
         }
     }
