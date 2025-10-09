@@ -726,17 +726,12 @@ PAR_AxVelLow<= PAR_AxVelHigh <= CFG_AxMaxVel | if Jerk = 1 (S-Curve)
                 OnAxStateChanged-=getState;
                 tcs.TrySetResult(true);
             }
+            else if(ax == axisHand && state == AxState.STA_AX_ERROR_STOP)
+            {
+                OnAxStateChanged -= getState;
+                tcs.TrySetResult(false);
+            }
         }
-        //return Task.Run(() =>
-        //{
-        //    ushort state = default;
-        //    do
-        //    {
-        //        Motion.mAcm_AxGetState(axisHand, ref state);
-        //        Thread.Sleep(100);
-        //    } while ((AxState)state != AxState.STA_AX_READY && !ct.IsCancellationRequested);
-        //    return (AxState)state == AxState.STA_AX_READY;
-        //});
     }
 
 
