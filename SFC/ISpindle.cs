@@ -1,23 +1,23 @@
 ﻿using System;
 using System.Threading.Tasks;
 
-namespace MachineClassLibrary.SFC
+namespace MachineClassLibrary.SFC;
+
+public delegate void SpindleStateHandler(bool isConnected, double spinCurrent, double spindleFreq);
+
+public interface ISpindle : IDisposable
 {
-    public delegate void SpindleStateHandler(bool isConnected, double spinCurrent, double spindleFreq);
+    public bool IsConnected { get; set; }
+    public Task SetSpeedAsync(ushort rpm);
+    public Task StartAsync();
+    public Task StopAsync();
+    Task<bool> ConnectAsync();
+    Task<bool> ChangeSpeedAsync(ushort rpm, TimeSpan delay);
 
-    public interface ISpindle : IDisposable
-    {
-        public bool IsConnected { get; set; }
-        public Task SetSpeedAsync(ushort rpm);
-        public Task StartAsync();
-        public Task StopAsync();
-        Task<bool> ConnectAsync();
-        Task<bool> ChangeSpeedAsync(ushort rpm, TimeSpan delay);
+    /// <summary>
+    ///     Gets frequency, current, spinning state
+    /// </summary>
 
-        /// <summary>
-        ///     Gets frequency, current, spinning state
-        /// </summary>
-
-        public event EventHandler<SpindleEventArgs> GetSpindleState;
-    }
+    public event EventHandler<SpindleEventArgs> GetSpindleState;
 }
+

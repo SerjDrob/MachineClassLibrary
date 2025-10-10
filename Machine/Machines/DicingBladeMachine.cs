@@ -306,25 +306,18 @@ namespace MachineClassLibrary.Machine.Machines
             }
         }
 
-        public void StartSpindle(params Sensors[] blockers)
+        private Func<(bool canStart,IEnumerable<string> absentSensors)> _canStartSpindlePredicate = () => (true,[]);
+        public void SetSpindleStartBlocker(Func<(bool canStart, IEnumerable<string> absentSensors)> blocker)
         {
-            _spindleBlockers = new(blockers);
-
-
-            var absentBlockers = _spindleBlockers.Where(blocker =>
-            {
-                var axis = _axes[_sensors[blocker].axis];
-                var di = _sensors[blocker].dIn;
-                var result = axis.GetDi(di);
-                return !(result ^ _sensors[blocker].invertion);
-            }).Select(blocker => _sensors[blocker].name);
-
-            if (absentBlockers.Any()) throw new MachineException($"Отсутствует: {string.Join(", ", absentBlockers)}.");
-
-            _spindle.StartAsync();
+            _canStartSpindlePredicate = blocker;
         }
 
-        private List<Sensors> _spindleBlockers;
+        public void StartSpindle()
+        {
+            var result = _canStartSpindlePredicate.Invoke();
+            if(!result.canStart) throw new MachineException($"Отсутствует: {string.Join(", ", result.absentSensors)}.");
+            _ = _spindle.StartAsync();
+        }
 
         public Dictionary<int, (string, string[])> AvailableVideoCaptureDevices => _videoCamera.AvailableVideoCaptureDevices;
 
@@ -534,6 +527,7 @@ namespace MachineClassLibrary.Machine.Machines
             GC.SuppressFinalize(this);
         }
 
+      
 
         //public void StartVideoCapture(int ind, int capabilitiesInd = 0)
         //{
