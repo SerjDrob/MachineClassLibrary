@@ -239,10 +239,6 @@ namespace MachineClassLibrary.Machine.Machines
             if (!_sensors.TryAdd(sensor, (axis, di, inverted, name))) _sensors[sensor] = (axis, di, inverted, name);
         }
 
-        //public void ConfigureValves(Dictionary<Valves, (Ax, Do)> valves)
-        //{
-        //    _valves = new Dictionary<Valves, (Ax, Do)>(valves);
-        //}
         public void AddValve(Valves valve, Ax axis, Do @do)
         {
             _valves ??= new();
@@ -251,7 +247,7 @@ namespace MachineClassLibrary.Machine.Machines
         public void SetBridgeOnSensors(Sensors sensor, bool setBridge)
         {
             var num = _axes[_sensors[sensor].axis].AxisNum;
-            _motionDevice.SetBridgeOnAxisDin(num, (int)_sensors[sensor].dIn - 1, setBridge);
+            _motionDevice.SetBridgeOnAxisDin(num, (int)_sensors[sensor].dIn, setBridge);
         }
 
         public void SwitchOnValve(Valves valve)
