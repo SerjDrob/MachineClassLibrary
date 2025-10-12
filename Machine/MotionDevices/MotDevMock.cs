@@ -56,7 +56,8 @@ namespace MachineClassLibrary.Machine.MotionDevices
 
         public bool GetAxisDout(int axisNum, ushort dOut)
         {
-            throw new NotImplementedException();
+            return true;
+            //throw new NotImplementedException();
         }
 
         public Task HomeMovingAsync((AxDir direction, HomeRst homeRst, HmMode homeMode, double velocity, int axisNum)[] axs)
