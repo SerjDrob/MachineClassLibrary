@@ -239,10 +239,6 @@ namespace MachineClassLibrary.Machine.Machines
             if (!_sensors.TryAdd(sensor, (axis, di, inverted, name))) _sensors[sensor] = (axis, di, inverted, name);
         }
 
-        //public void ConfigureValves(Dictionary<Valves, (Ax, Do)> valves)
-        //{
-        //    _valves = new Dictionary<Valves, (Ax, Do)>(valves);
-        //}
         public void AddValve(Valves valve, Ax axis, Do @do)
         {
             _valves ??= new();
@@ -251,7 +247,7 @@ namespace MachineClassLibrary.Machine.Machines
         public void SetBridgeOnSensors(Sensors sensor, bool setBridge)
         {
             var num = _axes[_sensors[sensor].axis].AxisNum;
-            _motionDevice.SetBridgeOnAxisDin(num, (int)_sensors[sensor].dIn - 1, setBridge);
+            _motionDevice.SetBridgeOnAxisDin(num, (int)_sensors[sensor].dIn, setBridge);
         }
 
         public void SwitchOnValve(Valves valve)
@@ -306,25 +302,18 @@ namespace MachineClassLibrary.Machine.Machines
             }
         }
 
-        public void StartSpindle(params Sensors[] blockers)
+        private Func<(bool canStart,IEnumerable<string> absentSensors)> _canStartSpindlePredicate = () => (true,[]);
+        public void SetSpindleStartBlocker(Func<(bool canStart, IEnumerable<string> absentSensors)> blocker)
         {
-            _spindleBlockers = new(blockers);
-
-
-            var absentBlockers = _spindleBlockers.Where(blocker =>
-            {
-                var axis = _axes[_sensors[blocker].axis];
-                var di = _sensors[blocker].dIn;
-                var result = axis.GetDi(di);
-                return !(result ^ _sensors[blocker].invertion);
-            }).Select(blocker => _sensors[blocker].name);
-
-            if (absentBlockers.Any()) throw new MachineException($"Отсутствует: {string.Join(", ", absentBlockers)}.");
-
-            _spindle.StartAsync();
+            _canStartSpindlePredicate = blocker;
         }
 
-        private List<Sensors> _spindleBlockers;
+        public void StartSpindle()
+        {
+            var result = _canStartSpindlePredicate.Invoke();
+            if(!result.canStart) throw new MachineException($"Отсутствует: {string.Join(", ", result.absentSensors)}.");
+            _ = _spindle.StartAsync();
+        }
 
         public Dictionary<int, (string, string[])> AvailableVideoCaptureDevices => _videoCamera.AvailableVideoCaptureDevices;
 
@@ -534,6 +523,7 @@ namespace MachineClassLibrary.Machine.Machines
             GC.SuppressFinalize(this);
         }
 
+      
 
         //public void StartVideoCapture(int ind, int capabilitiesInd = 0)
         //{

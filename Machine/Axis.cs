@@ -56,7 +56,7 @@ namespace MachineClassLibrary.Machine
         public Dictionary<Velocity, double> VelRegimes { get; set; }
         public bool GetDi(Di din)
         {
-            var res = (DIs & 1 << ((int)din - 1)) != 0; 
+            var res = (DIs & 1 << (int)din) != 0; 
             return res;
         }
 

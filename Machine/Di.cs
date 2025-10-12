@@ -1,9 +1,9 @@
-﻿namespace MachineClassLibrary.Machine
+﻿namespace MachineClassLibrary.Machine;
+
+public enum Di : ushort
 {
-    public enum Di : ushort
-    {
-        In1 = 1,
-        In2,
-        In3        
-    }
+    In0 = 0,
+    In1 = 1,
+    In2,
+    In3        
 }
