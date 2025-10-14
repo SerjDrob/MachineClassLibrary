@@ -133,6 +133,7 @@ public abstract class SpindleBase<T> : ISpindle, IDisposable
 
     public void Dispose()
     {
+        _ = StopAsync().Wait(1000);
         _watchingStateCancellationTokenSource?.Cancel();
         try
         {
@@ -209,7 +210,7 @@ public abstract class SpindleBase<T> : ISpindle, IDisposable
 
     public async Task StopAsync()
     {
-        await _semaphoreSlim.WaitAsync(/*TimeSpan.FromMilliseconds(300)*/).ConfigureAwait(false);
+        await _semaphoreSlim.WaitAsync().ConfigureAwait(false);
         try
         {
             await StopCommandAsync().ConfigureAwait(false);
