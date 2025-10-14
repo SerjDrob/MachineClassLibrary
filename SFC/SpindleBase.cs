@@ -204,7 +204,7 @@ public abstract class SpindleBase<T> : ISpindle, IDisposable
     private async Task ClearStartAsync()
     {
         await StartFWDCommandAsync().ConfigureAwait(false);
-        await Task.Delay(3000).ConfigureAwait(false);
+        await Task.Delay(300).ConfigureAwait(false);
         _hasStarted = true;
     }
 
