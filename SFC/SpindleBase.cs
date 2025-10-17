@@ -37,7 +37,6 @@ public abstract class SpindleBase<T> : ISpindle, IDisposable
     protected int _freq;
     private bool _hasStarted = false;
     private bool _onFreq;
-    private SerialPort _serialPort;
     private CancellationTokenSource _watchingStateCancellationTokenSource;
     protected ushort _tempFault;
 
@@ -56,11 +55,23 @@ public abstract class SpindleBase<T> : ISpindle, IDisposable
 
     public async Task<bool> ChangeSpeedAsync(ushort rpm, TimeSpan delay)
     {
-        if (Math.Abs(rpm - _freq * 6) < 20) return true;
+        
         await _semaphoreSlim.WaitAsync(/*TimeSpan.FromMilliseconds(300)*/).ConfigureAwait(false);
+        var f = await GetFrequencyAsync().ConfigureAwait(false);
+        Console.SetCursorPosition(0, 27);
+        Console.WriteLine($"Current frequency is {f}, current rpm is {f * 6} ");
+        if (Math.Abs(rpm - f * 6) < 20)
+        {
+            Console.WriteLine($"Speed difference: {Math.Abs(rpm - f * 6)}");
+            return true;
+        }
+
+
         try
         {
+            Console.SetCursorPosition(0, 31);
             await CalculateAndSetSpeedAsync(rpm).ConfigureAwait(false);
+            Console.WriteLine("after setting speed");
             if (!_hasStarted)
             {
                 await ClearStartAsync().ConfigureAwait(false);
@@ -69,6 +80,8 @@ public abstract class SpindleBase<T> : ISpindle, IDisposable
         }
         catch (Exception ex)
         {
+            Console.SetCursorPosition(0, 32);
+            Console.WriteLine($"Exception during changing speed {ex}");
             _logger.LogError(ex, "Exception in ChangeSpeedAsync");
             return false;
         }
@@ -106,6 +119,8 @@ public abstract class SpindleBase<T> : ISpindle, IDisposable
             tcs.TrySetResult(false);
         });
         var result = await tcs.Task.ConfigureAwait(false);
+        Console.SetCursorPosition(0, 33);
+        Console.WriteLine($"Changing speed result is {result}");
         return result;
     }
     /// <summary>
@@ -288,7 +303,6 @@ public abstract class SpindleBase<T> : ISpindle, IDisposable
     }
     private bool EstablishConnection()
     {
-        //_serialPort = SerialPortFactory.Create(_serialPortSettings);
         _logger.LogInformation("Attempting to open serial port: {PortName}", _serialPortSettings.PortName);
         
         var factory = new ModbusFactory();
@@ -298,13 +312,10 @@ public abstract class SpindleBase<T> : ISpindle, IDisposable
                 (_serialPortSettings.PortName, _serialPortSettings.BaudRate, _serialPortSettings.DataBits, parity, stopbits);
         _serialPortStream.ReadTimeout = _serialPortSettings.ReadTimeout;
         _serialPortStream.WriteTimeout = _serialPortSettings.WriteTimeout;
-        //_serialPort.Open();
         _serialPortStream.Open();
         _serialPortStream.DiscardInBuffer();
-        if (/*_serialPort.IsOpen*/_serialPortStream.IsOpen)
+        if (_serialPortStream.IsOpen)
         {
-            //_client = ModbusSerialMaster.CreateRtu(_serialPort);
-            
             var adapter = new SerialPortStreamAdapter(_serialPortStream);
             _client = factory.CreateRtuMaster(adapter);
             _logger.LogInformation("Serial port {PortName} opened successfully. Modbus client created.", _serialPortSettings.PortName);
@@ -345,7 +356,6 @@ public abstract class SpindleBase<T> : ISpindle, IDisposable
             try
             {
                 int current;
-                //_serialPort?.DiscardInBuffer();
                 current = await GetCurrentAsync().ConfigureAwait(false);
                 _freq = await GetFrequencyAsync().ConfigureAwait(false);
 
