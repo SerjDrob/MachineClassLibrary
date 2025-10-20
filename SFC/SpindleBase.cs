@@ -57,21 +57,20 @@ public abstract class SpindleBase<T> : ISpindle, IDisposable
     {
         
         await _semaphoreSlim.WaitAsync(/*TimeSpan.FromMilliseconds(300)*/).ConfigureAwait(false);
+        _logger.LogInformation($"Spindle. Under Semaphore. before getting current frequency");
         var f = await GetFrequencyAsync().ConfigureAwait(false);
-        Console.SetCursorPosition(0, 27);
-        Console.WriteLine($"Current frequency is {f}, current rpm is {f * 6} ");
+        _logger.LogInformation($"Spindle. Under Semaphore. Current frequency is {f}, current rpm is {rpm} ");
         if (Math.Abs(rpm - f * 6) < 20)
         {
-            Console.WriteLine($"Speed difference: {Math.Abs(rpm - f * 6)}");
+            _logger.LogInformation($"Spindle. Is about to quit with true. Speed difference: {Math.Abs(rpm - f * 6)}");
             return true;
         }
 
 
         try
         {
-            Console.SetCursorPosition(0, 31);
             await CalculateAndSetSpeedAsync(rpm).ConfigureAwait(false);
-            Console.WriteLine("after setting speed");
+            _logger.LogInformation("Spindle. after setting speed");
             if (!_hasStarted)
             {
                 await ClearStartAsync().ConfigureAwait(false);
@@ -80,8 +79,6 @@ public abstract class SpindleBase<T> : ISpindle, IDisposable
         }
         catch (Exception ex)
         {
-            Console.SetCursorPosition(0, 32);
-            Console.WriteLine($"Exception during changing speed {ex}");
             _logger.LogError(ex, "Exception in ChangeSpeedAsync");
             return false;
         }
