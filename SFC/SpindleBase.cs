@@ -57,18 +57,16 @@ public abstract class SpindleBase<T> : ISpindle, IDisposable
     {
         
         await _semaphoreSlim.WaitAsync(/*TimeSpan.FromMilliseconds(300)*/).ConfigureAwait(false);
-        _logger.LogInformation($"Spindle. Under Semaphore. before getting current frequency");
-        var f = await GetFrequencyAsync().ConfigureAwait(false);
-        _logger.LogInformation($"Spindle. Under Semaphore. Current frequency is {f}, current rpm is {rpm} ");
-        if (Math.Abs(rpm - f * 6) < 20)
-        {
-            _logger.LogInformation($"Spindle. Is about to quit with true. Speed difference: {Math.Abs(rpm - f * 6)}");
-            return true;
-        }
-
-
         try
         {
+            _logger.LogInformation($"Spindle. Under Semaphore. before getting current frequency");
+            var f = await GetFrequencyAsync().ConfigureAwait(false);
+            _logger.LogInformation($"Spindle. Under Semaphore. Current frequency is {f}, current rpm is {rpm} ");
+            if (Math.Abs(rpm - f * 6) < 20)
+            {
+                _logger.LogInformation($"Spindle. Is about to quit with true. Speed difference: {Math.Abs(rpm - f * 6)}");
+                return true;
+            }
             await CalculateAndSetSpeedAsync(rpm).ConfigureAwait(false);
             _logger.LogInformation("Spindle. after setting speed");
             if (!_hasStarted)
@@ -145,7 +143,7 @@ public abstract class SpindleBase<T> : ISpindle, IDisposable
 
     public void Dispose()
     {
-        _ = StopAsync().Wait(1000);
+        var stopped = StopAsync().Wait(1000);
         _watchingStateCancellationTokenSource?.Cancel();
         try
         {
@@ -158,10 +156,9 @@ public abstract class SpindleBase<T> : ISpindle, IDisposable
         _serialPortStream?.Close();
         _serialPortStream?.Dispose();
         _client?.Dispose();
-        //_serialPort?.Close();
-        //_serialPort?.Dispose();
         _watchingStateCancellationTokenSource?.Dispose();
         _semaphoreSlim?.Dispose();
+        if (!stopped) _ = StopCommandAsync();
     }
 
     public async Task SetSpeedAsync(ushort rpm)
