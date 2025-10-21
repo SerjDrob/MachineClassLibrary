@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Data;
 using System.IO.Ports;
 using System.Threading;
 using System.Threading.Tasks;
@@ -14,7 +15,13 @@ using RJCP.IO.Ports;
 
 namespace MachineClassLibrary.SFC;
 
-
+public enum ConnectionState
+{
+    Disconnected,
+    Connecting,
+    Connected,
+    Faulted
+}
 public abstract class SpindleBase<T> : ISpindle, IDisposable
 {
     /// <summary>
@@ -53,6 +60,60 @@ public abstract class SpindleBase<T> : ISpindle, IDisposable
 
     public event EventHandler<SpindleEventArgs> GetSpindleState;
 
+
+    private readonly CancellationTokenSource _reconnectCts = new();
+    private ConnectionState _connectionState = ConnectionState.Disconnected;
+    private Task _reconnectionTask;
+
+    private async Task StartReconnectionLoopAsync()
+    {
+        _ = Task.Run(async () =>
+        {
+            while (!_reconnectCts.Token.IsCancellationRequested)
+            {
+                if (_connectionState != ConnectionState.Connected)
+                {
+                    await TryConnectAsync().ConfigureAwait(false);
+                }
+
+                // Ждём 2–5 секунд перед следующей попыткой
+                await Task.Delay(TimeSpan.FromSeconds(3), _reconnectCts.Token).ConfigureAwait(false);
+            }
+        }, _reconnectCts.Token);
+    }
+
+    private async Task<bool> TryConnectAsync()
+    {
+        var connected = false;
+        _connectionState = ConnectionState.Connecting;
+        try
+        {
+            if (EstablishConnection())
+            {
+                var status = await GetStatusAsync().ConfigureAwait(false);
+                _watchingStateCancellationTokenSource = new CancellationTokenSource();
+                _watchingStateTask = WatchingStateAsync(_watchingStateCancellationTokenSource.Token);
+                var isWorking = await CheckSpindleWorkingAsync().ConfigureAwait(false);
+                if (isWorking) return true;
+                var paramsIsSet = await SetParamsAsync().ConfigureAwait(false);
+                if (!paramsIsSet) throw new SpindleException("SetParams is failed");
+                connected = true;
+                _connectionState = ConnectionState.Connected;
+            }
+            return connected;
+        }
+        catch (Exception ex)
+        {
+            _connectionState = ConnectionState.Disconnected;
+            _logger.LogWarning(ex, "Connection attempt failed. Retrying...");
+            //_serialPortStream?.Dispose();
+            //_serialPortStream = null;
+            //_client = null;
+            DisposeWithoutReconnection();
+            return false;
+        }
+    }
+
     public async Task<bool> ChangeSpeedAsync(ushort rpm, TimeSpan delay)
     {
         
@@ -77,6 +138,8 @@ public abstract class SpindleBase<T> : ISpindle, IDisposable
         }
         catch (Exception ex)
         {
+            _logger.LogWarning(ex, "Communication error. Marking as disconnected.");
+            _connectionState = ConnectionState.Disconnected;
             _logger.LogError(ex, "Exception in ChangeSpeedAsync");
             return false;
         }
@@ -125,25 +188,36 @@ public abstract class SpindleBase<T> : ISpindle, IDisposable
     /// <exception cref="SpindleException"></exception>
     public async Task<bool> ConnectAsync()
     {
-        if (EstablishConnection())
-        {
-            _watchingStateCancellationTokenSource = new CancellationTokenSource();
-            _watchingStateTask = WatchingStateAsync(_watchingStateCancellationTokenSource.Token);
-            var isWorking = await CheckSpindleWorkingAsync().ConfigureAwait(false);
-            if (isWorking) return true;
-            var paramsIsSet = await SetParamsAsync().ConfigureAwait(false);
-            if (!paramsIsSet) throw new SpindleException("SetParams is failed");
-        }
-        else
-        {
-            return false;
-        }
-        return true;
+        var result = await TryConnectAsync().ConfigureAwait(false);
+        _reconnectionTask = StartReconnectionLoopAsync();  
+        return result;
     }
 
     public void Dispose()
     {
-        var stopped = StopAsync().Wait(1000);
+        _reconnectCts.Cancel();
+        try
+        {
+
+        }
+        catch (Exception ex)
+        {
+
+            throw;
+        }
+        DisposeWithoutReconnection();
+    }
+
+    private void DisposeWithoutReconnection()
+    {
+        try
+        {
+            var stopped = StopAsync().Wait(1000);
+        }
+        catch (Exception ex)
+        {
+            _logger.LogWarning(ex, "Spindle did not stop command.");
+        }
         _watchingStateCancellationTokenSource?.Cancel();
         try
         {
@@ -156,9 +230,10 @@ public abstract class SpindleBase<T> : ISpindle, IDisposable
         _serialPortStream?.Close();
         _serialPortStream?.Dispose();
         _client?.Dispose();
+        _client = null;
         _watchingStateCancellationTokenSource?.Dispose();
         _semaphoreSlim?.Dispose();
-        if (!stopped) _ = StopCommandAsync();
+        //if (!stopped) _ = StopCommandAsync();
     }
 
     public async Task SetSpeedAsync(ushort rpm)
@@ -171,6 +246,8 @@ public abstract class SpindleBase<T> : ISpindle, IDisposable
         }
         catch (Exception ex)
         {
+            _logger.LogWarning(ex, "Communication error. Marking as disconnected.");
+            _connectionState = ConnectionState.Disconnected;
             _logger.LogError(ex, $"Failed to set rotation speed: {rpm} rpm");
             throw new SpindleException($"Failed  set rotation speed: {rpm} rpm", ex);
         }
@@ -201,6 +278,8 @@ public abstract class SpindleBase<T> : ISpindle, IDisposable
         }
         catch (Exception ex)
         {
+            _logger.LogWarning(ex, "Communication error. Marking as disconnected.");
+            _connectionState = ConnectionState.Disconnected;
             _logger.LogError(ex, $"Failed to write start forward command");
             throw new SpindleException($"Failed to start fwd", ex);
         }
@@ -228,6 +307,8 @@ public abstract class SpindleBase<T> : ISpindle, IDisposable
         }
         catch (Exception ex)
         {
+            _logger.LogWarning(ex, "Communication error. Marking as disconnected.");
+            _connectionState = ConnectionState.Disconnected;
             _logger.LogError(ex, $"Failed to write stop command");
             throw;
         }
@@ -264,6 +345,8 @@ public abstract class SpindleBase<T> : ISpindle, IDisposable
         }
         catch (Exception ex)
         {
+            _logger.LogWarning(ex, "Communication error. Marking as disconnected.");
+            _connectionState = ConnectionState.Disconnected;
             _logger.LogError(ex, $"Failed to 0xD000");
             return false;
         }
@@ -298,7 +381,13 @@ public abstract class SpindleBase<T> : ISpindle, IDisposable
     private bool EstablishConnection()
     {
         _logger.LogInformation("Attempting to open serial port: {PortName}", _serialPortSettings.PortName);
-        
+        // Закрываем старое соединение (если было)
+        if (_serialPortStream?.IsOpen == true)
+        {
+            _serialPortStream.Close();
+            _serialPortStream.Dispose();
+            _serialPortStream = null;
+        }
         var factory = new ModbusFactory();
         var parity = ToRJCPParity(_serialPortSettings.Parity); 
         var stopbits = ToRJCPStopBits(_serialPortSettings.StopBits);
@@ -332,6 +421,8 @@ public abstract class SpindleBase<T> : ISpindle, IDisposable
         }
         catch (Exception ex)
         {
+            _logger.LogWarning(ex, "Communication error. Marking as disconnected.");
+            _connectionState = ConnectionState.Disconnected;
             _logger.LogError(ex, $"Failed to set params");
             return false;
         }
@@ -366,6 +457,8 @@ public abstract class SpindleBase<T> : ISpindle, IDisposable
             }
             catch (Exception ex)
             {
+                _logger.LogWarning(ex, "Communication error. Marking as disconnected.");
+                _connectionState = ConnectionState.Disconnected;
                 _logger.LogError(ex, $"Failed {nameof(WatchingStateAsync)}");//TODO count how many frequent
             }
             finally
