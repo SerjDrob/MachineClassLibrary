@@ -65,9 +65,9 @@ public abstract class SpindleBase<T> : ISpindle, IDisposable
     private ConnectionState _connectionState = ConnectionState.Disconnected;
     private Task _reconnectionTask;
 
-    private async Task StartReconnectionLoopAsync()
+    private Task StartReconnectionLoopAsync()
     {
-        _ = Task.Run(async () =>
+        return Task.Run(async () =>
         {
             while (!_reconnectCts.Token.IsCancellationRequested)
             {
@@ -188,28 +188,16 @@ public abstract class SpindleBase<T> : ISpindle, IDisposable
     /// <exception cref="SpindleException"></exception>
     public async Task<bool> ConnectAsync()
     {
-        var result = await TryConnectAsync().ConfigureAwait(false);
-        _reconnectionTask = StartReconnectionLoopAsync();  
-        return result;
+        // Сначала запускаем фоновый реконнект-цикл
+        _reconnectionTask = StartReconnectionLoopAsync();
+        // Первая попытка — просто чтобы ускорить подключение, если устройство уже включено
+        //_ = TryConnectAsync(); // игнорируем результат
+        return true; // подключение "начато", даже если устройство ещё не готово
     }
 
     public void Dispose()
     {
         _reconnectCts.Cancel();
-        try
-        {
-
-        }
-        catch (Exception ex)
-        {
-
-            throw;
-        }
-        DisposeWithoutReconnection();
-    }
-
-    private void DisposeWithoutReconnection()
-    {
         try
         {
             var stopped = StopAsync().Wait(1000);
@@ -218,6 +206,11 @@ public abstract class SpindleBase<T> : ISpindle, IDisposable
         {
             _logger.LogWarning(ex, "Spindle did not stop command.");
         }
+        DisposeWithoutReconnection();
+    }
+
+    private void DisposeWithoutReconnection()
+    {
         _watchingStateCancellationTokenSource?.Cancel();
         try
         {
