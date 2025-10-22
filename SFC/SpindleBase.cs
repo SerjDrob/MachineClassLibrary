@@ -71,7 +71,7 @@ public abstract class SpindleBase<T> : ISpindle, IDisposable
         {
             while (!_reconnectCts.Token.IsCancellationRequested)
             {
-                if (_connectionState != ConnectionState.Connected)
+                if (_connectionState != ConnectionState.Connected || _connectionState != ConnectionState.Connecting)
                 {
                     await TryConnectAsync().ConfigureAwait(false);
                 }
@@ -91,14 +91,14 @@ public abstract class SpindleBase<T> : ISpindle, IDisposable
             if (EstablishConnection())
             {
                 var status = await GetStatusAsync().ConfigureAwait(false);
+                connected = true;
+                _connectionState = ConnectionState.Connected;
                 _watchingStateCancellationTokenSource = new CancellationTokenSource();
                 _watchingStateTask = WatchingStateAsync(_watchingStateCancellationTokenSource.Token);
                 var isWorking = await CheckSpindleWorkingAsync().ConfigureAwait(false);
                 if (isWorking) return true;
                 var paramsIsSet = await SetParamsAsync().ConfigureAwait(false);
                 if (!paramsIsSet) throw new SpindleException("SetParams is failed");
-                connected = true;
-                _connectionState = ConnectionState.Connected;
             }
             return connected;
         }
@@ -116,7 +116,7 @@ public abstract class SpindleBase<T> : ISpindle, IDisposable
 
     public async Task<bool> ChangeSpeedAsync(ushort rpm, TimeSpan delay)
     {
-        
+        if(_connectionState==ConnectionState.Connected)
         await _semaphoreSlim.WaitAsync(/*TimeSpan.FromMilliseconds(300)*/).ConfigureAwait(false);
         try
         {
@@ -138,8 +138,8 @@ public abstract class SpindleBase<T> : ISpindle, IDisposable
         }
         catch (Exception ex)
         {
-            _logger.LogWarning(ex, "Communication error. Marking as disconnected.");
             _connectionState = ConnectionState.Disconnected;
+            _logger.LogWarning(ex, "Communication error. Marking as disconnected.");
             _logger.LogError(ex, "Exception in ChangeSpeedAsync");
             return false;
         }
@@ -197,7 +197,11 @@ public abstract class SpindleBase<T> : ISpindle, IDisposable
 
     public void Dispose()
     {
-        _reconnectCts.Cancel();
+        try
+        {
+            _reconnectCts.Cancel();
+        }
+        catch (Exception) { /*ignore*/}
         try
         {
             var stopped = StopAsync().Wait(1000);
@@ -207,11 +211,17 @@ public abstract class SpindleBase<T> : ISpindle, IDisposable
             _logger.LogWarning(ex, "Spindle did not stop command.");
         }
         DisposeWithoutReconnection();
+        _semaphoreSlim?.Dispose();
     }
 
     private void DisposeWithoutReconnection()
     {
-        _watchingStateCancellationTokenSource?.Cancel();
+        try
+        {
+            _watchingStateCancellationTokenSource?.Cancel();
+            _watchingStateCancellationTokenSource?.Dispose();
+        }
+        catch (Exception) {/*ignore*/}
         try
         {
             _watchingStateTask?.Wait(1000);
@@ -222,15 +232,15 @@ public abstract class SpindleBase<T> : ISpindle, IDisposable
         }
         _serialPortStream?.Close();
         _serialPortStream?.Dispose();
+        _serialPortStream = null;
         _client?.Dispose();
         _client = null;
-        _watchingStateCancellationTokenSource?.Dispose();
-        _semaphoreSlim?.Dispose();
         //if (!stopped) _ = StopCommandAsync();
     }
 
     public async Task SetSpeedAsync(ushort rpm)
     {
+        if (_connectionState != ConnectionState.Connected) return;
         await _semaphoreSlim.WaitAsync(/*TimeSpan.FromMilliseconds(300)*/).ConfigureAwait(false);
         try
         {
@@ -259,10 +269,9 @@ public abstract class SpindleBase<T> : ISpindle, IDisposable
         await WriteRPMAsync(rpm).ConfigureAwait(false);
     }
 
-
-
     public async Task StartAsync()
     {
+        if (_connectionState != ConnectionState.Connected) return;
         await _semaphoreSlim.WaitAsync(/*TimeSpan.FromMilliseconds(300)*/).ConfigureAwait(false);
         try
         {
@@ -291,6 +300,7 @@ public abstract class SpindleBase<T> : ISpindle, IDisposable
 
     public async Task StopAsync()
     {
+        if (_connectionState != ConnectionState.Connected) return;
         await _semaphoreSlim.WaitAsync().ConfigureAwait(false);
         try
         {
@@ -326,6 +336,7 @@ public abstract class SpindleBase<T> : ISpindle, IDisposable
 
     private async Task<bool> CheckSpindleWorkingAsync()
     {
+        if (_connectionState != ConnectionState.Connected) return false;    
         await _semaphoreSlim.WaitAsync(/*TimeSpan.FromMilliseconds(300)*/).ConfigureAwait(false);
         if (_client == null)
         {
@@ -375,7 +386,8 @@ public abstract class SpindleBase<T> : ISpindle, IDisposable
     {
         _logger.LogInformation("Attempting to open serial port: {PortName}", _serialPortSettings.PortName);
         // Закрываем старое соединение (если было)
-        if (_serialPortStream?.IsOpen == true)
+        if(_serialPortStream?.IsDisposed ??  false) _serialPortStream = null;
+        if (_serialPortStream?.IsOpen ?? false)
         {
             _serialPortStream.Close();
             _serialPortStream.Dispose();
@@ -406,6 +418,7 @@ public abstract class SpindleBase<T> : ISpindle, IDisposable
     }
     private async Task<bool> SetParamsAsync()
     {
+        if (_connectionState != ConnectionState.Connected) return false;
         await _semaphoreSlim.WaitAsync(/*TimeSpan.FromMilliseconds(300)*/).ConfigureAwait(false);
         try
         {
@@ -428,7 +441,7 @@ public abstract class SpindleBase<T> : ISpindle, IDisposable
     private async Task WatchingStateAsync(CancellationToken token)
     {
         await Task.Delay(100).ConfigureAwait(false);
-        while (!token.IsCancellationRequested)
+        while (!token.IsCancellationRequested && _connectionState == ConnectionState.Connected)
         {
             await _semaphoreSlim.WaitAsync(/*TimeSpan.FromMilliseconds(300),*/ token).ConfigureAwait(false);
             try
