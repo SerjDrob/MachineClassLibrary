@@ -441,9 +441,14 @@ public abstract class SpindleBase<T> : ISpindle, IDisposable
     private async Task WatchingStateAsync(CancellationToken token)
     {
         await Task.Delay(100).ConfigureAwait(false);
-        while (!token.IsCancellationRequested && _connectionState == ConnectionState.Connected)
+        while (!token.IsCancellationRequested)
         {
-            await _semaphoreSlim.WaitAsync(/*TimeSpan.FromMilliseconds(300),*/ token).ConfigureAwait(false);
+            if (_connectionState != ConnectionState.Connected)
+            {
+                await Task.Delay(100).ConfigureAwait(false);
+                continue;
+            }
+            await _semaphoreSlim.WaitAsync(token).ConfigureAwait(false);
             try
             {
                 int current;

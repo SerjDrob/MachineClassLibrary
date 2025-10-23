@@ -10,7 +10,7 @@ public interface IHasSCF
     bool TryConnectSpindle();
     void SetSpindleFreq(int frequency);
     Task<bool> ChangeSpindleFreqOnFlyAsync(ushort rpm, TimeSpan delay);
-    void StartSpindle();
+    Task StartSpindleAsync();
     void SetSpindleStartBlocker(Func<(bool canStart, IEnumerable<string> absentSensors)> blocker);
     void StopSpindle();
     event EventHandler<SpindleEventArgs> OnSpindleStateChanging;

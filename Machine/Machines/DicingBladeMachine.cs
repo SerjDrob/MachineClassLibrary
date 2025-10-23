@@ -310,11 +310,18 @@ namespace MachineClassLibrary.Machine.Machines
             _canStartSpindlePredicate = blocker;
         }
 
-        public void StartSpindle()
+        public async Task StartSpindleAsync()
         {
             var result = _canStartSpindlePredicate.Invoke();
             if(!result.canStart) throw new MachineException($"Отсутствует: {string.Join(", ", result.absentSensors)}.");
-            _ = _spindle.StartAsync();
+            try
+            {
+                await _spindle.StartAsync().ConfigureAwait(false);
+            }
+            catch (SpindleException ex)
+            {
+                throw new MachineException($"Ошибка запуска шпинделя. {ex.Message}", ex);
+            }
         }
 
         public Dictionary<int, (string, string[])> AvailableVideoCaptureDevices => _videoCamera.AvailableVideoCaptureDevices;
