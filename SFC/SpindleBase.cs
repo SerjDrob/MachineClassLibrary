@@ -71,7 +71,7 @@ public abstract class SpindleBase<T> : ISpindle, IDisposable
         {
             while (!_reconnectCts.Token.IsCancellationRequested)
             {
-                if (_connectionState != ConnectionState.Connected || _connectionState != ConnectionState.Connecting)
+                if (_connectionState == ConnectionState.Disconnected)
                 {
                     await TryConnectAsync().ConfigureAwait(false);
                 }
