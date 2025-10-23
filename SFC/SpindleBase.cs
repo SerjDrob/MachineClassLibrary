@@ -11,6 +11,7 @@ using NModbus;
 using NModbus.Serial;
 using NModbus.SerialPortStream;
 using RJCP.IO.Ports;
+using static System.Windows.Forms.VisualStyles.VisualStyleElement;
 
 
 namespace MachineClassLibrary.SFC;
@@ -177,8 +178,6 @@ public abstract class SpindleBase<T> : ISpindle, IDisposable
             tcs.TrySetResult(false);
         });
         var result = await tcs.Task.ConfigureAwait(false);
-        Console.SetCursorPosition(0, 33);
-        Console.WriteLine($"Changing speed result is {result}");
         return result;
     }
     /// <summary>
@@ -470,6 +469,14 @@ public abstract class SpindleBase<T> : ISpindle, IDisposable
             {
                 _logger.LogWarning(ex, "Communication error. Marking as disconnected.");
                 _connectionState = ConnectionState.Disconnected;
+
+                GetSpindleState?.Invoke(this, new SpindleEventArgs(0, 0, false, false, false, false)
+                {
+                    IsOk = false,
+                    FaultCode = 0,
+                    FaultDescription = "Потеряна связь с ПЧ"
+                });
+
                 _logger.LogError(ex, $"Failed {nameof(WatchingStateAsync)}");//TODO count how many frequent
             }
             finally

@@ -28,8 +28,8 @@ public class SpindleDevFactory
         if (machineConfiguration.IsMD520)
         {
             _serialPortSettings.StopBits = System.IO.Ports.StopBits.Two;
-            _serialPortSettings.ReadTimeout = -1;
-            _serialPortSettings.WriteTimeout = -1;
+            _serialPortSettings.ReadTimeout = 500;
+            _serialPortSettings.WriteTimeout = 500;
         }
     }
     public ISpindle GetSpindle()
