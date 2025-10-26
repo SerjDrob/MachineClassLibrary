@@ -36,7 +36,8 @@ public class MD520Q : SpindleBase<MD520Q>
     protected override async Task<int> GetCurrentAsync()
     {
         var data = await _client.ReadHoldingRegistersAsync(1, READ_OUTPUT_CURRENT, 1).ConfigureAwait(false);
-        return data[0];
+        var current = data[0] / 10;
+        return current;
     }
 
     protected override async Task<int> GetFrequencyAsync()

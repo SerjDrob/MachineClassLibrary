@@ -67,6 +67,7 @@ public class MotionDevicePCI1240U : IMotionDevicePCI1240U
         for (var i = 0; i < axisEnableEvent.Length; i++)
         {
             Motion.mAcm_AxOpen(_deviceHandle, (ushort)i, ref _mAxisHand[i]).CheckResult(i);
+
             double cmdPosition = 0;
 
             ushort state = 0;
@@ -872,14 +873,23 @@ PAR_AxVelLow<= PAR_AxVelHigh <= CFG_AxMaxVel | if Jerk = 1 (S-Curve)
 
     public async Task MoveAxisAsync(int axisNum, double position, CancellationToken? cancellationToken = null)
     {
-        var ct = cancellationToken ?? CancellationToken.None;
-        ct.Register(() => StopAxis(axisNum));
-        if (ct.IsCancellationRequested) return;
+       
+        //var ct = cancellationToken ?? CancellationToken.None;
+        //ct.Register(() => StopAxis(axisNum));
+        //if (ct.IsCancellationRequested) return;
         if (Math.Abs(GetAxCmd(axisNum) - position) < _tolerance) return;
         var rawPos = GetRawCmd(axisNum, position);
         Motion.mAcm_AxMoveAbs(_mAxisHand[axisNum], /*position*/rawPos);
-
-        await WaitAxisIsReadyAsync(_mAxisHand[axisNum], ct).ConfigureAwait(false);
+        if (cancellationToken is not null)
+        {
+            if (cancellationToken.Value.IsCancellationRequested) return;
+            cancellationToken.Value.Register(() => StopAxis(axisNum));
+            await WaitAxisIsReadyAsync(_mAxisHand[axisNum], cancellationToken.Value).ConfigureAwait(false);
+        }
+        else
+        {
+            await WaitAxisIsReadyAsync(_mAxisHand[axisNum]).ConfigureAwait(false);
+        }
     }
 
     private static IntPtr OpenDevice(in DEV_LIST device)
@@ -997,6 +1007,11 @@ PAR_AxVelLow<= PAR_AxVelHigh <= CFG_AxMaxVel | if Jerk = 1 (S-Curve)
             if (disposing)
             {
                 // TODO: dispose managed state (managed objects)
+
+                foreach (var axis in _mAxisHand)
+                {
+                    Motion.mAcm_AxStopEmg(axis);
+                }
                 _monitoringCts?.Cancel();
                 try
                 {

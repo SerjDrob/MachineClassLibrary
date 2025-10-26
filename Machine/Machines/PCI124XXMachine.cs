@@ -327,9 +327,6 @@ namespace MachineClassLibrary.Machine.Machines
                 throw new MachineException($"Homing mode is not configured. {nameof(_homingConfigs)} is null");
             }
 
-
-            //_axes[Ax.X].SetMotionStarted();
-
             var par = _homingConfigs.Select(p =>
             (
               p.Value.direction,
@@ -338,25 +335,19 @@ namespace MachineClassLibrary.Machine.Machines
               p.Value.velocity,
               _axes[p.Key].AxisNum
             )).ToArray();
-
             _homingConfigs.Select(a => _axes[a.Key].SetMotionStarted()).ToList();
-
             await _motionDevice.HomeMovingAsync(par).ConfigureAwait(false);
-
-
-
             var tasks = _homingConfigs
+                .Where(p => p.Key != Ax.Z)
                 .Select(p => MoveAxInPosAsync(p.Key, p.Value.positionAfterHoming, true)
             ).ToArray();
 
-
             await Task.WhenAll(tasks).ConfigureAwait(false);
 
-            //_motionDevice.SetAxisCoordinate(_axes[Ax.X].AxisNum, 0d);
-            //_motionDevice.SetAxisCoordinate(_axes[Ax.Y].AxisNum, 0d);
-
-
-            //await MoveAxInPosAsync(Ax.X, _homingConfigs[Ax.X].positionAfterHoming, true).ConfigureAwait(false);
+            if (_homingConfigs.TryGetValue(Ax.Z, out var p))
+            {
+                await MoveAxInPosAsync(Ax.Z, _homingConfigs[Ax.Z].positionAfterHoming, true).ConfigureAwait(false);
+            }
         }
 
         public IHomingBuilder ConfigureHomingForAxis(Ax axis)

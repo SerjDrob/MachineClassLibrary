@@ -1,0 +1,66 @@
+CFG_AxMaxVel Property
+For PCI1240 device, this property 's max value= FT_AxMaxVel / CFG_AxPPU and min value = 8000/ CFG_AxPPU.
+FT_AxMaxVel Property
+For PCI1240 device, this property value is 4000000.
+
+Since Rate(1~500) is determined by this property , it will affect CFG_AxMaxAcc and CFG_AxMaxDec. 
+For example: if CFG_AxMaxVel is set to 40,000, it means Rate=5, and CFG_AxMaxAcc will not be able to be set 
+to 8,000,000 since the new CFG_AxMaxAcc value requires Rate to be 8. Rate can not be modified by user, 
+it is just determined by CFG_AxMaxVel.
+
+
+PAR_AxVelHigh Property
+Set high velocity (driving velocity) of this axis (Unit:PPU/S). This property value must be smaller 
+than CFG_AxMaxVel and greater than PAR_AxVelLow. The default value is 8000 PPU.
+
+PAR_AxVelLow Property
+Set low velocity (start velocity) of this axis (Unit: PPU/S). This property value must be smaller 
+than or equal to PAR_AxVelHigh . The min value is CFG_AxMaxVel/8000, the max value is  CFG_AxMaxVel. 
+The default value is 2000 PPU.
+
+
+
+----------------------------------------------------------------------------------------------------------
+
+CFG_AxMaxAcc Property
+For PCI1240 device, this property 's max value= FT_AxMaxAcc / CFG_AxPPU and min value = 125/ CFG_AxPPU, 
+and the value can not greater than 125*CFG_AxMaxVel.
+FT_AxMaxAcc Property
+For PCI1240 device, this property value is 500000000.
+
+PAR_AxAcc Property
+Set acceleration of this axis (Unit: PPU/S2). This property value must be smaller than or equal to CFG_AxMaxAcc .  
+The min value is CFG_AxMaxVel/64. The default value is 10000.
+
+
+---------------------------------------------------------------------------------------------------------
+
+CFG_AxMaxDec Property
+For PCI1240 device, this property 's max value= FT_AxMaxDec/CFG_AxPPU and min value = 125/ CFG_AxPPU, 
+and the value can not greater than 125*CFG_AxMaxVel.
+FT_AxMaxDec Property
+For PCI1240 device, this property value  is 500000000.
+
+PAR_AxDec Property
+Set deceleration of this axis (Unit: PPU/S2). This property value must be smaller than or equal to CFG_AxMaxDec.  
+The min value is CFG_AxMaxVel/64. The default value is 10000.
+
+
+--------------------------------------------------------------------------------------------------------
+FT_AxMaxJerk Property
+For PCI1240 device, this property value is 31250000000.
+PAR_AxJerk Property
+Set the type of velocity profile: t-curve or s-curve.
+
+Value Meaning 
+0 T-curve(Default) 
+1(!=0) S-curve 
+If PAR_AxJerk is set to be 1, the PAR_AxAcc not means acceleration but max acceleration and PAR_AxDec not 
+means deceleration but max deceleration. If Par_AxVelHigh, Par_AxVelLow, PAR_AxAcc, PAR_AxDec are all same, 
+the acceleration time of s-curve is two times of t-curve and the deceleration time of s-curve is also two 
+times of t-curve.
+
+If PAR_AxJerk is set to be 1, the Par_AxVelHigh - Par_AxVelLow must be between Acc^2/(78125*CFG_AxMaxVel) 
+and 8.4*Acc^2/CFG_AxMaxVel.
+
+

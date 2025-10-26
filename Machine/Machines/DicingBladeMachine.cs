@@ -17,7 +17,7 @@ namespace MachineClassLibrary.Machine.Machines
         private readonly ISpindle _spindle;
         private readonly IVideoCapture _videoCamera;
         private Dictionary<Valves, (Ax axis, Do dOut)> _valves;
-        private Dictionary<Sensors, (Ax axis, Di dIn, bool invertion, string name)> _sensors;
+        private Dictionary<Sensors, (Ax axis, Di dIn, bool invertion, string name, bool bridged)> _sensors;
         private Dictionary<Place, (Ax axis, double pos)[]> _places;
         private Dictionary<Place, double> _singlePlaces;
         public DicingBladeMachine(IMotionDevicePCI1240U motionDevice, IVideoCapture usbVideoCamera, ISpindle spindle) : base(motionDevice)
@@ -233,10 +233,10 @@ namespace MachineClassLibrary.Machine.Machines
         //    _sensors = new Dictionary<Sensors, (Ax, Di, bool, string)>(sensors);
         //}
 
-        public void AddSensor(Sensors sensor, Ax axis, Di di, bool inverted, string name)
+        public void AddSensor(Sensors sensor, Ax axis, Di di, bool inverted, string name, bool bridged)
         {
             _sensors ??= new();
-            if (!_sensors.TryAdd(sensor, (axis, di, inverted, name))) _sensors[sensor] = (axis, di, inverted, name);
+            if (!_sensors.TryAdd(sensor, (axis, di, inverted, name, bridged))) _sensors[sensor] = (axis, di, inverted, name, bridged);
         }
 
         public void AddValve(Valves valve, Ax axis, Do @do)
@@ -246,8 +246,10 @@ namespace MachineClassLibrary.Machine.Machines
         }
         public void SetBridgeOnSensors(Sensors sensor, bool setBridge)
         {
-            var num = _axes[_sensors[sensor].axis].AxisNum;
-            _motionDevice.SetBridgeOnAxisDin(num, (int)_sensors[sensor].dIn, setBridge);
+            var s = _sensors[sensor];
+            _sensors[sensor]= (s.axis,s.dIn,s.invertion,s.name,setBridge);
+            //var num = _axes[_sensors[sensor].axis].AxisNum;
+            //_motionDevice.SetBridgeOnAxisDin(num, (int)_sensors[sensor].dIn, setBridge);
         }
 
         public void SwitchOnValve(Valves valve)
@@ -308,11 +310,18 @@ namespace MachineClassLibrary.Machine.Machines
             _canStartSpindlePredicate = blocker;
         }
 
-        public void StartSpindle()
+        public async Task StartSpindleAsync()
         {
             var result = _canStartSpindlePredicate.Invoke();
             if(!result.canStart) throw new MachineException($"Отсутствует: {string.Join(", ", result.absentSensors)}.");
-            _ = _spindle.StartAsync();
+            try
+            {
+                await _spindle.StartAsync().ConfigureAwait(false);
+            }
+            catch (SpindleException ex)
+            {
+                throw new MachineException($"Ошибка запуска шпинделя. {ex.Message}", ex);
+            }
         }
 
         public Dictionary<int, (string, string[])> AvailableVideoCaptureDevices => _videoCamera.AvailableVideoCaptureDevices;
@@ -419,7 +428,7 @@ namespace MachineClassLibrary.Machine.Machines
             {
                 if (sensor.Value.axis == ax)
                 {
-                    var s = sensor.Value.invertion ^ (ins & (1 << ((int)sensor.Value.dIn/* - 1*/))) != 0;
+                    var s = sensor.Value.bridged ? true : sensor.Value.invertion ^ (ins & (1 << ((int)sensor.Value.dIn))) != 0;
                     OnSensorStateChanged?.Invoke(this, new(sensor.Key, s));
                     Console.ForegroundColor = ConsoleColor.Yellow;
                     Console.SetCursorPosition(gap, 21 + line);
