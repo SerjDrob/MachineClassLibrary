@@ -20,6 +20,9 @@ namespace MachineClassLibrary.Machine.Machines
         private Dictionary<Sensors, (Ax axis, Di dIn, bool invertion, string name, bool bridged)> _sensors;
         private Dictionary<Place, (Ax axis, double pos)[]> _places;
         private Dictionary<Place, double> _singlePlaces;
+        private (Ax axis, bool isScanning) _scanHandle;
+        private (Ax axis, Di di) _emg;
+        private bool disposedValue;
         public DicingBladeMachine(IMotionDevicePCI1240U motionDevice, IVideoCapture usbVideoCamera, ISpindle spindle) : base(motionDevice)
         {
             _videoCamera = usbVideoCamera;
@@ -47,6 +50,8 @@ namespace MachineClassLibrary.Machine.Machines
         public event EventHandler<VideoCaptureEventArgs> OnBitmapChanged;
         public event EventHandler CameraPlugged;
         public event EventHandler<Bitmap> OnRawBitmapChanged;
+        public event EventHandler<bool> OnEMG_Pushed;
+
 
         public void ConfigureGeometry(Dictionary<Place, (Ax, double)[]> places)
         {
@@ -305,6 +310,8 @@ namespace MachineClassLibrary.Machine.Machines
         }
 
         private Func<(bool canStart,IEnumerable<string> absentSensors)> _canStartSpindlePredicate = () => (true,[]);
+        private bool _emgIsSet;
+
         public void SetSpindleStartBlocker(Func<(bool canStart, IEnumerable<string> absentSensors)> blocker)
         {
             _canStartSpindlePredicate = blocker;
@@ -361,9 +368,7 @@ namespace MachineClassLibrary.Machine.Machines
         {
             _videoCamera.StopCamera();
         }
-
-        private (Ax axis, bool isScanning) _scanHandle;
-        private bool disposedValue;
+       
 
         /// <summary>
         /// Scan from current position both direction. After cancelling return to the position.
@@ -402,6 +407,7 @@ namespace MachineClassLibrary.Machine.Machines
             _places ??= new();
             return new GeometryBuilder<Place>(place, ref _places);
         }
+        public void SetEMG_In(Ax axis, Di di) => _emg = (axis, di);
 
         protected override void GetAxOutNIn(Ax ax, int outs, int ins)
         {
@@ -426,6 +432,19 @@ namespace MachineClassLibrary.Machine.Machines
             var line = 0;
             foreach (var sensor in _sensors)
             {
+                if (sensor.Value.axis == _emg.axis)
+                {
+                    var emg_set = (ins & (1 << ((int)_emg.di))) != 0;
+                    if (emg_set && !_emgIsSet) 
+                    {
+                        EmgScenario();
+                        _ = _spindle.StopAsync();
+                        _emgIsSet = true;
+                        OnEMG_Pushed?.Invoke(this, emg_set);
+                    }
+                }
+
+
                 if (sensor.Value.axis == ax)
                 {
                     var s = sensor.Value.bridged ? true : sensor.Value.invertion ^ (ins & (1 << ((int)sensor.Value.dIn))) != 0;
@@ -439,6 +458,11 @@ namespace MachineClassLibrary.Machine.Machines
             }
         }
 
+        public void ResetEMG()
+        {
+            _motionDevice.ResetEMG_Regime();
+            _emgIsSet = false;
+        }
         public void InvokeSettings() => _videoCamera.InvokeSettings();
 
         public bool TryConnectSpindle()

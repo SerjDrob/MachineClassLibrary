@@ -1174,6 +1174,16 @@ namespace MachineClassLibrary.Machine.MotionDevices
             Motion2.mAcm2_AxGetState(_axisLogicalIDList[axisNum].ID, AXIS_STATUS_TYPE.AXIS_STATE, ref status);
             return (AxState)status == AxState.STA_AX_READY;
         }
+
+        public void StopAxesEMG()
+        {
+            throw new NotImplementedException();
+        }
+
+        public void ResetEMG_Regime()
+        {
+            throw new NotImplementedException();
+        }
     }
 
 

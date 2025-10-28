@@ -393,6 +393,7 @@ private async Task DeviceStateMonitorAsync()
 
 
     private Action<IntPtr,AxState> OnAxStateChanged = default;
+    private bool _isInEMG_Regime;
 
     public int FormAxesGroup(int[] axisNums)
     {
@@ -476,6 +477,19 @@ private async Task DeviceStateMonitorAsync()
         Motion.mAcm_SetProperty(_mAxisHand[axisNum], (uint)PropertyID.PAR_AxVelLow, ref velLow, 8).CheckResult(axisNum);
     }
 
+    public void StopAxesEMG()
+    {
+        _isInEMG_Regime = true;
+        foreach (var axis in _mAxisHand)
+        {
+            Motion.mAcm_AxStopEmg(axis);
+        }
+    }
+    public void ResetEMG_Regime()
+    {
+        _isInEMG_Regime = false;
+        ResetErrors(RESET_ALL_AXES);
+    }
     public void SetGroupVelocity(int groupNum)
     {
         uint buf = 4;
@@ -542,6 +556,7 @@ private async Task DeviceStateMonitorAsync()
     public void StopAxis(int axisNum) => Motion.mAcm_AxStopDec(_mAxisHand[axisNum]);
     public void ResetErrors(int axisNum = RESET_ALL_AXES)
     {
+        if (_isInEMG_Regime) return;
         ushort state = 1;
         if (axisNum == RESET_ALL_AXES)
         {

@@ -75,14 +75,14 @@ namespace MachineClassLibrary.Machine.Machines
 
         public void EmgScenario()
         {
-            throw new NotImplementedException();
+            EmgStop();
         }
 
         public void EmgStop()
         {
-            throw new NotImplementedException();
+            _motionDevice.StopAxesEMG();
         }
-
+        
         public void GoWhile(Ax axis, AxDir direction)
         {
             ResetErrors(axis);
@@ -462,7 +462,7 @@ namespace MachineClassLibrary.Machine.Machines
                 if (axisNum < _axes.Count && _axes.Count > 0)
                 {
                     var axis = _axes.ToList().Where(a => a.Value.AxisNum == axisNum).First().Key;
-                    _axes[axis].ActualPosition = _axes[axis].LineCoefficient == 0 ? state.cmdPos : state.actPos /** _axes[axis].LineCoefficient*/;
+                    _axes[axis].ActualPosition = _axes[axis].LineCoefficient == 0 ? state.cmdPos : state.actPos;
                     _axes[axis].CmdPosition = state.cmdPos;
                     _axes[axis].DIs = state.sensors;
                     _axes[axis].DOs = state.outs;

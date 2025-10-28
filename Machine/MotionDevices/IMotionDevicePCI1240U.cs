@@ -48,5 +48,7 @@ namespace MachineClassLibrary.Machine.MotionDevices
         void SetAxisCoordinate(int axisNum, double coordinate);
         bool GetAxisReady(int axisNum);
         void CloseDevice();
+        void StopAxesEMG();
+        void ResetEMG_Regime();
     }
 }
