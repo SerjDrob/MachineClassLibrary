@@ -613,6 +613,9 @@ PAR_AxVelLow<= PAR_AxVelHigh <= CFG_AxMaxVel | if Jerk = 1 (S-Curve)
 
         _axPRD[axisNum] = (ppu, configs.ratio, configs.lineDiscrete);
 
+
+        
+
         if (_initErrorsDictionaryInBaseClass) _errors = new();
 
         //double homeVelLow = configs.homeVelLow;
@@ -644,6 +647,22 @@ PAR_AxVelLow<= PAR_AxVelHigh <= CFG_AxMaxVel | if Jerk = 1 (S-Curve)
         //uint l = 1;
         _result = Motion.mAcm_SetProperty(_mAxisHand[axisNum], (uint)PropertyID.CFG_AxElLogic, ref configs.hLmtLogic, 4); _errors.Add(PropertyID.CFG_AxElLogic, _result);
         //_result = Motion.mAcm_SetProperty(_mAxishand[axisNum], (uint)PropertyID.CFG_AxInpLogic, ref l, 4); _errors.Add(PropertyID.CFG_AxInpLogic, _result);
+
+
+        //----
+
+        //if (axisNum == 2)
+        //{
+        //    var cmd = GetRawCmd(axisNum, 5);
+        //    var swEna = (int)SwLmtEnable.SLMT_EN;
+        //    var swReact = (int)SwLmtReact.SLMT_DEC_TO_STOP;
+        //    var res = Motion.mAcm_SetProperty(_mAxisHand[axisNum], (uint)PropertyID.CFG_AxSwPelEnable, ref swEna, 4);
+        //    res = Motion.mAcm_SetProperty(_mAxisHand[axisNum], (uint)PropertyID.CFG_AxSwPelReact, ref swReact, 4);
+        //    res = Motion.mAcm_SetProperty(_mAxisHand[axisNum], (uint)PropertyID.CFG_AxSwPelValue, ref cmd, 8);
+        //}
+
+        //-----
+
 
         var errorText = new string("");
         foreach (var error in _errors.Where(err => err.Value != 0))

@@ -411,6 +411,17 @@ namespace MachineClassLibrary.Machine.Machines
 
         protected override void GetAxOutNIn(Ax ax, int outs, int ins)
         {
+            if (ax == _emg.axis)
+            {
+                var emg_set = (ins & (1 << ((int)_emg.di))) != 0;
+                if (emg_set && !_emgIsSet)
+                {
+                    EmgScenario();
+                    _ = _spindle.StopAsync();
+                    _emgIsSet = true;
+                    OnEMG_Pushed?.Invoke(this, emg_set);
+                }
+            }
             if (_valves is null) return;
             foreach (var valve in _valves)
             {
@@ -431,20 +442,7 @@ namespace MachineClassLibrary.Machine.Machines
             };
             var line = 0;
             foreach (var sensor in _sensors)
-            {
-                if (sensor.Value.axis == _emg.axis)
-                {
-                    var emg_set = (ins & (1 << ((int)_emg.di))) != 0;
-                    if (emg_set && !_emgIsSet) 
-                    {
-                        EmgScenario();
-                        _ = _spindle.StopAsync();
-                        _emgIsSet = true;
-                        OnEMG_Pushed?.Invoke(this, emg_set);
-                    }
-                }
-
-
+            {            
                 if (sensor.Value.axis == ax)
                 {
                     var s = sensor.Value.bridged ? true : sensor.Value.invertion ^ (ins & (1 << ((int)sensor.Value.dIn))) != 0;
