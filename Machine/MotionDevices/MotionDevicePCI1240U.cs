@@ -477,6 +477,25 @@ private async Task DeviceStateMonitorAsync()
         Motion.mAcm_SetProperty(_mAxisHand[axisNum], (uint)PropertyID.PAR_AxVelLow, ref velLow, 8).CheckResult(axisNum);
     }
 
+
+    public void SetAxisSwLmt(int axisNum, double position)
+    {
+        if (position! > 0) return;
+        var cmd = GetRawCmd(axisNum, position);
+        var swEna = (int)SwLmtEnable.SLMT_EN;
+        var swReact = (int)SwLmtReact.SLMT_DEC_TO_STOP;
+        var res = Motion.mAcm_SetProperty(_mAxisHand[axisNum], (uint)PropertyID.CFG_AxSwPelEnable, ref swEna, 4);
+        res = Motion.mAcm_SetProperty(_mAxisHand[axisNum], (uint)PropertyID.CFG_AxSwPelReact, ref swReact, 4);
+        res = Motion.mAcm_SetProperty(_mAxisHand[axisNum], (uint)PropertyID.CFG_AxSwPelValue, ref cmd, 8);
+    }
+    public void ReSetAxisSwLmt(int axisNum)
+    {
+        var swEna = (int)SwLmtEnable.SLMT_DIS;
+        var res = Motion.mAcm_SetProperty(_mAxisHand[axisNum], (uint)PropertyID.CFG_AxSwPelEnable, ref swEna, 4);
+    }
+
+
+
     public void StopAxesEMG()
     {
         _isInEMG_Regime = true;
@@ -647,22 +666,6 @@ PAR_AxVelLow<= PAR_AxVelHigh <= CFG_AxMaxVel | if Jerk = 1 (S-Curve)
         //uint l = 1;
         _result = Motion.mAcm_SetProperty(_mAxisHand[axisNum], (uint)PropertyID.CFG_AxElLogic, ref configs.hLmtLogic, 4); _errors.Add(PropertyID.CFG_AxElLogic, _result);
         //_result = Motion.mAcm_SetProperty(_mAxishand[axisNum], (uint)PropertyID.CFG_AxInpLogic, ref l, 4); _errors.Add(PropertyID.CFG_AxInpLogic, _result);
-
-
-        //----
-
-        //if (axisNum == 2)
-        //{
-        //    var cmd = GetRawCmd(axisNum, 5);
-        //    var swEna = (int)SwLmtEnable.SLMT_EN;
-        //    var swReact = (int)SwLmtReact.SLMT_DEC_TO_STOP;
-        //    var res = Motion.mAcm_SetProperty(_mAxisHand[axisNum], (uint)PropertyID.CFG_AxSwPelEnable, ref swEna, 4);
-        //    res = Motion.mAcm_SetProperty(_mAxisHand[axisNum], (uint)PropertyID.CFG_AxSwPelReact, ref swReact, 4);
-        //    res = Motion.mAcm_SetProperty(_mAxisHand[axisNum], (uint)PropertyID.CFG_AxSwPelValue, ref cmd, 8);
-        //}
-
-        //-----
-
 
         var errorText = new string("");
         foreach (var error in _errors.Where(err => err.Value != 0))

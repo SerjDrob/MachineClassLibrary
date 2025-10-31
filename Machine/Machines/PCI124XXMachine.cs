@@ -417,6 +417,12 @@ namespace MachineClassLibrary.Machine.Machines
             return new AxisBuilder(ax, ref axis, num, in _motionDevice, ref _velRegimes);
         }
 
+        public void SetAxisSwLmt(Ax ax, double position)
+        {
+            _motionDevice.SetAxisSwLmt(_axes[ax].AxisNum, position);
+        }
+        public void ReSetAxisSwLmt(Ax ax) => _motionDevice.ReSetAxisSwLmt(_axes[ax].AxisNum);
+
         public class AxisBuilder : IAxisBuilder
         {
             private readonly Ax _ax;

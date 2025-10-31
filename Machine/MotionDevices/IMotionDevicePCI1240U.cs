@@ -50,5 +50,7 @@ namespace MachineClassLibrary.Machine.MotionDevices
         void CloseDevice();
         void StopAxesEMG();
         void ResetEMG_Regime();
+        void SetAxisSwLmt(int axisNum, double position);
+        void ReSetAxisSwLmt(int axisNum);
     }
 }

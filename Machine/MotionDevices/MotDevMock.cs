@@ -281,5 +281,13 @@ namespace MachineClassLibrary.Machine.MotionDevices
         {
             throw new NotImplementedException();
         }
+
+        public void SetAxisSwLmt(int axisNum, double position)
+        {
+        }
+
+        public void ReSetAxisSwLmt(int axisNum)
+        {
+        }
     }
 }
