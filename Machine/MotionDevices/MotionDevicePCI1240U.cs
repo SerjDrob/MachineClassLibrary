@@ -486,7 +486,7 @@ private async Task DeviceStateMonitorAsync()
         var swReact = (int)SwLmtReact.SLMT_DEC_TO_STOP;
         var res = Motion.mAcm_SetProperty(_mAxisHand[axisNum], (uint)PropertyID.CFG_AxSwPelEnable, ref swEna, 4);
         res = Motion.mAcm_SetProperty(_mAxisHand[axisNum], (uint)PropertyID.CFG_AxSwPelReact, ref swReact, 4);
-        res = Motion.mAcm_SetProperty(_mAxisHand[axisNum], (uint)PropertyID.CFG_AxSwPelValue, ref cmd, 8);
+        res = Motion.mAcm_SetProperty(_mAxisHand[axisNum], (uint)PropertyID.CFG_AxSwPelValue, ref cmd, 8);//possibly not supported in pci1240
     }
     public void ReSetAxisSwLmt(int axisNum)
     {
@@ -661,7 +661,7 @@ PAR_AxVelLow<= PAR_AxVelHigh <= CFG_AxMaxVel | if Jerk = 1 (S-Curve)
 
         // result = Motion.mAcm_SetProperty(_mAxishand[axisNum], (uint)PropertyID.PAR_AxHomeVelLow, ref homeVelLow, 8); errors.Add(PropertyID.PAR_AxHomeVelLow, result);
         // result = Motion.mAcm_SetProperty(_mAxishand[axisNum], (uint)PropertyID.PAR_AxHomeVelHigh, ref homeVelHigh, 8); errors.Add(PropertyID.PAR_AxHomeVelHigh, result);
-        _result = Motion.mAcm_SetProperty(_mAxisHand[axisNum], (uint)PropertyID.CFG_AxSwPelEnable, ref buf, 4); _errors.Add(PropertyID.CFG_AxSwPelEnable, _result);
+        //possibly not supported in pci1240    _result = Motion.mAcm_SetProperty(_mAxisHand[axisNum], (uint)PropertyID.CFG_AxSwPelEnable, ref buf, 4); _errors.Add(PropertyID.CFG_AxSwPelEnable, _result);
 
         //uint l = 1;
         _result = Motion.mAcm_SetProperty(_mAxisHand[axisNum], (uint)PropertyID.CFG_AxElLogic, ref configs.hLmtLogic, 4); _errors.Add(PropertyID.CFG_AxElLogic, _result);
