@@ -272,5 +272,23 @@ namespace MachineClassLibrary.Machine.MotionDevices
         {
             throw new NotImplementedException();
         }
+
+        public void StopAxesEMG()
+        {
+            throw new NotImplementedException();
+        }
+
+        public void ResetEMG_Regime()
+        {
+            throw new NotImplementedException();
+        }
+
+        public void SetAxisSwLmt(int axisNum, double position)
+        {
+        }
+
+        public void ReSetAxisSwLmt(int axisNum)
+        {
+        }
     }
 }

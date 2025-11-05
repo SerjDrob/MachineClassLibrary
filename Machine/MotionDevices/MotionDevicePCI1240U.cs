@@ -393,6 +393,7 @@ private async Task DeviceStateMonitorAsync()
 
 
     private Action<IntPtr,AxState> OnAxStateChanged = default;
+    private bool _isInEMG_Regime;
 
     public int FormAxesGroup(int[] axisNums)
     {
@@ -476,6 +477,83 @@ private async Task DeviceStateMonitorAsync()
         Motion.mAcm_SetProperty(_mAxisHand[axisNum], (uint)PropertyID.PAR_AxVelLow, ref velLow, 8).CheckResult(axisNum);
     }
 
+    private Dictionary<int, CancellationTokenSource> _axBoundryWatcherCts; 
+
+    public void SetAxisSwLmt(int axisNum, double position)
+    {
+        /*
+        if (position! > 0) return;
+        var cmd = GetRawCmd(axisNum, position);
+        var swEna = (int)SwLmtEnable.SLMT_EN;
+        var swReact = (int)SwLmtReact.SLMT_DEC_TO_STOP;
+        var res = Motion.mAcm_SetProperty(_mAxisHand[axisNum], (uint)PropertyID.CFG_AxSwPelEnable, ref swEna, 4);
+        res = Motion.mAcm_SetProperty(_mAxisHand[axisNum], (uint)PropertyID.CFG_AxSwPelReact, ref swReact, 4);
+        res = Motion.mAcm_SetProperty(_mAxisHand[axisNum], (uint)PropertyID.CFG_AxSwPelValue, ref cmd, 8);//possibly not supported in pci1240
+        */
+       // _axBoundryWatcherCts ??= new();
+       // _axBoundryWatcherCts[axisNum] = new();
+       // WatchAxBoundry(axisNum, position, _axBoundryWatcherCts[axisNum].Token);
+    }
+    public void ReSetAxisSwLmt(int axisNum)
+    {
+        /*
+        var swEna = (int)SwLmtEnable.SLMT_DIS;
+        var res = Motion.mAcm_SetProperty(_mAxisHand[axisNum], (uint)PropertyID.CFG_AxSwPelEnable, ref swEna, 4);
+        */
+        if(_axBoundryWatcherCts is not null)
+        {
+            if(_axBoundryWatcherCts.TryGetValue(axisNum, out var cts))
+            {
+                cts.Cancel();
+                cts.Dispose();
+                cts = null;
+            }
+        }
+    }
+
+    private void WatchAxBoundry(int axisNum, double axLimit, CancellationToken ct)
+    {
+        var swEna = (int)SwLmtEnable.SLMT_EN;
+        var hand = _mAxisHand[axisNum];
+        if (ct != default)
+        {
+            ct.Register(() =>
+            {
+                OnAxStateChanged -= getState;
+            });
+        }
+        OnAxStateChanged += getState;
+        void getState(IntPtr ax, AxState state)
+        {
+            if (ax == hand)
+                if(state == AxState.STA_AX_CONTI_MOT
+                    || state == AxState.STA_AX_PTP_MOT)
+            {
+                    var pos = GetAxCmd(axisNum);
+                    if (pos >= axLimit)
+                    {
+                        //StopAxis(axisNum);
+                        var res = Motion.mAcm_SetProperty(_mAxisHand[axisNum], (uint)PropertyID.CFG_AxSwPelEnable, ref swEna, 4);
+
+                    }
+                }
+        }
+    }
+
+
+    public void StopAxesEMG()
+    {
+        _isInEMG_Regime = true;
+        foreach (var axis in _mAxisHand)
+        {
+            Motion.mAcm_AxStopEmg(axis);
+        }
+    }
+    public void ResetEMG_Regime()
+    {
+        _isInEMG_Regime = false;
+        ResetErrors(RESET_ALL_AXES);
+    }
     public void SetGroupVelocity(int groupNum)
     {
         uint buf = 4;
@@ -542,6 +620,7 @@ private async Task DeviceStateMonitorAsync()
     public void StopAxis(int axisNum) => Motion.mAcm_AxStopDec(_mAxisHand[axisNum]);
     public void ResetErrors(int axisNum = RESET_ALL_AXES)
     {
+        if (_isInEMG_Regime) return;
         ushort state = 1;
         if (axisNum == RESET_ALL_AXES)
         {
@@ -598,6 +677,9 @@ PAR_AxVelLow<= PAR_AxVelHigh <= CFG_AxMaxVel | if Jerk = 1 (S-Curve)
 
         _axPRD[axisNum] = (ppu, configs.ratio, configs.lineDiscrete);
 
+
+        
+
         if (_initErrorsDictionaryInBaseClass) _errors = new();
 
         //double homeVelLow = configs.homeVelLow;
@@ -624,7 +706,7 @@ PAR_AxVelLow<= PAR_AxVelHigh <= CFG_AxMaxVel | if Jerk = 1 (S-Curve)
 
         // result = Motion.mAcm_SetProperty(_mAxishand[axisNum], (uint)PropertyID.PAR_AxHomeVelLow, ref homeVelLow, 8); errors.Add(PropertyID.PAR_AxHomeVelLow, result);
         // result = Motion.mAcm_SetProperty(_mAxishand[axisNum], (uint)PropertyID.PAR_AxHomeVelHigh, ref homeVelHigh, 8); errors.Add(PropertyID.PAR_AxHomeVelHigh, result);
-        _result = Motion.mAcm_SetProperty(_mAxisHand[axisNum], (uint)PropertyID.CFG_AxSwPelEnable, ref buf, 4); _errors.Add(PropertyID.CFG_AxSwPelEnable, _result);
+        //possibly not supported in pci1240    _result = Motion.mAcm_SetProperty(_mAxisHand[axisNum], (uint)PropertyID.CFG_AxSwPelEnable, ref buf, 4); _errors.Add(PropertyID.CFG_AxSwPelEnable, _result);
 
         //uint l = 1;
         _result = Motion.mAcm_SetProperty(_mAxisHand[axisNum], (uint)PropertyID.CFG_AxElLogic, ref configs.hLmtLogic, 4); _errors.Add(PropertyID.CFG_AxElLogic, _result);
@@ -1012,10 +1094,18 @@ PAR_AxVelLow<= PAR_AxVelHigh <= CFG_AxMaxVel | if Jerk = 1 (S-Curve)
                 {
                     Motion.mAcm_AxStopEmg(axis);
                 }
-                _monitoringCts?.Cancel();
                 try
                 {
+                    _monitoringCts?.Cancel();
                     _monitoringTask?.Wait(1000); // Ждём завершения мониторинга
+                    if(_axBoundryWatcherCts is not null) 
+                    {
+                        foreach(var kv in _axBoundryWatcherCts)
+                        {
+                            kv.Value?.Cancel();
+                            kv.Value?.Dispose();
+                        }
+                    }
                 }
                 catch (Exception ex)
                 {
