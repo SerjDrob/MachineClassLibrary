@@ -620,7 +620,7 @@ private async Task DeviceStateMonitorAsync()
     public void StopAxis(int axisNum) => Motion.mAcm_AxStopDec(_mAxisHand[axisNum]);
     public void ResetErrors(int axisNum = RESET_ALL_AXES)
     {
-        if (_isInEMG_Regime) return;
+        //if (_isInEMG_Regime) return;
         ushort state = 1;
         if (axisNum == RESET_ALL_AXES)
         {

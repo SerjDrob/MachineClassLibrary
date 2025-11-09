@@ -21,7 +21,7 @@ namespace MachineClassLibrary.Machine.Machines
         private Dictionary<Place, (Ax axis, double pos)[]> _places;
         private Dictionary<Place, double> _singlePlaces;
         private (Ax axis, bool isScanning) _scanHandle;
-        private (Ax axis, Di di) _emg;
+        private (Ax axis, Di di, bool isInverted) _emg;
         private bool disposedValue;
         public DicingBladeMachine(IMotionDevicePCI1240U motionDevice, IVideoCapture usbVideoCamera, ISpindle spindle) : base(motionDevice)
         {
@@ -407,13 +407,13 @@ namespace MachineClassLibrary.Machine.Machines
             _places ??= new();
             return new GeometryBuilder<Place>(place, ref _places);
         }
-        public void SetEMG_In(Ax axis, Di di) => _emg = (axis, di);
+        public void SetEMG_In(Ax axis, Di di, bool isInverted) => _emg = (axis, di, isInverted);
 
         protected override void GetAxOutNIn(Ax ax, int outs, int ins)
         {
             if (ax == _emg.axis)
             {
-                var emg_set = (ins & (1 << ((int)_emg.di))) != 0;
+                var emg_set = _emg.isInverted ^ ((ins & (1 << ((int)_emg.di))) != 0);
                 if (emg_set && !_emgIsSet)
                 {
                     EmgScenario();
