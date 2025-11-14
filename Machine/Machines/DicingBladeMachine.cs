@@ -345,10 +345,7 @@ namespace MachineClassLibrary.Machine.Machines
                 _videoCamera.AdjustWidthToHeight = value;
             }
         }
-        public void StopSpindle()
-        {
-            _ = _spindle.StopAsync();
-        }
+        public async Task StopSpindleAsync() => await _spindle.StopAsync().ConfigureAwait(false);
 
         private void _spindle_GetSpindleState(object obj, SpindleEventArgs e)
         {

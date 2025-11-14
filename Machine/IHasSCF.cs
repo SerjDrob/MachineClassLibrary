@@ -12,6 +12,6 @@ public interface IHasSCF
     Task<bool> ChangeSpindleFreqOnFlyAsync(ushort rpm, TimeSpan delay);
     Task StartSpindleAsync();
     void SetSpindleStartBlocker(Func<(bool canStart, IEnumerable<string> absentSensors)> blocker);
-    void StopSpindle();
+    Task StopSpindleAsync();
     event EventHandler<SpindleEventArgs> OnSpindleStateChanging;
 }
