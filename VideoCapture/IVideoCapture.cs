@@ -34,6 +34,7 @@ namespace MachineClassLibrary.VideoCapture
         void InvokeSettings();
         void SetCameraMirror(bool mirrorX, bool mirrorY);
         float GetBlurIndex();
+        void UnFreezeCamera();
 
         event EventHandler<VideoCaptureEventArgs> OnBitmapChanged;
         event EventHandler CameraPlugged;

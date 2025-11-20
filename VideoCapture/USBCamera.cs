@@ -83,8 +83,16 @@ namespace MachineClassLibrary.VideoCapture
         public void FreezeCameraImage()
         {
             _localCamera.SignalToStop();
-            _localCamera.NewFrame -= HandleNewFrame;
             _freezeImage = true;
+            OnBitmapChanged?.Invoke(this, new VideoCaptureEventArgs(_bitmap, _errorMessage, _freezeImage));
+            _localCamera.NewFrame -= HandleNewFrame;
+        }
+
+        public void UnFreezeCamera()
+        {
+            _localCamera.Start();
+            _freezeImage = false;
+            _localCamera.NewFrame += HandleNewFrame;
         }
 
         public void StartCamera(int ind, int capabilitiesInd = 0)
@@ -138,7 +146,7 @@ namespace MachineClassLibrary.VideoCapture
             IsVideoCaptureConnected = false;
             _errorMessage = "Device has been switched off";
             HasHealthProblem(_errorMessage, null, this);
-            OnBitmapChanged?.Invoke(this, new VideoCaptureEventArgs(null, _errorMessage));
+            OnBitmapChanged?.Invoke(this, new VideoCaptureEventArgs(null, _errorMessage, _freezeImage));
         }
 
         public int GetVideoCapabilitiesCount() => _localCamera?.VideoCapabilities.Length ?? 0;
@@ -209,7 +217,7 @@ namespace MachineClassLibrary.VideoCapture
 
 
                 }
-                if (_bitmap is not null) OnBitmapChanged?.Invoke(this, new VideoCaptureEventArgs(_bitmap, _errorMessage));
+                if (_bitmap is not null) OnBitmapChanged?.Invoke(this, new VideoCaptureEventArgs(_bitmap, _errorMessage,_freezeImage));
             }
             catch (Exception)
             {

@@ -378,7 +378,7 @@ namespace MachineClassLibrary.Machine.Machines
         private void _videoCapture_OnBitmapChanged(object sender, VideoCaptureEventArgs eventArgs)
         {
             var image = _videoCapture.IsVideoCaptureConnected ? eventArgs.Image : null;
-            var args = new VideoCaptureEventArgs(image, _videoCapture.VideoCaptureMessage);
+            var args = new VideoCaptureEventArgs(image, _videoCapture.VideoCaptureMessage, eventArgs.ImageFreezed);
             OnBitmapChanged?.Invoke(this, args);
         }
 

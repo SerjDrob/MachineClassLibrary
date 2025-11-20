@@ -359,6 +359,7 @@ namespace MachineClassLibrary.Machine.Machines
         public void FreezeCameraImage()
         {
             _videoCamera.FreezeCameraImage();
+            IsCameraFreezed = true;
         }
 
         public void StopCamera()
@@ -551,7 +552,13 @@ namespace MachineClassLibrary.Machine.Machines
             GC.SuppressFinalize(this);
         }
 
-      
+        public void UnFreezeCamera()
+        {
+            _videoCamera.UnFreezeCamera();
+            IsCameraFreezed = false;
+        }
+
+        public bool IsCameraFreezed { get; private set; }
 
         //public void StartVideoCapture(int ind, int capabilitiesInd = 0)
         //{
