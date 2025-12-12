@@ -499,10 +499,10 @@ namespace MachineClassLibrary.Machine.Machines
                         Ax.U => 75,
                         _=>100
                     };
-                    Console.SetCursorPosition(gap, 20);
-                    Console.ForegroundColor = ConsoleColor.Cyan;
-                    Console.Write("{0} outs:{1,-3} sensors:{2,-3}", axis,state.outs,state.sensors);
-                    Console.ResetColor();
+                    //Console.SetCursorPosition(gap, 20);
+                    //Console.ForegroundColor = ConsoleColor.Cyan;
+                    //Console.Write("{0} outs:{1,-3} sensors:{2,-3}", axis,state.outs,state.sensors);
+                    //Console.ResetColor();
                     GetAxOutNIn(axis, state.outs, state.sensors);
                 }
             }

@@ -445,10 +445,10 @@ namespace MachineClassLibrary.Machine.Machines
                 {
                     var s = sensor.Value.bridged ? true : sensor.Value.invertion ^ (ins & (1 << ((int)sensor.Value.dIn))) != 0;
                     OnSensorStateChanged?.Invoke(this, new(sensor.Key, s));
-                    Console.ForegroundColor = ConsoleColor.Yellow;
-                    Console.SetCursorPosition(gap, 21 + line);
-                    Console.Write("{0}:{1}: {2,-5}",ax,sensor.Value.name,s);
-                    Console.ResetColor();
+                    //Console.ForegroundColor = ConsoleColor.Yellow;
+                    //Console.SetCursorPosition(gap, 21 + line);
+                    //Console.Write("{0}:{1}: {2,-5}",ax,sensor.Value.name,s);
+                    //Console.ResetColor();
                     line++;
                 }
             }

@@ -339,55 +339,55 @@ private async Task DeviceStateMonitorAsync()
                     }
                     catch (Exception ex)
                     {
-                        await Console.Error.WriteLineAsync(ex.Message).ConfigureAwait(false);
+                        //await Console.Error.WriteLineAsync(ex.Message).ConfigureAwait(false);
                     }
                 }
 
-                if (DateTime.Now - startTime >= TimeSpan.FromMilliseconds(50))
-                {
-                    var line = 0;
-                    var r = 0;
-                    Console.CursorVisible = false;
+                //if (DateTime.Now - startTime >= TimeSpan.FromMilliseconds(50))
+                //{
+                //    var line = 0;
+                //    var r = 0;
+                //    Console.CursorVisible = false;
 
-                    void writeIN(int state, int inNum)
-                    {
-                        Console.Write($"IN{inNum}:");
-                        r = getState(state, inNum);
-                        Console.ForegroundColor = r == 0 ? ConsoleColor.Green : ConsoleColor.Red;
-                        Console.Write($"{r}, ");
-                        Console.ForegroundColor = ConsoleColor.White;
-                    };
+                //    void writeIN(int state, int inNum)
+                //    {
+                //        Console.Write($"IN{inNum}:");
+                //        r = getState(state, inNum);
+                //        Console.ForegroundColor = r == 0 ? ConsoleColor.Green : ConsoleColor.Red;
+                //        Console.Write($"{r}, ");
+                //        Console.ForegroundColor = ConsoleColor.White;
+                //    };
 
-                    foreach (var item in axesStates)
-                    {
-                        Console.SetCursorPosition(0, line); line++;
-                        Console.WriteLine($"----------------------------------Axis{item.Key} --------------------------------------");
-                        Console.WriteLine();
-                        Console.SetCursorPosition(0, line); line++;
-                        var st = item.Value.clearIns;
-                        var bst = item.Value.bridgedIns;
-                        var vs = item.Value.outs;
-                        Console.SetCursorPosition(0, line); line++;
-                        Console.Write("ClearSensors: ");
-                        writeIN(st, 0);
-                        writeIN(st, 1);
-                        writeIN(st, 2);
-                        writeIN(st, 3);
-                        Console.SetCursorPosition(0, line); line++;
-                        Console.WriteLine("BridgeSensors: IN0:{0}, IN1:{1}, IN2:{2}, IN3:{3}", getState(bst, 0), getState(bst, 1), getState(bst, 2), getState(bst, 3));
-                        Console.SetCursorPosition(0, line); line++;
-                        Console.WriteLine("Valves: OUT4:{0}, OUT5:{1}, OUT6:{2}, OUT7:{3}", getState(vs, 4), getState(vs, 5), getState(vs, 6), getState(vs, 7));
-                    }
-                    startTime = DateTime.Now;
-                }
+                //    foreach (var item in axesStates)
+                //    {
+                //        Console.SetCursorPosition(0, line); line++;
+                //        Console.WriteLine($"----------------------------------Axis{item.Key} --------------------------------------");
+                //        Console.WriteLine();
+                //        Console.SetCursorPosition(0, line); line++;
+                //        var st = item.Value.clearIns;
+                //        var bst = item.Value.bridgedIns;
+                //        var vs = item.Value.outs;
+                //        Console.SetCursorPosition(0, line); line++;
+                //        Console.Write("ClearSensors: ");
+                //        writeIN(st, 0);
+                //        writeIN(st, 1);
+                //        writeIN(st, 2);
+                //        writeIN(st, 3);
+                //        Console.SetCursorPosition(0, line); line++;
+                //        Console.WriteLine("BridgeSensors: IN0:{0}, IN1:{1}, IN2:{2}, IN3:{3}", getState(bst, 0), getState(bst, 1), getState(bst, 2), getState(bst, 3));
+                //        Console.SetCursorPosition(0, line); line++;
+                //        Console.WriteLine("Valves: OUT4:{0}, OUT5:{1}, OUT6:{2}, OUT7:{3}", getState(vs, 4), getState(vs, 5), getState(vs, 6), getState(vs, 7));
+                //    }
+                //    startTime = DateTime.Now;
+                //}
                 await Task.Delay(1).ConfigureAwait(false);
             }
         }
         catch (Exception ex)
         {
-            Console.ForegroundColor = ConsoleColor.Red;
-            Console.WriteLine(ex.ToString());
-            Console.ResetColor();
+            //Console.ForegroundColor = ConsoleColor.Red;
+            //Console.WriteLine(ex.ToString());
+            //Console.ResetColor();
         }
     }
 
