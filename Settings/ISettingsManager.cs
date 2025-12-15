@@ -1,12 +1,11 @@
 ﻿using System;
 
-namespace MachineClassLibrary.Settings
+namespace MachineClassLibrary.Settings;
+
+public interface ISettingsManager<TSettings>: IObservable<TSettings>, IDisposable
 {
-    public interface ISettingsManager<TSettings>: IObservable<TSettings>, IDisposable
-    {
-        TSettings Settings { get; }
-        void Save();
-        void SetSettings(TSettings settings);
-        void Load();
-    }
+    TSettings Settings { get; }
+    void Save();
+    void SetSettings(TSettings settings);
+    void Load();
 }

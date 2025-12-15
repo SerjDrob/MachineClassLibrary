@@ -1,6 +1,6 @@
 ﻿namespace MachineClassLibrary.Machine.Machines;
 
-public class CommonMachineSettings
+public record CommonMachineSettings
 {
     public double? CameraScale { get; set; }
     public int? PreferredCameraCapabilities { get; set; }

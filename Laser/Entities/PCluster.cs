@@ -82,12 +82,17 @@ namespace MachineClassLibrary.Laser.Entities
 
         private PCluster GetTransformedCluster()
         {
-            var transformation = Matrix3x2.Identity;
-            var mirror = Matrix3x2.CreateScale(MirrorX ? -1 : 1, 1);
-            var scaling = Matrix3x2.CreateScale((float)Scaling);
-            var rotation = Matrix3x2.CreateRotation(Turn90 ? MathF.PI * 90 / 180 : 0);
-            transformation *= scaling * mirror * rotation;
-            var matrix = new Matrix(transformation);
+            //var transformation = Matrix3x2.Identity;
+            //var mirror = Matrix3x2.CreateScale(MirrorX ? -1 : 1, 1);
+            //var scaling = Matrix3x2.CreateScale((float)Scaling);
+            //var rotation = Matrix3x2.CreateRotation(Turn90 ? MathF.PI * 90 / 180 : 0);
+            //transformation *= scaling * mirror * rotation;
+            //var matrix = new Matrix(transformation);
+            var matrix = new Matrix();
+            var scaling = (float)Scaling;
+            matrix.Scale(MirrorX ? -scaling : scaling, scaling);
+            matrix.Rotate(Turn90 ? MathF.PI * 90 / 180 : 0);
+
 
             var transObjects = _procObjects.Select(p =>
             {

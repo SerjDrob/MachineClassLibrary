@@ -164,36 +164,61 @@ namespace MachineClassLibrary.Laser.Entities
 
         private Matrix GetCurrentTransformation()
         {
-            var transformation = Matrix3x2.Identity;
+            var matrix = new Matrix();
 
             if (_mirroredX)
             {
-                var mirror = Matrix3x2.CreateScale(-1, 1);
-                var translation = Matrix3x2.CreateTranslation((float)_size.x, 0);
-                transformation *= mirror * translation;
+                matrix.Scale(-1, 1);
+                matrix.Translate((float)_size.x, 0);
             }
             if (_mirroredY)
             {
-                var mirror = Matrix3x2.CreateScale(1, -1);
-                var translation = Matrix3x2.CreateTranslation(0, (float)_size.y);
-                transformation *= mirror * translation;
+                matrix.Scale(1, -1);
+                matrix.Translate(0, (float)_size.y);
             }
             if (_turned90)
             {
-                var rotation = Matrix3x2.CreateRotation(MathF.PI * 90 / 180);
-                var translation = Matrix3x2.CreateTranslation((float)_size.y, 0);
-                transformation *= rotation * translation;
+                matrix.Rotate(MathF.PI * 90 / 180);
+                matrix.Translate((float)_size.y, 0);
             }
-            var scaling = Matrix3x2.CreateScale(_scale);
-            transformation *= scaling;
+            matrix.Scale(_scale,_scale);
 
             if (_offsetX != 0 || _offsetY != 0)
             {
-                var translating = Matrix3x2.CreateTranslation(_offsetX, _offsetY);
-                transformation *= translating;
+                matrix.Translate(_offsetX, _offsetY);
             }
 
-            return new Matrix(transformation);
+            return matrix;
+            //var transformation = Matrix3x2.Identity;
+
+            //if (_mirroredX)
+            //{
+            //    var mirror = Matrix3x2.CreateScale(-1, 1);
+            //    var translation = Matrix3x2.CreateTranslation((float)_size.x, 0);
+            //    transformation *= mirror * translation;
+            //}
+            //if (_mirroredY)
+            //{
+            //    var mirror = Matrix3x2.CreateScale(1, -1);
+            //    var translation = Matrix3x2.CreateTranslation(0, (float)_size.y);
+            //    transformation *= mirror * translation;
+            //}
+            //if (_turned90)
+            //{
+            //    var rotation = Matrix3x2.CreateRotation(MathF.PI * 90 / 180);
+            //    var translation = Matrix3x2.CreateTranslation((float)_size.y, 0);
+            //    transformation *= rotation * translation;
+            //}
+            //var scaling = Matrix3x2.CreateScale(_scale);
+            //transformation *= scaling;
+
+            //if (_offsetX != 0 || _offsetY != 0)
+            //{
+            //    var translating = Matrix3x2.CreateTranslation(_offsetX, _offsetY);
+            //    transformation *= translating;
+            //}
+
+            //return new Matrix(transformation);
         }
 
         public IProcObject this[int index]

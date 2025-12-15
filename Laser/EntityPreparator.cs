@@ -120,8 +120,10 @@ namespace MachineClassLibrary.Laser
             var deltaX = onPosition ? 0 : pCurve.X;
             var deltaY = onPosition ? 0 : pCurve.Y;
             var vertices = new List<(double x, double y, double bulge)>(pCurve.PObject.Vertices);
-            var rotation = Matrix3x2.CreateRotation((float)_angle);
-            var matrix = new Matrix(rotation);
+            var matrix = new Matrix();
+            matrix.Rotate((float)_angle);
+            //var rotation = Matrix3x2.CreateRotation((float)_angle);
+            //var matrix = new Matrix(rotation);
             var points = vertices.Select(vertex => new PointF((float)(vertex.x + deltaX), (float)(vertex.y + deltaY))).ToArray();
             matrix.TransformPoints(points);
             var curve = new Curve(
@@ -133,8 +135,10 @@ namespace MachineClassLibrary.Laser
         private Circle RotatePCircle(PCircle pCircle, bool onPosition = true)
         {
             if (onPosition) return pCircle.PObject;
-            var rotation = Matrix3x2.CreateRotation((float)_angle);
-            var matrix = new Matrix(rotation);
+            //var rotation = Matrix3x2.CreateRotation((float)_angle);
+            //var matrix = new Matrix(rotation);
+            var matrix = new Matrix();
+            matrix.Rotate((float)_angle);
             var points = new PointF[] { new((float)pCircle.X, (float)pCircle.Y) };
             matrix.TransformPoints(points);
             return new Circle()
