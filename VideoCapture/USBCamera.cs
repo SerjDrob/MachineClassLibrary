@@ -82,17 +82,21 @@ public class USBCamera : WatchableDevice, /*PlugMeWatcher,*/ IVideoCapture
     }
     public void FreezeCameraImage()
     {
-      //  _localCamera.SignalToStop();
-        _freezeImage = true;
+        if (!_freezeImage)
+        {
+            _freezeImage = true;
+            _localCamera.NewFrame -= HandleNewFrame;
+        }
         OnBitmapChanged?.Invoke(this, new VideoCaptureEventArgs(_bitmap, _errorMessage, _freezeImage));
-        _localCamera.NewFrame -= HandleNewFrame;
     }
 
     public void UnFreezeCamera()
     {
-      //  _localCamera.Start();
-        _freezeImage = false;
-        _localCamera.NewFrame += HandleNewFrame;
+        if (_freezeImage)
+        {
+            _freezeImage = false;
+            _localCamera.NewFrame += HandleNewFrame;
+        }       
     }
 
     public void StartCamera(int ind, int capabilitiesInd = 0)

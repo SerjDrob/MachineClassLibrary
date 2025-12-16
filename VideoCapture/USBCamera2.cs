@@ -244,6 +244,7 @@ public class USBCamera2 : WatchableDevice, IVideoCapture // PlugMeWatcher
         var candidates = new[]
         {
         (1920, 1080, "MJPEG"),
+        (1520, 856, "MJPEG"),
         (1280, 720,  "MJPEG"),
         (1024, 768,  "MJPEG"),
         (640,  480,  "MJPEG"),
