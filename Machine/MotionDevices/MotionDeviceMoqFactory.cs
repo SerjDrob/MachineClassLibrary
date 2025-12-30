@@ -3,7 +3,6 @@ using System.Linq;
 using System.Text;
 using Advantech.Motion;
 using MachineClassLibrary.Classes;
-using Moq;
 
 namespace MachineClassLibrary.Machine.MotionDevices
 {

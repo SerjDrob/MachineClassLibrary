@@ -2,8 +2,6 @@
 using System.IO.Ports;
 using System.Threading;
 using System.Threading.Tasks;
-using EasyModbus.Exceptions;
-using Modbus.Device;
 
 namespace MachineClassLibrary.SFC;
 

@@ -1,22 +1,285 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.IO;
+using System.Reactive.Linq;
+using System.Reactive.Subjects;
+using Avalonia.Media.Imaging;
+using OpenCvSharp;
+using OpenCvSharp.Extensions;
+using MachineClassLibrary.Miscellaneous;
+using Microsoft.Toolkit.Diagnostics;
+
+namespace MachineClassLibrary.VideoCapture;
+
+public class USBCamera : WatchableDevice, IVideoCapture
+{
+    private OpenCvSharp.VideoCapture _localCamera;
+    private int _localCameraIndex;
+    private int _localCameraCapabilities;
+    private bool _isStarted = false;
+    private string _currentMonikerString = string.Empty;
+    private bool _freezeImage;
+    private Bitmap? _avaloniaBitmap;
+    private bool _mirrorX;
+    private bool _mirrorY;
+
+    public Dictionary<int, (string, string[])> AvailableVideoCaptureDevices { get; private set; }
+        = new Dictionary<int, (string Moniker, string[] Capabilities)>();
+
+    public bool IsVideoCaptureConnected { get; private set; } = false;
+    public string VideoCaptureMessage => _errorMessage;
+
+    private string _errorMessage = string.Empty;
+
+    private List<OpenCvSharp.VideoCapture> _videoCaptureDevices = new();
+
+    public event EventHandler<VideoCaptureEventArgs>? OnBitmapChanged;
+    public event EventHandler<Mat>? OnRawBitmapChanged; // Заменяет OnRawBitmapChanged
+    public event EventHandler? CameraPlugged;
+
+    public USBCamera()
+    {
+        _videoCaptureDevices = GetVideoCaptureDevices();
+    }
+
+    private List<OpenCvSharp.VideoCapture> GetVideoCaptureDevices()
+    {
+        var videoCaptureDevices = new List<OpenCvSharp.VideoCapture>();
+        AvailableVideoCaptureDevices.Clear();
+
+        // OpenCvSharp позволяет перебрать устройства через индексы
+        for (int i = 0; i < 10; i++) // Проверим первые 10 камер
+        {
+            var cap = new OpenCvSharp.VideoCapture(i);
+            if (cap.IsOpened())
+            {
+                var caps = GetVideoCapabilities(cap);
+                AvailableVideoCaptureDevices.Add(i, (i.ToString(), caps));
+                videoCaptureDevices.Add(cap);
+                cap.Release(); // Закрываем, т.к. будем открывать заново при старте
+            }
+            else
+            {
+                cap.Release();
+            }
+        }
+
+        return videoCaptureDevices;
+    }
+
+    private string[] GetVideoCapabilities(OpenCvSharp.VideoCapture cap)
+    {
+        // OpenCvSharp не предоставляет список разрешений напрямую
+        // Вместо этого, можно задать разрешение и проверить, сработает ли
+        var resolutions = new[]
+        {
+            (640, 480), (800, 600), (1280, 720), (1920, 1080)
+        };
+
+        var available = new List<string>();
+        foreach (var (w, h) in resolutions)
+        {
+            cap.Set(VideoCaptureProperties.FrameWidth, w);
+            cap.Set(VideoCaptureProperties.FrameHeight, h);
+            if (cap.IsOpened())
+            {
+                var actualW = cap.Get(VideoCaptureProperties.FrameWidth);
+                var actualH = cap.Get(VideoCaptureProperties.FrameHeight);
+                available.Add($"{(int)actualW} X {(int)actualH} {cap.Get(VideoCaptureProperties.Fps)}fps");
+            }
+        }
+
+        return available.ToArray();
+    }
+
+    public void FreezeCameraImage()
+    {
+        if (!_freezeImage)
+        {
+            _freezeImage = true;
+        }
+
+        OnBitmapChanged?.Invoke(this, new VideoCaptureEventArgs(_avaloniaBitmap, _errorMessage, _freezeImage));
+    }
+
+    public void UnFreezeCamera()
+    {
+        if (_freezeImage)
+        {
+            _freezeImage = false;
+        }
+    }
+
+    public void StartCamera(int ind, int capabilitiesInd = 0)
+    {
+        _freezeImage = false;
+        _isStarted = true;
+        _localCameraIndex = ind;
+        _localCameraCapabilities = capabilitiesInd;
+
+        try
+        {
+            Guard.IsGreaterThan(AvailableVideoCaptureDevices.Count, 0, nameof(AvailableVideoCaptureDevices.Count));
+        }
+        catch (ArgumentOutOfRangeException)
+        {
+            _errorMessage = "Device count is 0";
+            return;
+        }
+
+        Guard.IsInRange(ind, 0, AvailableVideoCaptureDevices.Count, nameof(ind));
+
+        try
+        {
+            Guard.IsInRange(capabilitiesInd, 0, AvailableVideoCaptureDevices[ind].Item2.Length, nameof(capabilitiesInd));
+        }
+        catch (ArgumentOutOfRangeException)
+        {
+            capabilitiesInd = 0;
+        }
+
+        _currentMonikerString = AvailableVideoCaptureDevices[ind].Item1;
+
+        // Открываем камеру
+        _localCamera = new OpenCvSharp.VideoCapture(ind);
+
+        if (_localCamera.IsOpened())
+        {
+            // Устанавливаем разрешение (если поддерживается)
+            var resolution = ParseResolution(AvailableVideoCaptureDevices[ind].Item2[capabilitiesInd]);
+            _localCamera.Set(VideoCaptureProperties.FrameWidth, resolution.Width);
+            _localCamera.Set(VideoCaptureProperties.FrameHeight, resolution.Height);
+
+            // Запускаем захват
+            _ = Observable.Interval(TimeSpan.FromMilliseconds(33)) // ~30 FPS
+                .Subscribe(_ => CaptureFrame());
+
+            DeviceOK(this);
+            IsVideoCaptureConnected = true;
+            _errorMessage = string.Empty;
+            _localCameraIndex = ind;
+            _localCameraCapabilities = capabilitiesInd;
+        }
+        else
+        {
+            throw new Exception("No device found");
+        }
+    }
+
+    private (int Width, int Height) ParseResolution(string cap)
+    {
+        var parts = cap.Split(' ');
+        var wh = parts[0].Split('X');
+        return (int.Parse(wh[0]), int.Parse(wh[1]));
+    }
+
+    private void CaptureFrame()
+    {
+        if (_freezeImage || _localCamera == null || !_localCamera.IsOpened())
+            return;
+
+        Mat frame = _localCamera.RetrieveMat();
+
+        if (frame.Empty())
+            return;
+
+        OnRawMatChanged?.Invoke(this, frame);
+
+        var processed = ProcessFrame(frame);
+        _avaloniaBitmap = ConvertMatToAvaloniaBitmap(processed);// processed.ToAvaloniaBitmap();
+
+        OnBitmapChanged?.Invoke(this, new VideoCaptureEventArgs(_avaloniaBitmap, _errorMessage, _freezeImage));
+
+        frame.Dispose();
+        processed.Dispose();
+    }
+    private Bitmap? ConvertMatToAvaloniaBitmap(Mat mat)
+    {
+        if (mat.Empty())
+            return null;
+        using var ms = mat.ToMemoryStream(ext:".png");
+        return new Bitmap(ms);
+    }
+    private Mat ProcessFrame(Mat input)
+    {
+        Mat output = input.Clone();
+
+        // Применяем зеркалирование
+        if (_mirrorX || _mirrorY)
+        {
+            var flipCode = _mirrorX && _mirrorY ? FlipMode.XY :
+                           _mirrorX ? FlipMode.X :
+                           FlipMode.Y;
+            Cv2.Flip(output, output, flipCode);
+        }
+
+        // Применяем контраст (заменяет ContrastCorrection)
+        Cv2.ConvertScaleAbs(output, output, alpha: 1.2, beta: 10); // Пример контраста
+
+        // Обрезка (если нужна)
+        if (AdjustWidthToHeight)
+        {
+            var width = output.Width;
+            var height = output.Height;
+            var x1 = (width - height) / 2;
+            var rect = new Rect(x1, 0, height, height);
+            output = new Mat(output, rect);
+        }
+
+        return output;
+    }
+
+    public void StopCamera()
+    {
+        _isStarted = false;
+        _localCamera?.Release();
+        _localCamera?.Dispose();
+        _localCamera = null;
+    }
+
+    public int GetVideoCapabilitiesCount() => AvailableVideoCaptureDevices.ContainsKey(_localCameraIndex) ?
+        AvailableVideoCaptureDevices[_localCameraIndex].Item2.Length : 0;
+
+    public int GetVideoCaptureDevicesCount() => AvailableVideoCaptureDevices.Count;
+
+    public bool AdjustWidthToHeight { get; set; }
+
+    public void SetCameraMirror(bool mirrorX, bool mirrorY) => (_mirrorX, _mirrorY) = (mirrorX, mirrorY);
+
+    public void InvokeSettings()
+    {
+        // OpenCvSharp не предоставляет UI-окно настроек
+        // Оставляем как заглушку
+    }
+
+    public override void CureDevice()
+    {
+        _videoCaptureDevices = GetVideoCaptureDevices();
+        StartCamera(_localCameraIndex, _localCameraCapabilities);
+    }
+
+    public override void AskHealth()
+    {
+        throw new NotImplementedException();
+    }
+}
+/*
+using System;
+using System.Collections.Generic;
 using System.Drawing;
 using System.Drawing.Imaging;
 using System.IO;
-using System.Threading.Tasks;
 using System.Windows.Media.Imaging;
 using AForge.Imaging.Filters;
 using AForge.Video;
 using AForge.Video.DirectShow;
-using MachineClassLibrary.Machine.Machines;
 using MachineClassLibrary.Miscellaneous;
 using Microsoft.Toolkit.Diagnostics;
-//using OpenCvSharp;
 
 
 namespace MachineClassLibrary.VideoCapture;
 
-public class USBCamera : WatchableDevice, /*PlugMeWatcher,*/ IVideoCapture
+public class USBCamera : WatchableDevice, IVideoCapture
 {
     private VideoCaptureDevice _localCamera;
     private int _localCameraIndex;
@@ -39,15 +302,9 @@ public class USBCamera : WatchableDevice, /*PlugMeWatcher,*/ IVideoCapture
     private bool _mirrorX;
     private bool _mirrorY;
 
-    public USBCamera() //: base("VID_AA47", "PID_1301")
+    public USBCamera() 
     {
         _videoCaptureDevices = GetVideoCaptureDevices();
-        //WaitAndPlugMe(() =>
-        //{
-        //    _videoCaptureDevices = GetVideoCaptureDevices();
-        //    //StartCamera(_localCameraIndex, _localCameraCapabilities);
-        //});
-        //DevicePlugged += USBCamera_DevicePlugged;
     }
 
     private void USBCamera_DevicePlugged(object sender, EventArgs e) => CameraPlugged?.Invoke(sender, e);
@@ -96,7 +353,7 @@ public class USBCamera : WatchableDevice, /*PlugMeWatcher,*/ IVideoCapture
         {
             _freezeImage = false;
             _localCamera.NewFrame += HandleNewFrame;
-        }       
+        }
     }
 
     public void StartCamera(int ind, int capabilitiesInd = 0)
@@ -128,7 +385,6 @@ public class USBCamera : WatchableDevice, /*PlugMeWatcher,*/ IVideoCapture
         if (!_localCamera.IsRunning)
         {
             _localCamera.VideoResolution = _localCamera.VideoCapabilities[capabilitiesInd];
-            //_localCamera.SetCameraProperty(CameraControlProperty.Exposure,100, CameraControlFlags.Manual);
             _localCamera.PlayingFinished += _localCamera_PlayingFinished;
             _localCamera.NewFrame += HandleNewFrame;
             _localCamera.Start();
@@ -221,47 +477,13 @@ public class USBCamera : WatchableDevice, /*PlugMeWatcher,*/ IVideoCapture
 
 
             }
-            if (_bitmap is not null) OnBitmapChanged?.Invoke(this, new VideoCaptureEventArgs(_bitmap, _errorMessage,_freezeImage));
+            if (_bitmap is not null) OnBitmapChanged?.Invoke(this, new VideoCaptureEventArgs(_bitmap, _errorMessage, _freezeImage));
         }
         catch (Exception)
         {
         }
 
-        //await Task.Delay(40).ConfigureAwait(false);
     }
-
-    public float GetBlurIndex()
-    {
-        throw new NotImplementedException();
-        //var src = OpenCvSharp.Extensions.BitmapConverter.ToMat(BitmapImage2Bitmap(_bitmap));
-        //return calcBlurriness(src);
-    }
-
-    private Bitmap BitmapImage2Bitmap(BitmapImage bitmapImage)
-    {
-        // BitmapImage bitmapImage = new BitmapImage(new Uri("../Images/test.png", UriKind.Relative));
-
-        using (MemoryStream outStream = new MemoryStream())
-        {
-            BitmapEncoder enc = new BmpBitmapEncoder();
-            enc.Frames.Add(BitmapFrame.Create(bitmapImage));
-            enc.Save(outStream);
-            System.Drawing.Bitmap bitmap = new System.Drawing.Bitmap(outStream);
-
-            return new Bitmap(bitmap);
-        }
-    }
-    //static float calcBlurriness(Mat src)
-    //{
-    //    Mat Gx = new Mat();
-    //    Mat Gy = new Mat();
-    //    Cv2.Sobel(src, Gx, MatType.CV_32F, 1, 0);
-    //    Cv2.Sobel(src, Gy, MatType.CV_32F, 0, 1);
-    //    double normGx = Cv2.Norm(Gx);
-    //    double normGy = Cv2.Norm(Gy);
-    //    double sumSq = normGx * normGx + normGy * normGy;
-    //    return (float)(1.0 / (sumSq / (src.Size().Height * src.Size().Width) + 1e-6));
-    //}
 
     public void InvokeSettings()
     {
@@ -279,3 +501,4 @@ public class USBCamera : WatchableDevice, /*PlugMeWatcher,*/ IVideoCapture
         throw new NotImplementedException();
     }
 }
+*/

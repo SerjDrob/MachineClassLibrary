@@ -1,4 +1,23 @@
 ﻿using System;
+using Avalonia.Media.Imaging;
+
+public class VideoCaptureEventArgs : EventArgs
+{
+    public Bitmap? Image { get; }
+    public string Message { get; }
+    public bool ImageFreezed { get; }
+
+    public VideoCaptureEventArgs(Bitmap? image, string message, bool imageFreezed)
+    {
+        Image = image;
+        Message = message;
+        ImageFreezed = imageFreezed;
+    }
+}
+
+
+/*
+using System;
 using System.Windows.Media.Imaging;
 
 namespace MachineClassLibrary.VideoCapture
@@ -17,3 +36,4 @@ namespace MachineClassLibrary.VideoCapture
         public bool ImageFreezed { get; init; }
     }
 }
+*/

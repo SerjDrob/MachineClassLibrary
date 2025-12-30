@@ -6,7 +6,6 @@ using System.Threading.Tasks;
 using Advantech.Motion;
 using MachineClassLibrary.Classes;
 using Microsoft.Toolkit.Diagnostics;
-using SharpDX;
 using AxState = Advantech.Motion.AxisState;
 
 namespace MachineClassLibrary.Machine.MotionDevices

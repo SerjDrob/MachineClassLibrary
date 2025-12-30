@@ -1,6 +1,7 @@
 ﻿using AForge.Imaging.Filters;
 using AForge.Video;
 using AForge.Video.DirectShow;
+using OpenCvSharp;
 using System;
 using System.Collections.Generic;
 using System.Drawing;
@@ -33,11 +34,10 @@ namespace MachineClassLibrary.VideoCapture
         int GetVideoCapabilitiesCount();
         void InvokeSettings();
         void SetCameraMirror(bool mirrorX, bool mirrorY);
-        float GetBlurIndex();
         void UnFreezeCamera();
 
         event EventHandler<VideoCaptureEventArgs> OnBitmapChanged;
         event EventHandler CameraPlugged;
-        event EventHandler<Bitmap> OnRawBitmapChanged;
+        event EventHandler<Mat> OnRawBitmapChanged;
     }
 }

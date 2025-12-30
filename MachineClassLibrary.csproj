@@ -1,7 +1,7 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
-    <TargetFramework>net6.0</TargetFramework>
+    <TargetFramework>net9.0</TargetFramework>
     <GeneratePackageOnBuild>False</GeneratePackageOnBuild>
     <Version>1.8.9</Version>
     <Description>
@@ -25,64 +25,39 @@
     <Compile Remove="Laser\Machine.cs" />
   </ItemGroup>
 
-  <!--<ItemGroup>
-    <Content Remove="C:\Users\Serj\.nuget\packages\clipper2\1.2.2\contentFiles\any\netstandard2.0\Clipper2.ico" />
-  </ItemGroup>-->
-
   <ItemGroup>
     <None Include="GeometryUtility\FirstCoorSystem.cs" />
     <None Include="Laser\Machine.cs" />
   </ItemGroup>
 
   <ItemGroup>
-    <PackageReference Include="Advanced.Algorithms" Version="1.0.0" />
-    <PackageReference Include="AForge" Version="2.2.5" />
     <PackageReference Include="AForge.Imaging" Version="2.2.5" />
-    <PackageReference Include="AForge.Video" Version="2.2.5" />
     <PackageReference Include="AForge.Video.DirectShow" Version="2.2.5" />
     <PackageReference Include="AutoMapper" Version="13.0.1" />
+    <PackageReference Include="Avalonia" Version="11.3.10" />
     <PackageReference Include="Clipper2" Version="1.4.0" />
     <PackageReference Include="ConfigureAwaitChecker.Analyzer" Version="5.0.0.1">
       <PrivateAssets>all</PrivateAssets>
       <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
     </PackageReference>
-    <PackageReference Include="EasyModbusTCP" Version="5.6.0" />
     <PackageReference Include="FluentModbus" Version="5.3.2" />
-    <PackageReference Include="FTD2XX_NET" Version="1.0.14" />
     <PackageReference Include="Humanizer.Core" Version="2.14.1" />
     <PackageReference Include="IxMilia.Dxf" Version="0.8.3" />
-    <PackageReference Include="MathNet.Numerics" Version="5.0.0" />
-    <PackageReference Include="Microsoft.Extensions.DependencyInjection" Version="8.0.0" />
-    <PackageReference Include="Microsoft.Maui.Graphics" Version="8.0.7" />
     <PackageReference Include="Microsoft.NETFramework.ReferenceAssemblies.net45" Version="1.0.3">
       <PrivateAssets>all</PrivateAssets>
       <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
     </PackageReference>
     <PackageReference Include="Microsoft.Toolkit.Diagnostics" Version="7.1.2" />
     <PackageReference Include="Microsoft.VisualStudio.Workspace" Version="16.3.43" />
-    <PackageReference Include="Moq" Version="4.20.70" />
-    <!--<PackageReference Include="netDXF" Version="2.2.0.1" />-->
     <PackageReference Include="netDxf.netstandard" Version="2.4.0" />
-    <PackageReference Include="NetTopologySuite" Version="2.5.0" />
     <PackageReference Include="Newtonsoft.Json" Version="13.0.3" />
-    <PackageReference Include="NModbus" Version="3.0.81" />
     <PackageReference Include="NModbus.Serial" Version="3.0.81" />
     <PackageReference Include="NModbus.SerialPortStream" Version="3.0.81" />
-    <PackageReference Include="NModbus4" Version="2.1.0" />
     <PackageReference Include="OpenCvSharp4" Version="4.11.0.20250507" />
     <PackageReference Include="OpenCvSharp4.Extensions" Version="4.11.0.20250507" />
-    <PackageReference Include="OpenCvSharp4.runtime.win" Version="4.11.0.20250507" />
-    <PackageReference Include="OpenCvSharp4.Windows" Version="4.11.0.20250507" />
-    <!--<PackageReference Include="OpenCvSharp4" Version="4.10.0.20240616" />
-    <PackageReference Include="OpenCvSharp4.Extensions" Version="4.10.0.20240616" />
-    <PackageReference Include="OpenCvSharp4.runtime.win" Version="4.10.0.20240616" />-->
     <PackageReference Include="propertychanged.fody" Version="4.1.0" />
-    <PackageReference Include="SharpDX.Direct2D1" Version="4.2.0" />
-    <PackageReference Include="System.Drawing.Common" Version="9.0.1" />
     <PackageReference Include="System.Management" Version="8.0.0" />
-    <PackageReference Include="System.Net.Http" Version="4.3.4" />
     <PackageReference Include="System.Reactive" Version="6.0.1" />
-    <PackageReference Include="System.Text.RegularExpressions" Version="4.3.1" />
   </ItemGroup>
 
   <ItemGroup>
