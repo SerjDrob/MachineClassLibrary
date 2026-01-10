@@ -5,6 +5,7 @@
         Blowing,
         Coolant,
         ChuckVacuum,
+        ChuckFixing,
         SpindleContact,
         Light,
         RedLight,

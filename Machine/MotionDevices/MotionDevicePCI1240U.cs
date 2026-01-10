@@ -877,6 +877,9 @@ PAR_AxVelLow<= PAR_AxVelHigh <= CFG_AxMaxVel | if Jerk = 1 (S-Curve)
         await Task.WhenAll(homings).ConfigureAwait(false);
     }
 
+    public void SetAxisCmdPos(int axisNum, double pos) => Motion.mAcm_AxSetCmdPosition(_mAxisHand[axisNum], pos);
+    public void SetAxisActPos(int axisNum, double pos) => Motion.mAcm_AxSetActualPosition(_mAxisHand[axisNum], pos);
+
     public async Task HomeMovingAsync((AxDir direction, HomeRst homeRst, HmMode homeMode, double velocity, int axisNum)[] axs)
     {
         ResetErrors();

@@ -58,5 +58,6 @@ namespace MachineClassLibrary.Machine
 
         void MotionDevInitialized();
         double GetAxCmd(Ax axis);
+        void SetAxisPosition(Ax axis, double position);
     }
 }

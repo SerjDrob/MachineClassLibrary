@@ -1193,6 +1193,10 @@ namespace MachineClassLibrary.Machine.MotionDevices
         {
             throw new NotImplementedException();
         }
+
+        public void SetAxisCmdPos(int axisNum, double pos) => Motion2.mAcm2_AxSetPosition(_axisLogicalIDList[axisNum].ID, POSITION_TYPE.POSITION_CMD, pos);
+
+        public void SetAxisActPos(int axisNum, double pos) => Motion2.mAcm2_AxSetPosition(_axisLogicalIDList[axisNum].ID, POSITION_TYPE.POSITION_ACT, pos);
     }
 
 

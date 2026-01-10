@@ -190,6 +190,11 @@ namespace MachineClassLibrary.Machine.Machines
                 _motionDevice.ResetErrors(_axes[axis].AxisNum);
         }
         
+        public void SetAxisPosition(Ax axis, double position)
+        {
+            _motionDevice.SetAxisCmdPos(_axes[axis].AxisNum, position);
+            _motionDevice.SetAxisActPos(_axes[axis].AxisNum, position);
+        }   
         public void SetGroupConfig(int gpNum, MotionDeviceConfigs configs)
         {
             _motionDevice.SetGroupConfig(gpNum, configs);

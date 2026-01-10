@@ -290,5 +290,15 @@ namespace MachineClassLibrary.Machine.MotionDevices
         public void ReSetAxisSwLmt(int axisNum)
         {
         }
+
+        public void SetAxisCmdPos(int axisNum, double pos)
+        {
+            throw new NotImplementedException();
+        }
+
+        public void SetAxisActPos(int axisNum, double pos)
+        {
+            throw new NotImplementedException();
+        }
     }
 }

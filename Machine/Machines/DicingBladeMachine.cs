@@ -8,6 +8,7 @@ using MachineClassLibrary.Classes;
 using MachineClassLibrary.Machine.MotionDevices;
 using MachineClassLibrary.SFC;
 using MachineClassLibrary.VideoCapture;
+using OpenCvSharp;
 
 namespace MachineClassLibrary.Machine.Machines
 {
@@ -27,6 +28,7 @@ namespace MachineClassLibrary.Machine.Machines
         {
             _videoCamera = usbVideoCamera;
             _videoCamera.OnBitmapChanged += _videoCamera_OnBitmapChanged;
+            
             try
             {
                 // TODO use IoC

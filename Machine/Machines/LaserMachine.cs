@@ -172,24 +172,24 @@ namespace MachineClassLibrary.Machine.Machines
 
         private void _videoCapture_CameraPlugged(object sender, EventArgs e) => CameraPlugged?.Invoke(sender, e);
 
-        public async Task<bool> FindCameraFocusAsync(CancellationToken token, float startIndex = 1)
-        {
-            if (token.IsCancellationRequested) return true;
-            var currentIndex = _videoCapture.GetBlurIndex();
-            if (startIndex > currentIndex)
-            {
-                await MoveAxRelativeAsync(Ax.Z, -0.2);
-                await Task.Delay(100);
-            }
-            else
-            {
-                await MoveAxRelativeAsync(Ax.Z, 0.2);
-                await Task.Delay(100);
-            }
-            currentIndex = _videoCapture.GetBlurIndex();
-            await FindCameraFocusAsync(token, currentIndex);
-            return true;
-        }
+        //public async Task<bool> FindCameraFocusAsync(CancellationToken token, float startIndex = 1)
+        //{
+        //    if (token.IsCancellationRequested) return true;
+        //    var currentIndex = _videoCapture.GetBlurIndex();
+        //    if (startIndex > currentIndex)
+        //    {
+        //        await MoveAxRelativeAsync(Ax.Z, -0.2);
+        //        await Task.Delay(100);
+        //    }
+        //    else
+        //    {
+        //        await MoveAxRelativeAsync(Ax.Z, 0.2);
+        //        await Task.Delay(100);
+        //    }
+        //    currentIndex = _videoCapture.GetBlurIndex();
+        //    await FindCameraFocusAsync(token, currentIndex);
+        //    return true;
+        //}
 
         public void ConfigureGeometry(Dictionary<LMPlace, (Ax, double)[]> places)
         {
@@ -377,9 +377,9 @@ namespace MachineClassLibrary.Machine.Machines
         }
         private void _videoCapture_OnBitmapChanged(object sender, VideoCaptureEventArgs eventArgs)
         {
-            var image = _videoCapture.IsVideoCaptureConnected ? eventArgs.Image : null;
-            var args = new VideoCaptureEventArgs(image, _videoCapture.VideoCaptureMessage, eventArgs.ImageFreezed);
-            OnBitmapChanged?.Invoke(this, args);
+            //var image = _videoCapture.IsVideoCaptureConnected ? eventArgs.Image : null;
+            //var args = new VideoCaptureEventArgs(image, _videoCapture.VideoCaptureMessage, eventArgs.ImageFreezed);
+            //OnBitmapChanged?.Invoke(this, args);
         }
 
         public bool IsMarkDeviceInit => _markLaser.IsMarkDeviceInit;
