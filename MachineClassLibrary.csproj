@@ -9,6 +9,7 @@
     </Description>
     <LangVersion>preview</LangVersion>
     <Platforms>AnyCPU;x86</Platforms>
+    <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
 
     <!--<ApplicationIcon />-->
     <OutputType>Library</OutputType>
@@ -31,8 +32,8 @@
   </ItemGroup>
 
   <ItemGroup>
-    <PackageReference Include="AForge.Imaging" Version="2.2.5" />
-    <PackageReference Include="AForge.Video.DirectShow" Version="2.2.5" />
+    <!--<PackageReference Include="AForge.Imaging" Version="2.2.5" />
+    <PackageReference Include="AForge.Video.DirectShow" Version="2.2.5" />-->
     <PackageReference Include="AutoMapper" Version="13.0.1" />
     <PackageReference Include="Avalonia" Version="11.3.10" />
     <PackageReference Include="Clipper2" Version="1.4.0" />
@@ -54,7 +55,6 @@
     <PackageReference Include="NModbus.Serial" Version="3.0.81" />
     <PackageReference Include="NModbus.SerialPortStream" Version="3.0.81" />
     <PackageReference Include="OpenCvSharp4" Version="4.11.0.20250507" />
-    <PackageReference Include="OpenCvSharp4.Extensions" Version="4.11.0.20250507" />
     <PackageReference Include="propertychanged.fody" Version="4.1.0" />
     <PackageReference Include="System.Management" Version="8.0.0" />
     <PackageReference Include="System.Reactive" Version="6.0.1" />
