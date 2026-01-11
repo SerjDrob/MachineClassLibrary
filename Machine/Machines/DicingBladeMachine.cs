@@ -4,11 +4,12 @@ using System.Drawing;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
+using System.Windows.Media.Media3D;
+using AForge.Video.DirectShow;
 using MachineClassLibrary.Classes;
 using MachineClassLibrary.Machine.MotionDevices;
 using MachineClassLibrary.SFC;
 using MachineClassLibrary.VideoCapture;
-using OpenCvSharp;
 
 namespace MachineClassLibrary.Machine.Machines
 {
@@ -28,7 +29,7 @@ namespace MachineClassLibrary.Machine.Machines
         {
             _videoCamera = usbVideoCamera;
             _videoCamera.OnBitmapChanged += _videoCamera_OnBitmapChanged;
-            
+
             try
             {
                 // TODO use IoC
@@ -254,7 +255,7 @@ namespace MachineClassLibrary.Machine.Machines
         public void SetBridgeOnSensors(Sensors sensor, bool setBridge)
         {
             var s = _sensors[sensor];
-            _sensors[sensor]= (s.axis,s.dIn,s.invertion,s.name,setBridge);
+            _sensors[sensor] = (s.axis, s.dIn, s.invertion, s.name, setBridge);
             //var num = _axes[_sensors[sensor].axis].AxisNum;
             //_motionDevice.SetBridgeOnAxisDin(num, (int)_sensors[sensor].dIn, setBridge);
         }
@@ -311,7 +312,7 @@ namespace MachineClassLibrary.Machine.Machines
             }
         }
 
-        private Func<(bool canStart,IEnumerable<string> absentSensors)> _canStartSpindlePredicate = () => (true,[]);
+        private Func<(bool canStart, IEnumerable<string> absentSensors)> _canStartSpindlePredicate = () => (true, []);
         private bool _emgIsSet;
 
         public void SetSpindleStartBlocker(Func<(bool canStart, IEnumerable<string> absentSensors)> blocker)
@@ -322,7 +323,7 @@ namespace MachineClassLibrary.Machine.Machines
         public async Task StartSpindleAsync()
         {
             var result = _canStartSpindlePredicate.Invoke();
-            if(!result.canStart) throw new MachineException($"Отсутствует: {string.Join(", ", result.absentSensors)}.");
+            if (!result.canStart) throw new MachineException($"Отсутствует: {string.Join(", ", result.absentSensors)}.");
             try
             {
                 await _spindle.StartAsync().ConfigureAwait(false);
@@ -356,6 +357,12 @@ namespace MachineClassLibrary.Machine.Machines
         public void StartCamera(int ind, int capabilitiesInd = 0)
         {
             _videoCamera.StartCamera(ind, capabilitiesInd);
+            if (_videoCamera is ICameraPropertyControlEx ex &&
+                    ex.TryGetDescriptor(CameraProperty.Contrast, out var desc))
+            {
+                
+            }
+
         }
 
         public void FreezeCameraImage()
@@ -368,7 +375,7 @@ namespace MachineClassLibrary.Machine.Machines
         {
             _videoCamera.StopCamera();
         }
-       
+
 
         /// <summary>
         /// Scan from current position both direction. After cancelling return to the position.
@@ -442,7 +449,7 @@ namespace MachineClassLibrary.Machine.Machines
             };
             var line = 0;
             foreach (var sensor in _sensors)
-            {            
+            {
                 if (sensor.Value.axis == ax)
                 {
                     var s = sensor.Value.bridged ? true : sensor.Value.invertion ^ (ins & (1 << ((int)sensor.Value.dIn))) != 0;
@@ -461,7 +468,16 @@ namespace MachineClassLibrary.Machine.Machines
             _motionDevice.ResetEMG_Regime();
             _emgIsSet = false;
         }
-        public void InvokeSettings() => _videoCamera.InvokeSettings();
+        public void InvokeSettings()
+        {
+            if (OperatingSystem.IsWindows() && _videoCamera is USBCamera usb)
+            {
+                usb.AttachNativeSettings(
+                    new DirectShowCameraNativeSettings(
+                        DirectShowHelper.CreateDirectShowDevice(usb.GetCurrentDeviceIndex())));
+                usb.TryShowNativeSettings(IntPtr.Zero);
+            }
+        }
 
         public bool TryConnectSpindle()
         {

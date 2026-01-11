@@ -1,17 +1,11 @@
 ﻿using System;
-using System.Data;
-using System.IO.Ports;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.Extensions.Logging;
 using NModbus;
-//using Modbus.Device;
-
-//using Modbus.Device;
 using NModbus.Serial;
 using NModbus.SerialPortStream;
 using RJCP.IO.Ports;
-using static System.Windows.Forms.VisualStyles.VisualStyleElement;
 
 
 namespace MachineClassLibrary.SFC;
@@ -117,8 +111,8 @@ public abstract class SpindleBase<T> : ISpindle, IDisposable
 
     public async Task<bool> ChangeSpeedAsync(ushort rpm, TimeSpan delay)
     {
-        if(_connectionState==ConnectionState.Connected)
-        await _semaphoreSlim.WaitAsync(/*TimeSpan.FromMilliseconds(300)*/).ConfigureAwait(false);
+        if (_connectionState == ConnectionState.Connected)
+            await _semaphoreSlim.WaitAsync(/*TimeSpan.FromMilliseconds(300)*/).ConfigureAwait(false);
         try
         {
             _logger.LogInformation($"Spindle. Under Semaphore. before getting current frequency");
@@ -335,7 +329,7 @@ public abstract class SpindleBase<T> : ISpindle, IDisposable
 
     private async Task<bool> CheckSpindleWorkingAsync()
     {
-        if (_connectionState != ConnectionState.Connected) return false;    
+        if (_connectionState != ConnectionState.Connected) return false;
         await _semaphoreSlim.WaitAsync(/*TimeSpan.FromMilliseconds(300)*/).ConfigureAwait(false);
         if (_client == null)
         {
@@ -385,7 +379,7 @@ public abstract class SpindleBase<T> : ISpindle, IDisposable
     {
         _logger.LogInformation("Attempting to open serial port: {PortName}", _serialPortSettings.PortName);
         // Закрываем старое соединение (если было)
-        if(_serialPortStream?.IsDisposed ??  false) _serialPortStream = null;
+        if (_serialPortStream?.IsDisposed ?? false) _serialPortStream = null;
         if (_serialPortStream?.IsOpen ?? false)
         {
             _serialPortStream.Close();
@@ -393,7 +387,7 @@ public abstract class SpindleBase<T> : ISpindle, IDisposable
             _serialPortStream = null;
         }
         var factory = new ModbusFactory();
-        var parity = ToRJCPParity(_serialPortSettings.Parity); 
+        var parity = ToRJCPParity(_serialPortSettings.Parity);
         var stopbits = ToRJCPStopBits(_serialPortSettings.StopBits);
         _serialPortStream = new SerialPortStream
                 (_serialPortSettings.PortName, _serialPortSettings.BaudRate, _serialPortSettings.DataBits, parity, stopbits);
