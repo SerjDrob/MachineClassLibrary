@@ -4,8 +4,6 @@ using System.Drawing;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
-using System.Windows.Media.Media3D;
-using AForge.Video.DirectShow;
 using MachineClassLibrary.Classes;
 using MachineClassLibrary.Machine.MotionDevices;
 using MachineClassLibrary.SFC;
@@ -360,7 +358,7 @@ namespace MachineClassLibrary.Machine.Machines
             if (_videoCamera is ICameraPropertyControlEx ex &&
                     ex.TryGetDescriptor(CameraProperty.Contrast, out var desc))
             {
-                
+
             }
 
         }

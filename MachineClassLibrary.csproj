@@ -35,7 +35,7 @@
     <!--<PackageReference Include="AForge.Imaging" Version="2.2.5" />
     <PackageReference Include="AForge.Video.DirectShow" Version="2.2.5" />-->
     <PackageReference Include="AForge.Video.DirectShow" Version="2.2.5" />
-    <PackageReference Include="AutoMapper" Version="13.0.1" />
+    <PackageReference Include="AutoMapper" Version="16.0.0" />
     <PackageReference Include="Avalonia" Version="11.3.10" />
     <PackageReference Include="Clipper2" Version="1.4.0" />
     <PackageReference Include="ConfigureAwaitChecker.Analyzer" Version="5.0.0.1">
@@ -73,6 +73,11 @@
     <Reference Include="AdvMotAPI">
       <HintPath>..\..\..\..\..\Program Files (x86)\Advantech\Common Motion\Public\AdvMotAPI.dll</HintPath>
     </Reference>
+  </ItemGroup>
+
+  <ItemGroup>
+    <Folder Include="Laser\Entities\" />
+    <Folder Include="Laser\Markers\" />
   </ItemGroup>
 
 </Project>
