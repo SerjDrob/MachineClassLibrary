@@ -1,14 +1,13 @@
-﻿namespace MachineClassLibrary.Classes
+﻿namespace MachineClassLibrary.Classes;
+
+public enum LMPlace
 {
-    public enum LMPlace
-    {
-        Home,
-        Loading,
-        LeftCorner,
-        RightCorner,
-        UnderCamera,
-        UnderLaser,
-        FileOnWaferUnderCamera,
-        FileOnWaferUnderLaser
-    }
+    Home,
+    Loading,
+    LeftCorner,
+    RightCorner,
+    UnderCamera,
+    UnderLaser,
+    FileOnWaferUnderCamera,
+    FileOnWaferUnderLaser
 }

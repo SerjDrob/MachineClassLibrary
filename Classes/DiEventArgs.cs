@@ -1,8 +1,5 @@
-﻿using MachineClassLibrary.Classes;
+﻿namespace MachineClassLibrary.Classes;
 
-namespace MachineClassLibrary.Classes
+public struct DiEventArgs
 {
-    public struct DiEventArgs
-    {
-    }
 }
