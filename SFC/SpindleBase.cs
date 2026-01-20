@@ -115,16 +115,16 @@ public abstract class SpindleBase<T> : ISpindle, IDisposable
             await _semaphoreSlim.WaitAsync(/*TimeSpan.FromMilliseconds(300)*/).ConfigureAwait(false);
         try
         {
-            _logger.LogInformation($"Spindle. Under Semaphore. before getting current frequency");
+            //_logger.LogInformation($"Spindle. Under Semaphore. before getting current frequency");
             var f = await GetFrequencyAsync().ConfigureAwait(false);
-            _logger.LogInformation($"Spindle. Under Semaphore. Current frequency is {f}, current rpm is {rpm} ");
+            //_logger.LogInformation($"Spindle. Under Semaphore. Current frequency is {f}, current rpm is {rpm} ");
             if (Math.Abs(rpm - f * 6) < 20)
             {
-                _logger.LogInformation($"Spindle. Is about to quit with true. Speed difference: {Math.Abs(rpm - f * 6)}");
+                //_logger.LogInformation($"Spindle. Is about to quit with true. Speed difference: {Math.Abs(rpm - f * 6)}");
                 return true;
             }
             await CalculateAndSetSpeedAsync(rpm).ConfigureAwait(false);
-            _logger.LogInformation("Spindle. after setting speed");
+            //_logger.LogInformation("Spindle. after setting speed");
             if (!_hasStarted)
             {
                 await ClearStartAsync().ConfigureAwait(false);

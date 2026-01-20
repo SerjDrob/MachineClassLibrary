@@ -35,7 +35,6 @@
     <!--<PackageReference Include="AForge.Imaging" Version="2.2.5" />
     <PackageReference Include="AForge.Video.DirectShow" Version="2.2.5" />-->
     <PackageReference Include="AForge.Video.DirectShow" Version="2.2.5" />
-    <PackageReference Include="AutoMapper" Version="16.0.0" />
     <PackageReference Include="Avalonia" Version="11.3.10" />
     <PackageReference Include="Clipper2" Version="1.4.0" />
     <PackageReference Include="ConfigureAwaitChecker.Analyzer" Version="5.0.0.1">
@@ -45,6 +44,7 @@
     <PackageReference Include="FluentModbus" Version="5.3.2" />
     <PackageReference Include="Humanizer.Core" Version="2.14.1" />
     <PackageReference Include="IxMilia.Dxf" Version="0.8.3" />
+    <PackageReference Include="Microsoft.Extensions.DependencyInjection" Version="9.0.12" />
     <PackageReference Include="Microsoft.NETFramework.ReferenceAssemblies.net45" Version="1.0.3">
       <PrivateAssets>all</PrivateAssets>
       <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
@@ -73,11 +73,6 @@
     <Reference Include="AdvMotAPI">
       <HintPath>..\..\..\..\..\Program Files (x86)\Advantech\Common Motion\Public\AdvMotAPI.dll</HintPath>
     </Reference>
-  </ItemGroup>
-
-  <ItemGroup>
-    <Folder Include="Laser\Entities\" />
-    <Folder Include="Laser\Markers\" />
   </ItemGroup>
 
 </Project>
