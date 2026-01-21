@@ -392,8 +392,8 @@ namespace MachineClassLibrary.Machine.Machines
             SetAxFeedSpeed(ax, speed);
             while (!cancellationToken.IsCancellationRequested)
             {
-                if (!cancellationToken.IsCancellationRequested) await MoveAxInPosAsync(Ax.X, initPosition + amplitude / 2).ConfigureAwait(false);
-                if (!cancellationToken.IsCancellationRequested) await MoveAxInPosAsync(Ax.X, initPosition - amplitude / 2).ConfigureAwait(false);
+                await MoveAxInPosAsync(ax, initPosition + amplitude / 2,cancellationToken: cancellationToken).ConfigureAwait(false);
+                await MoveAxInPosAsync(ax, initPosition - amplitude / 2, cancellationToken: cancellationToken).ConfigureAwait(false);
             }
             await MoveAxInPosAsync(ax, initPosition).ConfigureAwait(false);
             _exceptedVelAxis = null;
