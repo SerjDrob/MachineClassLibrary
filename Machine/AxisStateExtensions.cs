@@ -15,7 +15,8 @@
             newVal,
             state.vhEnd,
             state.ez,
-            state.org
+            state.org,
+            state.emg
         );
         public static AxisState AlterVHEnd(this AxisState state, bool newVal) => new AxisState
         (
@@ -30,7 +31,8 @@
             state.vhStart,
             newVal,
             state.ez, 
-            state.org
+            state.org,
+            state.emg
         );
         public static AxisState AlterMotDone(this AxisState state, bool newVal)
         {
@@ -47,7 +49,8 @@
             state.vhStart,
             state.vhEnd,
             state.ez,
-            state.org
+            state.org, 
+            state.emg
         );
         }
     }
