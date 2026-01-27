@@ -2,7 +2,7 @@
 
 namespace MachineClassLibrary.Settings;
 
-public interface ISettingsManager<TSettings>: IObservable<TSettings>, IDisposable
+public interface ISettingsManager<TSettings>: IObservable<TSettings>, IDisposable  
 {
     TSettings Settings { get; }
     void Save();

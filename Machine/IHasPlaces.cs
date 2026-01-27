@@ -12,9 +12,11 @@ namespace MachineClassLibrary.Machine
     {
         public double GetGeometry(TPlace place, int arrNum);
         public double GetGeometry(TPlace place, Ax axis);
+
         public Task GoThereAsync(TPlace place, bool precisely = false);
         public Task MoveGpInPlaceAsync(Groups group, TPlace place, bool precisely = false);
         public Task MoveAxesInPlaceAsync(TPlace place);
+
         public (Ax, double)[] TranslateActualCoors(TPlace place);
         public double TranslateActualCoors(TPlace place, Ax axis);
         public (Ax, double)[] TranslateActualCoors(TPlace place, (Ax axis, double pos)[] position);
