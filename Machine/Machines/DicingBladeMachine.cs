@@ -737,7 +737,7 @@ public class SubstituteMachine : IHasMotionPlaces
 
     public void SetPrecision(double tolerance) => throw new NotImplementedException();
 
-    public Velocity SetVelocity(Velocity velocity) => throw new NotImplementedException();
+    public Velocity SetVelocity(Velocity velocity, params Ax[] setOnlyAxes) => throw new NotImplementedException();
 
     public void StartMonitoringState() => throw new NotImplementedException();
 
