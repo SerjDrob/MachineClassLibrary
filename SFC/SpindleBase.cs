@@ -22,12 +22,12 @@ public abstract class SpindleBase<T> : ISpindle, IDisposable
     /// <summary>
     ///     300 Hz = 18000 rpm
     /// </summary>
-    public const ushort LOW_FREQ_LIMIT = 3000;
+    public const ushort LOW_FREQ_LIMIT = 1000;//3000;
 
     /// <summary>
     ///     550 Hz = 33000 rpm
     /// </summary>
-    public const ushort HIGH_FREQ_LIMIT = 5500;
+    public const ushort HIGH_FREQ_LIMIT = 8340;//5500;
 
     private readonly SerialPortSettings _serialPortSettings;
     protected readonly ILogger<T> _logger;
