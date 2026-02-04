@@ -77,8 +77,8 @@ public class DicingBladeMachine : PCI124XXMachine, IHasCamera, IHasSCF, IHasValv
     }
     public async Task GoThereAsync(Place place, bool precisely = false)
     {
-        if (place != Place.Home)
-        {
+        //if (place != Place.Home)
+        //{
             if (precisely)
             {
                 var ax = new (int, double, double)[_places[place].Length];
@@ -101,20 +101,20 @@ public class DicingBladeMachine : PCI124XXMachine, IHasCamera, IHasSCF, IHasValv
 
                 await _motionDevice.MoveAxesByCoorsAsync(ax).ConfigureAwait(false);//TODO it's not realy async
             }
-        }
-        else
-        {
-            var arr = new (int, double, uint)[]
-            {
-                (_axes[Ax.X].AxisNum, _velRegimes[Ax.X][Velocity.Service], 1),
-                (_axes[Ax.Y].AxisNum, _velRegimes[Ax.Y][Velocity.Service], 5),
-                (_axes[Ax.Z].AxisNum, _velRegimes[Ax.Z][Velocity.Service], 1)
-            };
-            var axArr = new[] { Ax.X, Ax.Z };
-            await _motionDevice.HomeMovingAsync(arr).ConfigureAwait(false);
-            foreach (var axis in axArr) _motionDevice.ResetAxisCounter(_axes[axis].AxisNum);
-            _motionDevice.ResetAxisCounter(_axes[Ax.U].AxisNum);
-        }
+       // }
+        //else
+        //{
+        //    var arr = new (int, double, uint)[]
+        //    {
+        //        (_axes[Ax.X].AxisNum, _velRegimes[Ax.X][Velocity.Service], 1),
+        //        (_axes[Ax.Y].AxisNum, _velRegimes[Ax.Y][Velocity.Service], 5),
+        //        (_axes[Ax.Z].AxisNum, _velRegimes[Ax.Z][Velocity.Service], 1)
+        //    };
+        //    var axArr = new[] { Ax.X, Ax.Z };
+        //    await _motionDevice.HomeMovingAsync(arr).ConfigureAwait(false);
+        //    foreach (var axis in axArr) _motionDevice.ResetAxisCounter(_axes[axis].AxisNum);
+        //    _motionDevice.ResetAxisCounter(_axes[Ax.U].AxisNum);
+        //}
     }
     public async Task MoveGpInPlaceAsync(Groups group, Place place, bool precisely = false)
     {
