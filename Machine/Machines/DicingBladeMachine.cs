@@ -55,13 +55,6 @@ public class DicingBladeMachine : PCI124XXMachine, IHasCamera, IHasSCF, IHasValv
     public event EventHandler<bool> OnEMG_Pushed;
     public event EventHandler<Velocity> OnVelocityBeenChanged;
 
-
-    /// <summary>
-    /// use inside using statement after disposing it retuns old velocity
-    /// </summary>
-    /// <returns>VelocityScope</returns>
-    public VelocityScope ServiceVelScope() => new VelocityScope(this,Velocity.Service);
-
     public void ConfigureGeometry(Dictionary<Place, (Ax, double)[]> places)
     {
         if (_places is not null)
@@ -582,23 +575,7 @@ public class DicingBladeMachine : PCI124XXMachine, IHasCamera, IHasSCF, IHasValv
     public bool IsCameraFreezed { get; private set; }
 
 }
-public sealed class VelocityScope : IDisposable
-{
-    private readonly PCI124XXMachine _machine;
-    private readonly Velocity _oldVel;
 
-    public VelocityScope(PCI124XXMachine machine, Velocity newVel)
-    {
-        _machine = machine;
-        _oldVel = _machine.VelocityRegime;
-        _machine.SetVelocity(newVel);
-    }
-
-    public void Dispose()
-    {
-        _machine.SetVelocity(_oldVel);
-    }
-}
 public interface IHasMotionPlaces : IHasMotion, IHasPlaces<Place>;
 
 public class SubstituteMachine : IHasMotionPlaces
