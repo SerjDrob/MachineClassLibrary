@@ -314,6 +314,8 @@ public class DicingBladeMachine : PCI124XXMachine, IHasCamera, IHasSCF, IHasValv
     private Func<(bool canStart, IEnumerable<string> absentSensors)> _canStartSpindlePredicate = () => (true, []);
     private bool _emgIsSet;
 
+    public bool EMG_PUSHED { get => _emgIsSet; }
+
     public void SetSpindleStartBlocker(Func<(bool canStart, IEnumerable<string> absentSensors)> blocker)
     {
         _canStartSpindlePredicate = blocker;
@@ -415,6 +417,7 @@ public class DicingBladeMachine : PCI124XXMachine, IHasCamera, IHasSCF, IHasValv
     }
     public void SetEMG_In(Ax axis, Di di, bool isInverted) => _emg = (axis, di, isInverted);
 
+
     protected override void GetAxOutNIn(Ax ax, int outs, int ins)
     {
         if (ax == _emg.axis)
@@ -422,10 +425,14 @@ public class DicingBladeMachine : PCI124XXMachine, IHasCamera, IHasSCF, IHasValv
             var emg_set = _emg.isInverted ^ ((ins & (1 << ((int)_emg.di))) != 0);
             if (emg_set && !_emgIsSet)
             {
+                _emgIsSet = true;
                 EmgScenario();
                 _ = _spindle.StopAsync();
-                _emgIsSet = true;
                 OnEMG_Pushed?.Invoke(this, emg_set);
+            }
+            else if(emg_set && _emgIsSet)
+            {
+                _emgIsSet = false;
             }
         }
         if (_valves is null) return;
