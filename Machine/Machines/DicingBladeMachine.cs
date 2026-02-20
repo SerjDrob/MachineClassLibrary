@@ -52,7 +52,7 @@ public class DicingBladeMachine : PCI124XXMachine, IHasCamera, IHasSCF, IHasValv
     public event EventHandler<VideoCaptureEventArgs> OnBitmapChanged;
     public event EventHandler CameraPlugged;
     public event EventHandler<Bitmap> OnRawBitmapChanged;
-    public event EventHandler<bool> OnEMG_Pushed;
+    public event EventHandler OnEMG_Pushed;
     public event EventHandler<Velocity> OnVelocityBeenChanged;
 
     public void ConfigureGeometry(Dictionary<Place, (Ax, double)[]> places)
@@ -428,11 +428,7 @@ public class DicingBladeMachine : PCI124XXMachine, IHasCamera, IHasSCF, IHasValv
                 _emgIsSet = true;
                 EmgScenario();
                 _ = _spindle.StopAsync();
-                OnEMG_Pushed?.Invoke(this, emg_set);
-            }
-            else if(emg_set && _emgIsSet)
-            {
-                _emgIsSet = false;
+                OnEMG_Pushed?.Invoke(null,null);
             }
         }
         if (_valves is null) return;

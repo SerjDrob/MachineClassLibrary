@@ -1,6 +1,6 @@
-﻿namespace MachineClassLibrary.Miscellaneous;
+﻿//namespace MachineClassLibrary.Miscellaneous;
 
-internal static class ProcObjectExtensions
-{
+//internal static class ProcObjectExtensions
+//{
 
-}
+//}
