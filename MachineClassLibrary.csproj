@@ -48,7 +48,6 @@
     <PackageReference Include="Newtonsoft.Json" Version="13.0.3" />
     <PackageReference Include="NModbus.Serial" Version="3.0.81" />
     <PackageReference Include="NModbus.SerialPortStream" Version="3.0.81" />
-    <PackageReference Include="propertychanged.fody" Version="4.1.0" />
     <PackageReference Include="System.Reactive" Version="6.0.1" />
   </ItemGroup>
 
