@@ -4,7 +4,6 @@ using System.Drawing;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
-using Advantech.Motion;
 using MachineClassLibrary.Classes;
 using MachineClassLibrary.Machine.MotionDevices;
 using MachineClassLibrary.SFC;
@@ -72,29 +71,29 @@ public class DicingBladeMachine : PCI124XXMachine, IHasCamera, IHasSCF, IHasValv
     {
         //if (place != Place.Home)
         //{
-            if (precisely)
+        if (precisely)
+        {
+            var ax = new (int, double, double)[_places[place].Length];
+            for (var i = 0; i < _places[place].Length; i++)
             {
-                var ax = new (int, double, double)[_places[place].Length];
-                for (var i = 0; i < _places[place].Length; i++)
-                {
-                    var axis = _places[place][i].axis;
-                    ax[i] = (_axes[axis].AxisNum, _places[place][i].pos, _axes[axis].LineCoefficient);
-                }
-
-                await _motionDevice.MoveAxesByCoorsPrecAsync(ax).ConfigureAwait(false);
+                var axis = _places[place][i].axis;
+                ax[i] = (_axes[axis].AxisNum, _places[place][i].pos, _axes[axis].LineCoefficient);
             }
-            else
+
+            await _motionDevice.MoveAxesByCoorsPrecAsync(ax).ConfigureAwait(false);
+        }
+        else
+        {
+            var ax = new (int, double)[_places[place].Length];
+            for (var i = 0; i < _places[place].Length; i++)
             {
-                var ax = new (int, double)[_places[place].Length];
-                for (var i = 0; i < _places[place].Length; i++)
-                {
-                    var axis = _places[place][i].axis;
-                    ax[i] = (_axes[axis].AxisNum, _places[place][i].pos);
-                }
-
-                await _motionDevice.MoveAxesByCoorsAsync(ax).ConfigureAwait(false);//TODO it's not realy async
+                var axis = _places[place][i].axis;
+                ax[i] = (_axes[axis].AxisNum, _places[place][i].pos);
             }
-       // }
+
+            await _motionDevice.MoveAxesByCoorsAsync(ax).ConfigureAwait(false);//TODO it's not realy async
+        }
+        // }
         //else
         //{
         //    var arr = new (int, double, uint)[]
@@ -321,6 +320,7 @@ public class DicingBladeMachine : PCI124XXMachine, IHasCamera, IHasSCF, IHasValv
         _canStartSpindlePredicate = blocker;
     }
 
+    //public IVideoCapture GetVideoCapture() => _videoCamera;
     public async Task StartSpindleAsync()
     {
         var result = _canStartSpindlePredicate.Invoke();
@@ -395,7 +395,7 @@ public class DicingBladeMachine : PCI124XXMachine, IHasCamera, IHasSCF, IHasValv
         SetAxFeedSpeed(ax, speed);
         while (!cancellationToken.IsCancellationRequested)
         {
-            await MoveAxInPosAsync(ax, initPosition + amplitude / 2,cancellationToken: cancellationToken).ConfigureAwait(false);
+            await MoveAxInPosAsync(ax, initPosition + amplitude / 2, cancellationToken: cancellationToken).ConfigureAwait(false);
             await MoveAxInPosAsync(ax, initPosition - amplitude / 2, cancellationToken: cancellationToken).ConfigureAwait(false);
         }
         await MoveAxInPosAsync(ax, initPosition).ConfigureAwait(false);
@@ -428,7 +428,7 @@ public class DicingBladeMachine : PCI124XXMachine, IHasCamera, IHasSCF, IHasValv
                 _emgIsSet = true;
                 EmgScenario();
                 _ = _spindle.StopAsync();
-                OnEMG_Pushed?.Invoke(null,null);
+                OnEMG_Pushed?.Invoke(null, null);
             }
         }
         if (_valves is null) return;
@@ -478,6 +478,10 @@ public class DicingBladeMachine : PCI124XXMachine, IHasCamera, IHasSCF, IHasValv
                 new DirectShowCameraNativeSettings(
                     DirectShowHelper.CreateDirectShowDevice(usb.GetCurrentDeviceIndex())));
             usb.TryShowNativeSettings(IntPtr.Zero);
+        }
+        else
+        {
+            _videoCamera.InvokeSettings();
         }
     }
 
@@ -587,7 +591,7 @@ public class SubstituteMachine : IHasMotionPlaces
     private readonly IHasPlaces<Place> _hasPlaces;
     private readonly Velocity _velocity;
 
-    public SubstituteMachine(IHasMotion hasMotion, IHasPlaces<Place> hasPlaces,  Velocity velocity)
+    public SubstituteMachine(IHasMotion hasMotion, IHasPlaces<Place> hasPlaces, Velocity velocity)
     {
         _hasMotion = hasMotion;
         _hasPlaces = hasPlaces;
@@ -630,14 +634,14 @@ public class SubstituteMachine : IHasMotionPlaces
             _hasMotion.SetVelocity(vel);
         }
     }
-    
+
     public async Task GoThereAsync(Place place, bool precisely = false)
     {
         var vel = _hasMotion.VelocityRegime;
         _hasMotion.SetVelocity(_velocity);
         try
         {
-            await _hasPlaces.GoThereAsync(place,precisely).ConfigureAwait(false);
+            await _hasPlaces.GoThereAsync(place, precisely).ConfigureAwait(false);
         }
         catch (Exception)
         {
