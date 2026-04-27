@@ -54,9 +54,9 @@ public class Sunfar : SpindleBase<Sunfar>
     {
         var data = await _client.ReadHoldingRegistersAsync(1, READ_STATUS, 1).ConfigureAwait(false);
         return new SpinStatus(
-            data[0] == STATUS_ON_FREQ_FWD | data[0] == STATUS_ON_FREQ_REV,
-            data[0] == STATUS_ACC_FWD | data[0] == STATUS_ACC_REV,
-            data[0] == STATUS_DEC_FWD | data[0] == STATUS_DEC_REV,
+            data[0] == STATUS_ON_FREQ_FWD || data[0] == STATUS_ON_FREQ_REV,
+            data[0] == STATUS_ACC_FWD || data[0] == STATUS_ACC_REV,
+            data[0] == STATUS_DEC_FWD || data[0] == STATUS_DEC_REV,
             data[0] == STATUS_STOP
             );
     }

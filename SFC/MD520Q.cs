@@ -30,7 +30,7 @@ public class MD520Q : SpindleBase<MD520Q>
     protected override async Task<bool> CheckIfSpindleSpinningAsync()
     {
         var data = await _client.ReadHoldingRegistersAsync(1, READ_AC_DRIVE_STATE_1, 1).ConfigureAwait(false);//when timeout throw an exception
-        return data[0] == STATE_1_RUNNING_FORWARD | data[0] == STATE_1_RUNNING_REVERSE;
+        return data[0] == STATE_1_RUNNING_FORWARD || data[0] == STATE_1_RUNNING_REVERSE;
     }
 
     protected override async Task<int> GetCurrentAsync()
@@ -61,8 +61,8 @@ public class MD520Q : SpindleBase<MD520Q>
 
         await Task.Delay(100).ConfigureAwait(false);
         var f = await GetFrequencyAsync().ConfigureAwait(false);
-        acc = onFreq | stop ? false : f > _freq;
-        dec = onFreq | stop ? false : f < _freq;
+        acc = onFreq || stop ? false : f > _freq;
+        dec = onFreq || stop ? false : f < _freq;
         data = await _client.ReadHoldingRegistersAsync(1, READ_OUTPUT_CURRENT, 1).ConfigureAwait(false);
         current = data[0];
 

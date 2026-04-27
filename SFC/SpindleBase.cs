@@ -204,6 +204,7 @@ public abstract class SpindleBase<T> : ISpindle, IDisposable
             _logger.LogWarning(ex, "Spindle did not stop command.");
         }
         DisposeWithoutReconnection();
+        _reconnectCts?.Dispose();
         _semaphoreSlim?.Dispose();
     }
 
