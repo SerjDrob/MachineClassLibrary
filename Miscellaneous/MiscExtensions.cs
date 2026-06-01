@@ -4,7 +4,6 @@ using System.Collections.ObjectModel;
 using System.ComponentModel;
 using System.Diagnostics;
 using System.IO;
-using System.Linq;
 using System.Reflection;
 using Newtonsoft.Json;
 
@@ -23,7 +22,7 @@ public static class MiscExtensions
     public static T? DeserializeObject<T>(string filePath)
     {
         if (filePath is null) return default;
-        if(!File.Exists(filePath)) return default;
+        if (!File.Exists(filePath)) return default;
         try
         {
             var obj = JsonConvert.DeserializeObject(File.ReadAllText(filePath), typeof(T));
@@ -33,7 +32,7 @@ public static class MiscExtensions
         {
             return default;
         }
-        catch(DirectoryNotFoundException)
+        catch (DirectoryNotFoundException)
         { return default; }
     }
     public static ObservableCollection<T> ToObservableCollection<T>(this IEnumerable<T> en)
