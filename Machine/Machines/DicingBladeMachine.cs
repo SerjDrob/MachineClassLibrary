@@ -579,6 +579,11 @@ public class DicingBladeMachine : PCI124XXMachine, IHasCamera, IHasSCF, IHasValv
         IsCameraFreezed = false;
     }
 
+    public float GetFocusIndex()
+    {
+        throw new NotImplementedException();
+    }
+
     public bool IsCameraFreezed { get; private set; }
 
 }
