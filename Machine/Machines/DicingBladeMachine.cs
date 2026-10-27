@@ -8,6 +8,8 @@ using MachineClassLibrary.Classes;
 using MachineClassLibrary.Machine.MotionDevices;
 using MachineClassLibrary.SFC;
 using MachineClassLibrary.VideoCapture;
+using Microsoft.Toolkit.Diagnostics;
+using OpenCvSharp;
 
 namespace MachineClassLibrary.Machine.Machines;
 
@@ -53,7 +55,71 @@ public class DicingBladeMachine : PCI124XXMachine, IHasCamera, IHasSCF, IHasValv
     public event EventHandler<Bitmap> OnRawBitmapChanged;
     public event EventHandler OnEMG_Pushed;
     public event EventHandler<Velocity> OnVelocityBeenChanged;
+    /// <summary>
+    /// Camera autofocus by moving the Z axis. Maximizes the sharpness measure (see <see cref="IVideoCapture.GetFocusIndex"/>).
+    /// Stage 1: coarse sweep over the whole window with <paramref name="coarseStep"/> to find the sharpest point.
+    /// Stage 2: fine sweep around that point with <paramref name="fineStep"/> and <paramref name="fineRange"/>.
+    /// The Z axis ends at the best focus position. Returns the best found Z coordinate, or null if cancelled/no improvement.
+    /// </summary>
+    public async Task<double?> AutoFocusCameraAsync(
+        CancellationToken token,
+        double windowSize = 3.0,   //mm, total sweep = windowSize
+        double coarseStep = 0.2,       //mm
+        double fineStep = 0.05,        //mm
+        double fineRange = 0.4,        //mm around coarse maximum
+        int settleMilliseconds = 50)  //pause after each move so the camera delivers a fresh frame
+    {
+        Guard.IsGreaterThan(windowSize, 0d, nameof(windowSize));
+        Guard.IsGreaterThan(coarseStep, 0d, nameof(coarseStep));
+        Guard.IsGreaterThan(fineStep, 0d, nameof(fineStep));
 
+        var startPosition = GetAxActual(Ax.Z);
+
+        var bestZ = startPosition;
+        var bestIndex = _videoCamera.GetFocusIndex();
+
+        // Stage 1: coarse sweep from start to (start + half)
+        await MoveAxInPosAsync(Ax.Z, startPosition).ConfigureAwait(false);
+        await Task.Delay(settleMilliseconds, token).ConfigureAwait(false);
+
+        var counter = 0;
+        var task = MoveAxInPosAsync(Ax.Z, startPosition + windowSize);
+        while (!task.IsCompleted)
+        {
+            var index = _videoCamera.GetFocusIndex();
+            if (index > bestIndex)
+            {
+                bestIndex = index;
+                bestZ = GetAxActual(Ax.Z);
+                counter++;
+            }
+        }
+        var curx = GetAxActual(Ax.Z);
+        // Stage 2: fine sweep around the coarse maximum
+        var fineFrom = Math.Max(startPosition, bestZ - fineRange);
+        var fineTo = Math.Min(startPosition + windowSize, bestZ + fineRange);
+        await Task.Delay(settleMilliseconds, token).ConfigureAwait(false);
+
+        counter = 0;
+        await MoveAxInPosAsync(Ax.Z, fineFrom).ConfigureAwait(false);
+        task = MoveAxInPosAsync(Ax.Z, fineTo);
+        while (!task.IsCompleted)
+        {
+            var index = _videoCamera.GetFocusIndex();
+            if (index > bestIndex)
+            {
+                bestIndex = index;
+                bestZ = GetAxActual(Ax.Z);
+                counter++;
+            }
+        }
+
+
+        // Park the axis at the best focus point
+        await MoveAxInPosAsync(Ax.Z, bestZ).ConfigureAwait(false);
+
+        return bestIndex > 0 ? bestZ : (double?)null;
+    }
     public void ConfigureGeometry(Dictionary<Place, (Ax, double)[]> places)
     {
         if (_places is not null)
@@ -676,6 +742,8 @@ public class SubstituteMachine : IHasMotionPlaces
             _hasMotion.SetVelocity(vel);
         }
     }
+
+    
 
     public bool IsMotionDeviceInit { get => throw new NotImplementedException(); set => throw new NotImplementedException(); }
     public Velocity VelocityRegime { get => throw new NotImplementedException(); set => throw new NotImplementedException(); }
